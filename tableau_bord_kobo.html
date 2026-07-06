@@ -46,6 +46,11 @@
         }
         .table-responsive {
             max-height: 600px;
+            overflow-x: auto;
+        }
+        /* Ajout pour éviter que les nombreuses colonnes ne s'écrasent */
+        #data-table th, #data-table td {
+            white-space: nowrap;
         }
         thead th {
             position: sticky;
@@ -135,7 +140,8 @@
             <div class="table-responsive">
                 <table class="table table-striped table-hover table-bordered align-middle" id="data-table">
                     <thead>
-                        <tr>
+                        <!-- L'ID a été ajouté pour injecter dynamiquement les colonnes -->
+                        <tr id="table-header-row">
                             <th>DREN</th>
                             <th>CISCO</th>
                             <th>ZAP</th>
@@ -157,24 +163,19 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Utilisation du proxy CORS
         const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json';
         const apiUrl = 'https://corsproxy.io/?' + encodeURIComponent(koboUrl);
         
         let allData = [];
 
-        // Fonction "Détective" pour analyser les variables complexes de KoboToolbox
         function getKoboValue(row, possibleKeys, excludeKeys = []) {
             for (let key of Object.keys(row)) {
-                // On extrait uniquement le nom de la variable (après le dernier '/')
                 let parts = key.split('/');
                 let variableName = parts[parts.length - 1].toLowerCase();
                 
-                // Si la variable contient un mot interdit, on l'ignore 
                 let isExcluded = excludeKeys.some(ex => variableName.includes(ex));
                 if (isExcluded) continue;
 
-                // Si elle contient le mot recherché, c'est la bonne donnée !
                 for (let pk of possibleKeys) {
                     if (variableName.includes(pk)) {
                         return row[key] || '';
@@ -209,16 +210,85 @@
 
         function renderTable(data) {
             const tbody = $('#table-body');
-            tbody.empty();
+            const theadTr = $('#table-header-row');
             
+            tbody.empty();
+            // Réinitialiser les en-têtes pour ne garder que les 7 de base
+            theadTr.children('th:gt(6)').remove();
+
             if (data.length === 0) {
-                tbody.append('<tr><td colspan="7" class="text-center py-4 text-muted">Aucune donnée trouvée.</td></tr>');
+                tbody.append('<tr><td colspan="100%" class="text-center py-4 text-muted">Aucune donnée trouvée.</td></tr>');
                 $('#record-count').text(0);
                 return;
             }
 
+            // 1. Détection intelligente des colonnes supplémentaires non-système
+            let consumedKeys = new Set();
+            let extraKeysSet = new Set();
+            
+            function isBaseColumn(key) {
+                let parts = key.split('/');
+                let v = parts[parts.length - 1].toLowerCase();
+                let isEx = (arr) => arr.some(ex => v.includes(ex));
+
+                if (v.includes('dren') && !isEx(['activite', 'produit', 'budget', 'cisco', 'zap'])) return true;
+                if (v.includes('cisco') && !isEx(['activite', 'produit', 'budget'])) return true;
+                if (v.includes('zap') && !isEx(['activite', 'produit', 'budget'])) return true;
+                if ((v.includes('activite') || v.includes('activité')) && !isEx(['sous_activite', 'sous-activite'])) return true;
+                if (v.includes('produit') && !isEx(['sous_produit', 'sous-produit'])) return true;
+                if (v.includes('sous_activite') || v.includes('sous-activite')) return true;
+                if (v.includes('sous_produit') || v.includes('sous-produit')) return true;
+                
+                return false;
+            }
+
             data.forEach(row => {
-                // Rapatriement ciblé avec exclusions pour éviter les conflits
+                Object.keys(row).forEach(key => {
+                    // Ignorer les métadonnées de Kobo (id, version, geolocation, etc.)
+                    if (key.startsWith('_') || key.startsWith('meta/') || key === 'formhub/uuid') return;
+                    
+                    if (isBaseColumn(key)) {
+                        consumedKeys.add(key);
+                    } else {
+                        extraKeysSet.add(key);
+                    }
+                });
+            });
+
+            // 2. Génération des en-têtes dynamiques
+            let extraKeys = Array.from(extraKeysSet);
+            extraKeys.forEach(key => {
+                let cleanName = key.split('/').pop().toUpperCase().replace(/_/g, ' ');
+                theadTr.append(`<th>${cleanName}</th>`);
+            });
+
+            // Fonction de consolidation des champs complexes (listes, doublons)
+            function formatExtraValue(val, colName) {
+                if (val === null || val === undefined) return '';
+                let formattedStr = '';
+
+                // Si c'est un groupe répété Kobo, on extrait et on concatène
+                if (Array.isArray(val)) {
+                    formattedStr = val.map(item => {
+                        if (typeof item === 'object') return Object.values(item).join(' | ');
+                        return item;
+                    }).join(' ; ');
+                } else {
+                    formattedStr = String(val);
+                }
+
+                // Nettoyage spécifique pour les entités : suppression des doublons
+                if (colName && colName.includes('ENTITE')) {
+                    let parts = formattedStr.split(/\s*;\s*/).filter(Boolean);
+                    let uniqueParts = [...new Set(parts)];
+                    formattedStr = uniqueParts.join(' ; ');
+                }
+
+                return formattedStr;
+            }
+
+            // 3. Remplissage des lignes
+            data.forEach(row => {
                 const dren = getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap']);
                 const cisco = getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget']);
                 const zap = getKoboValue(row, ['zap'], ['activite', 'produit', 'budget']);
@@ -236,7 +306,13 @@
                 tr.append($('<td></td>').text(sousActivite));
                 tr.append($('<td></td>').text(sousProduit));
                 
-                // Moteur de recherche
+                // Remplissage des colonnes dynamiques
+                extraKeys.forEach(key => {
+                    let colName = key.split('/').pop().toUpperCase();
+                    let val = formatExtraValue(row[key], colName);
+                    tr.append($('<td></td>').text(val));
+                });
+
                 tr.data('search', {
                     dren: String(dren).toLowerCase(),
                     cisco: String(cisco).toLowerCase(),
