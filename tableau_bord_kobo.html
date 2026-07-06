@@ -157,18 +157,26 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Utilisation du proxy CORS pour contourner le blocage sur GitHub Pages
+        // Utilisation du proxy CORS
         const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json';
         const apiUrl = 'https://corsproxy.io/?' + encodeURIComponent(koboUrl);
         
         let allData = [];
 
-        // Fonction pour extraire intelligemment la valeur Kobo (gère les groupes/catégories)
-        function getKoboValue(row, possibleKeys) {
+        // Fonction "Détective" pour analyser les variables complexes de KoboToolbox
+        function getKoboValue(row, possibleKeys, excludeKeys = []) {
             for (let key of Object.keys(row)) {
-                let keyLower = key.toLowerCase();
+                // On extrait uniquement le nom de la variable (après le dernier '/')
+                let parts = key.split('/');
+                let variableName = parts[parts.length - 1].toLowerCase();
+                
+                // Si la variable contient un mot interdit, on l'ignore 
+                let isExcluded = excludeKeys.some(ex => variableName.includes(ex));
+                if (isExcluded) continue;
+
+                // Si elle contient le mot recherché, c'est la bonne donnée !
                 for (let pk of possibleKeys) {
-                    if (keyLower === pk || keyLower.endsWith('/' + pk) || keyLower.endsWith('_' + pk)) {
+                    if (variableName.includes(pk)) {
                         return row[key] || '';
                     }
                 }
@@ -185,8 +193,7 @@
                 const response = await fetch(apiUrl);
                 if (!response.ok) {
                     if(response.status === 401) {
-                        // Ligne corrigée avec les guillemets doubles (")
-                        throw new Error("Erreur 401 : Accès non autorisé. Le formulaire KoboToolbox n'est pas public. Activez le partage public dans les paramètres du projet Kobo.");
+                        throw new Error("Erreur 401 : Accès non autorisé. Le formulaire KoboToolbox n'est pas public.");
                     }
                     throw new Error('Erreur réseau : Code ' + response.status);
                 }
@@ -194,8 +201,7 @@
                 allData = json.results || [];
                 renderTable(allData);
             } catch (error) {
-                $('#error-box').html('<strong><i class="fas fa-exclamation-triangle"></i> Erreur lors du chargement :</strong> ' + error.message + 
-                '<br><small>Astuce : Si vous avez un problème CORS, utilisez un proxy ou vérifiez la visibilité publique des données sur KoboToolbox.</small>').show();
+                $('#error-box').html('<strong><i class="fas fa-exclamation-triangle"></i> Erreur :</strong> ' + error.message).show();
             } finally {
                 $('#loading-box').hide();
             }
@@ -206,20 +212,20 @@
             tbody.empty();
             
             if (data.length === 0) {
-                tbody.append('<tr><td colspan="7" class="text-center py-4 text-muted">Aucune donnée trouvée ou formulaire vide.</td></tr>');
+                tbody.append('<tr><td colspan="7" class="text-center py-4 text-muted">Aucune donnée trouvée.</td></tr>');
                 $('#record-count').text(0);
                 return;
             }
 
             data.forEach(row => {
-                // Mappage flexible des noms de variables Kobo
-                const dren = getKoboValue(row, ['dren']);
-                const cisco = getKoboValue(row, ['cisco']);
-                const zap = getKoboValue(row, ['zap']);
-                const activite = getKoboValue(row, ['activite', 'activité']);
-                const produit = getKoboValue(row, ['produit']);
-                const sousActivite = getKoboValue(row, ['sous_activite', 'sous-activite', 'sous_activité', 'sous-activité']);
-                const sousProduit = getKoboValue(row, ['sous_produit', 'sous-produit']);
+                // Rapatriement ciblé avec exclusions pour éviter les conflits
+                const dren = getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap']);
+                const cisco = getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget']);
+                const zap = getKoboValue(row, ['zap'], ['activite', 'produit', 'budget']);
+                const activite = getKoboValue(row, ['activite', 'activité'], ['sous_activite', 'sous-activite']);
+                const produit = getKoboValue(row, ['produit'], ['sous_produit', 'sous-produit']);
+                const sousActivite = getKoboValue(row, ['sous_activite', 'sous-activite'], []);
+                const sousProduit = getKoboValue(row, ['sous_produit', 'sous-produit'], []);
 
                 const tr = $('<tr></tr>');
                 tr.append($('<td></td>').text(dren));
@@ -230,7 +236,7 @@
                 tr.append($('<td></td>').text(sousActivite));
                 tr.append($('<td></td>').text(sousProduit));
                 
-                // Stockage des textes en minuscules pour un filtrage ultra-rapide
+                // Moteur de recherche
                 tr.data('search', {
                     dren: String(dren).toLowerCase(),
                     cisco: String(cisco).toLowerCase(),
@@ -259,7 +265,7 @@
 
             $('#table-body tr').each(function() {
                 const s = $(this).data('search');
-                if (!s) return; // Ignore la ligne "Aucune donnée"
+                if (!s) return; 
 
                 const match = s.dren.includes(filterDren) &&
                               s.cisco.includes(filterCisco) &&
@@ -287,7 +293,6 @@
         function downloadCSV(csv, filename) {
             let csvFile;
             let downloadLink;
-            // Ajout du BOM pour le support UTF-8 (accents) sous Excel
             let BOM = "\uFEFF";
             csvFile = new Blob([BOM + csv], {type: "text/csv;charset=utf-8;"});
             downloadLink = document.createElement("a");
@@ -304,14 +309,13 @@
             let rows = document.querySelectorAll("#data-table tr");
             
             for (let i = 0; i < rows.length; i++) {
-                // Ne pas exporter les lignes masquées par le filtre
                 if (rows[i].style.display !== 'none') {
                     let row = [], cols = rows[i].querySelectorAll("td, th");
                     for (let j = 0; j < cols.length; j++) {
                         let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""');
                         row.push('"' + data + '"');
                     }
-                    csv.push(row.join(";")); // Séparateur point-virgule pour Excel FR
+                    csv.push(row.join(";")); 
                 }
             }
             downloadCSV(csv.join("\n"), filename);
@@ -319,7 +323,6 @@
 
         $(document).ready(function() {
             fetchData();
-            // Délai pour éviter de surcharger le navigateur lors de la frappe
             let typingTimer;
             const doneTypingInterval = 300; 
             
