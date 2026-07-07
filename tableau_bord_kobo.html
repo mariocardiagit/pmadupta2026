@@ -46,10 +46,10 @@
         }
         .table-responsive {
             max-height: 600px;
-            overflow-x: auto; /* Permet le défilement horizontal pour les nombreuses colonnes */
+            overflow-x: auto;
         }
         #data-table th, #data-table td {
-            white-space: nowrap; /* Empêche les colonnes de s'écraser */
+            white-space: nowrap;
         }
         thead th {
             position: sticky;
@@ -72,6 +72,10 @@
             border-radius: 5px;
             margin-bottom: 20px;
             border: 1px solid #f5c6cb;
+        }
+        .sync-badge {
+            font-size: 0.9rem;
+            padding: 8px 12px;
         }
     </style>
 </head>
@@ -125,17 +129,27 @@
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
                 <span class="visually-hidden">Chargement...</span>
             </div>
-            <h5 class="mt-3 text-secondary">Récupération des données...</h5>
+            <h5 class="mt-3 text-secondary">Synchronisation en cours avec KoboToolbox...</h5>
         </div>
 
         <!-- Tableau des données -->
         <div class="table-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="m-0 text-secondary"><i class="fas fa-table"></i> Résultats (<span id="record-count">0</span> lignes)</h5>
-                <button class="btn btn-success btn-sm" onclick="exportTableToCSV('donnees_kobo.csv')">
-                    <i class="fas fa-file-csv"></i> Exporter CSV
-                </button>
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5 class="m-0 text-secondary"><i class="fas fa-table"></i> Résultats (<span id="record-count">0</span> affichés)</h5>
+                
+                <!-- Zone de contrôle de sécurité de l'intégrité -->
+                <div id="sync-status"></div>
+
+                <div>
+                    <button class="btn btn-primary btn-sm me-2" onclick="fetchData()">
+                        <i class="fas fa-sync-alt"></i> Rafraîchir les données
+                    </button>
+                    <button class="btn btn-success btn-sm" onclick="exportTableToCSV('donnees_kobo.csv')">
+                        <i class="fas fa-file-csv"></i> Exporter CSV
+                    </button>
+                </div>
             </div>
+            
             <div class="table-responsive">
                 <table class="table table-striped table-hover table-bordered align-middle" id="data-table">
                     <thead>
@@ -161,11 +175,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // SOLUTION ANTI-CACHE : On ajoute un timestamp unique à chaque appel
-        const timestamp = new Date().getTime();
-        const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?t=' + timestamp;
-        const apiUrl = 'https://corsproxy.io/?' + encodeURIComponent(koboUrl);
-        
         let allData = [];
 
         function getKoboValue(row, possibleKeys, excludeKeys = []) {
@@ -185,19 +194,57 @@
             return '';
         }
 
+        // Fonction d'audit d'intégrité
+        function verifyDataSync(apiCount) {
+            let tableCount = 0;
+            if (apiCount > 0) {
+                // Compte uniquement les vraies lignes de données générées
+                tableCount = $('#table-body tr').length;
+            }
+
+            const statusDiv = $('#sync-status');
+            if (apiCount === tableCount) {
+                statusDiv.html(`<span class="badge bg-success sync-badge"><i class="fas fa-check-double"></i> Intégrité Validée : ${apiCount} JSON = ${tableCount} HTML</span>`);
+            } else {
+                statusDiv.html(`<span class="badge bg-danger sync-badge"><i class="fas fa-exclamation-triangle"></i> Alerte de sécurité : JSON (${apiCount}) ≠ HTML (${tableCount})</span>`);
+            }
+        }
+
         async function fetchData() {
             $('#loading-box').show();
             $('#error-box').hide();
             $('#table-body').empty();
+            $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Audit en cours...</span>');
             
+            // CACHE BUSTING ABSOLU : Génération dynamique à la milliseconde près lors du clic
+            const timestamp = new Date().getTime();
+            const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + timestamp;
+            const apiUrl = 'https://corsproxy.io/?' + encodeURIComponent(koboUrl);
+
             try {
-                const response = await fetch(apiUrl, { cache: 'no-store' }); // Double sécurité anti-cache
+                // Forçage agressif des entêtes pour interdire l'utilisation d'anciennes mémoires
+                const response = await fetch(apiUrl, { 
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
                 if (!response.ok) throw new Error('Erreur réseau : Code ' + response.status);
+                
                 const json = await response.json();
                 allData = json.results || [];
+                
                 renderTable(allData);
+                
+                // Exécution de l'audit de sécurité
+                verifyDataSync(allData.length);
+
             } catch (error) {
-                $('#error-box').html('<strong>Erreur :</strong> ' + error.message).show();
+                $('#error-box').html('<strong>Erreur de synchronisation :</strong> ' + error.message).show();
+                $('#sync-status').html('<span class="badge bg-danger sync-badge"><i class="fas fa-times-circle"></i> Échec du contrôle</span>');
             } finally {
                 $('#loading-box').hide();
             }
@@ -211,7 +258,7 @@
             theadTr.find('th:gt(6)').remove();
 
             if (data.length === 0) {
-                tbody.append('<tr><td colspan="100%" class="text-center py-4 text-muted">Aucune donnée trouvée.</td></tr>');
+                tbody.append('<tr><td colspan="100%" class="text-center py-4 text-muted">Aucune donnée trouvée sur le serveur KoboToolbox.</td></tr>');
                 $('#record-count').text(0);
                 return;
             }
@@ -260,6 +307,7 @@
                     formattedStr = String(val);
                 }
 
+                // Logique de consolidation stricte
                 if (colName && colName.includes('ENTITE')) {
                     let parts = formattedStr.split(/\s*;\s*/).filter(Boolean);
                     let uniqueParts = [...new Set(parts)];
