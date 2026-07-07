@@ -357,10 +357,16 @@
         function smartKoboAutoCorrect(text) {
             if (!text) return '';
             let t = String(text).toLowerCase();
+
+            // 1. Remplacements EXACTS pour les variables tronquées par Kobo
+            const exactMatches = {
+                'vi_r_f_rentiel_standard_des_pr': "VI. Référentiel standard des preuves par type d'activité",
+                'date_enq': "Date de suivi"
+            };
+            if (exactMatches[t]) return exactMatches[t];
             
-            // Dictionnaire des corrections (inclus l'abréviation de Kobo pour Date_enq)
+            // 2. Remplacements partiels (mots du dictionnaire)
             const corrections = {
-                'date_enq': 'date de suivi',
                 'b_n_ficiaire': 'bénéficiaire', 
                 'r_f_rentiel': 'référentiel', 
                 'd_margement': "d'émargement",
