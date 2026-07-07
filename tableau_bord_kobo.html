@@ -473,8 +473,13 @@
             
             let xmlNameLower = String(xmlName).toLowerCase();
 
-            // --- STRATÉGIE DE LA LISTE BLANCHE (WHITELIST) ---
-            // On vérifie si la colonne est une de celles qui nécessitent le format "Code : Libellé"
+            // 1. RÈGLE D'EXCLUSION STRICTE : Ne pas traduire les colonnes purement quantitatives
+            const noTranslationKeywords = ['realisation', 'nombre', 'budget', 'montant', 'quantit', 'effectif'];
+            if (noTranslationKeywords.some(kw => xmlNameLower.includes(kw))) {
+                return String(val).trim(); // Retourne le chiffre pur
+            }
+
+            // 2. STRATÉGIE DE LA LISTE BLANCHE (WHITELIST)
             const requiresCodeLabel = ['dren', 'cisco', 'zap', 'activite', 'produit', 'sous'];
             let isCodeLabelColumn = requiresCodeLabel.some(kw => xmlNameLower.includes(kw));
             
@@ -484,17 +489,14 @@
                 let pLower = pClean.toLowerCase();
                 let t = null;
 
-                // 1. MOTEUR DE RECHERCHE DANS LE DICTIONNAIRE
+                // MOTEUR DE RECHERCHE DANS LE DICTIONNAIRE
                 if (externalDict[pLower]) {
-                    // Si c'est une colonne de la liste blanche (DREN, CISCO, etc.), 
-                    // on accepte toutes les valeurs, même les chiffres isolés.
-                    // Si ce N'EST PAS dans la liste blanche, on évite d'écraser les chiffres simples (comme les réalisations).
                     if (isCodeLabelColumn || pLower.length > 1 || isNaN(pLower)) {
                         t = externalDict[pLower];
                     }
                 }
 
-                // 2. Base de secours en dur pour les DREN (uniquement si concerné)
+                // Base de secours en dur pour les DREN (uniquement si concerné)
                 if (!t && xmlNameLower.includes('dren')) {
                     const drenFallback = {
                         '11': 'ANALAMANGA', '12': 'VAKINANKARATRA', '13': 'ITASY', '14': 'BONGOLAVA',
@@ -507,18 +509,15 @@
                     t = drenFallback[pClean];
                 }
 
-                // 3. ASSEMBLAGE FINAL
+                // ASSEMBLAGE FINAL
                 if (t) {
                     if (isCodeLabelColumn) {
-                        // C'est une colonne DREN, CISCO, ZAP, Activité... => Format "Code : Libellé"
                         return pClean + ' : ' + t;
                     } else {
-                        // Ce n'est pas une de ces colonnes, mais on a trouvé une traduction (ex: 1 = Oui) => Libellé seul
                         return t;
                     }
                 }
                 
-                // Si aucune traduction n'est trouvée (ou si c'est un nombre quantitatif) => Valeur brute
                 return pClean;
             });
             return translatedParts.join(' ; ');
