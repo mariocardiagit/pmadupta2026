@@ -358,17 +358,40 @@
             if (!text) return '';
             let t = String(text).toLowerCase();
             
+            // Dictionnaire des corrections (inclus l'abréviation de Kobo pour Date_enq)
             const corrections = {
-                'b_n_ficiaire': 'bénéficiaire', 'r_f_rentiel': 'référentiel', 'd_margement': "d'émargement",
-                'activit_': 'activité', 'num_ro': 'numéro', 'p_dagogique': 'pédagogique', 'g_n_ral': 'général',
-                'pr_sence': 'présence', 'dipl_me': 'diplôme', 't_l_phone': 'téléphone', 'cr_ation': 'création',
-                'r_union': 'réunion', 'd_tail': 'détail', 'fr_quence': 'fréquence', 'p_riode': 'période',
-                'd_but': 'début', 'cl_ture': 'clôture', 'mat_riel': 'matériel', 'r_ponse': 'réponse',
-                'identit_': 'identité', 'r_gion': 'région', 'd_partement': 'département', '_tablissement': 'établissement',
-                '_cole': 'école', '_l_ve': 'élève', 's_curit_': 'sécurité'
+                'date_enq': 'date de suivi',
+                'b_n_ficiaire': 'bénéficiaire', 
+                'r_f_rentiel': 'référentiel', 
+                'd_margement': "d'émargement",
+                'activit_': 'activité', 
+                'num_ro': 'numéro', 
+                'p_dagogique': 'pédagogique', 
+                'g_n_ral': 'général',
+                'pr_sence': 'présence', 
+                'dipl_me': 'diplôme', 
+                't_l_phone': 'téléphone', 
+                'cr_ation': 'création',
+                'r_union': 'réunion', 
+                'd_tail': 'détail', 
+                'fr_quence': 'fréquence', 
+                'p_riode': 'période',
+                'd_but': 'début', 
+                'cl_ture': 'clôture', 
+                'mat_riel': 'matériel', 
+                'r_ponse': 'réponse',
+                'identit_': 'identité', 
+                'r_gion': 'région', 
+                'd_partement': 'département', 
+                '_tablissement': 'établissement',
+                '_cole': 'école', 
+                '_l_ve': 'élève', 
+                's_curit_': 'sécurité'
             };
 
-            for (const [bad, good] of Object.entries(corrections)) { t = t.replace(new RegExp(bad, 'g'), good); }
+            for (const [bad, good] of Object.entries(corrections)) { 
+                t = t.replace(new RegExp(bad, 'g'), good); 
+            }
             t = t.replace(/\b(d|l|qu|s|m|t|n)_/g, "$1'");
             t = t.replace(/_/g, ' ');
             return t.charAt(0).toUpperCase() + t.slice(1);
@@ -584,7 +607,6 @@
                         let found = findXmlName(r, col.matches, col.ex, col.mustMatch);
                         if (found) { 
                             col.xmlName = found; 
-                            // ON NE TOUCHE PAS A col.label ICI ! Il garde son beau titre générique défini plus haut.
                         }
                     }
                 });
