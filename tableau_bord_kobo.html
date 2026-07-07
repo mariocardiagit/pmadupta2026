@@ -50,6 +50,7 @@
         }
         #data-table th, #data-table td {
             white-space: nowrap;
+            vertical-align: middle;
         }
         thead th {
             position: sticky;
@@ -137,7 +138,6 @@
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <h5 class="m-0 text-secondary"><i class="fas fa-table"></i> Résultats (<span id="record-count">0</span> affichés)</h5>
                 
-                <!-- Zone de contrôle de sécurité de l'intégrité -->
                 <div id="sync-status"></div>
 
                 <div>
@@ -194,11 +194,9 @@
             return '';
         }
 
-        // Fonction d'audit d'intégrité
         function verifyDataSync(apiCount) {
             let tableCount = 0;
             if (apiCount > 0) {
-                // Compte uniquement les vraies lignes de données générées
                 tableCount = $('#table-body tr').length;
             }
 
@@ -216,13 +214,11 @@
             $('#table-body').empty();
             $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Audit en cours...</span>');
             
-            // CACHE BUSTING ABSOLU : Génération dynamique à la milliseconde près lors du clic
             const timestamp = new Date().getTime();
             const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + timestamp;
             const apiUrl = 'https://corsproxy.io/?' + encodeURIComponent(koboUrl);
 
             try {
-                // Forçage agressif des entêtes pour interdire l'utilisation d'anciennes mémoires
                 const response = await fetch(apiUrl, { 
                     cache: 'no-store',
                     headers: {
@@ -238,8 +234,6 @@
                 allData = json.results || [];
                 
                 renderTable(allData);
-                
-                // Exécution de l'audit de sécurité
                 verifyDataSync(allData.length);
 
             } catch (error) {
@@ -294,30 +288,48 @@
                 theadTr.append(`<th>${cleanName}</th>`);
             });
 
-            function formatExtraValue(val, colName) {
+            // Nouvelle fonction de formatage pour gérer les liens
+            function formatExtraValue(val, colName, rowData) {
                 if (val === null || val === undefined) return '';
-                let formattedStr = '';
 
+                // 1. Extraction et aplatissement des textes bruts
+                let parts = [];
                 if (Array.isArray(val)) {
-                    formattedStr = val.map(item => {
+                    parts = val.map(item => {
                         if (typeof item === 'object') return Object.values(item).join(' | ');
-                        return item;
-                    }).join(' ; ');
+                        return String(item);
+                    });
                 } else {
-                    formattedStr = String(val);
+                    parts = [String(val)];
                 }
 
-                // Logique de consolidation stricte
+                // 2. Consolidation spécifique
                 if (colName && colName.includes('ENTITE')) {
-                    let parts = formattedStr.split(/\s*;\s*/).filter(Boolean);
-                    let uniqueParts = [...new Set(parts)];
-                    formattedStr = uniqueParts.join(' ; ');
+                    let allSubParts = parts.flatMap(p => p.split(/\s*;\s*/)).filter(Boolean);
+                    parts = [...new Set(allSubParts)];
                 } else if (colName && colName.includes('OBSERVATIONS')) {
-                    let parts = formattedStr.split(/\s*;\s*/).filter(Boolean);
-                    formattedStr = parts.join(' ; '); 
+                    let allSubParts = parts.flatMap(p => p.split(/\s*;\s*/)).filter(Boolean);
+                    parts = allSubParts;
                 }
 
-                return formattedStr;
+                // 3. Transformation intelligente des fichiers en liens HTML
+                const linkify = (str) => {
+                    if (!rowData || !rowData._attachments) return str;
+                    
+                    // On gère le cas où plusieurs infos sont séparées par ' | '
+                    let subParts = str.split(' | ');
+                    let linkifiedSubParts = subParts.map(subStr => {
+                        // Cherche une correspondance exacte avec le nom du fichier
+                        let att = rowData._attachments.find(a => a.media_file_basename === subStr);
+                        if (att && att.download_url) {
+                            return `<a href="${att.download_url}" target="_blank" class="badge bg-primary text-white text-decoration-none py-1 px-2 mx-1 shadow-sm" title="Cliquez pour visualiser le document"><i class="fas fa-external-link-alt"></i> ${subStr}</a>`;
+                        }
+                        return subStr;
+                    });
+                    return linkifiedSubParts.join(' | ');
+                };
+
+                return parts.map(p => linkify(p)).join(' ; ');
             }
 
             data.forEach(row => {
@@ -340,8 +352,11 @@
                 
                 extraKeys.forEach(key => {
                     let colName = key.split('/').pop().toUpperCase();
-                    let val = formatExtraValue(row[key], colName);
-                    tr.append($('<td></td>').text(val));
+                    // On passe la ligne complète 'row' pour permettre l'analyse des pièces jointes
+                    let valHtml = formatExtraValue(row[key], colName, row);
+                    
+                    // Remplacement de .text() par .html() pour afficher les boutons cliquables
+                    tr.append($('<td></td>').html(valHtml));
                 });
 
                 tr.data('search', {
@@ -411,7 +426,8 @@
                 if (rows[i].style.display !== 'none') {
                     let row = [], cols = rows[i].querySelectorAll("td, th");
                     for (let j = 0; j < cols.length; j++) {
-                        let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""');
+                        // innerText extrait parfaitement le nom du fichier caché derrière le bouton
+                        let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""').trim();
                         row.push('"' + data + '"');
                     }
                     csv.push(row.join(";")); 
