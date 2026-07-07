@@ -226,7 +226,6 @@
             return matrix[b.length][a.length];
         }
 
-        // Fonction d'évaluation de la recherche avec seuil d'erreur
         function fuzzyMatch(query, target) {
             if (!query) return true;
             if (!target) return false;
@@ -234,14 +233,11 @@
             query = query.trim().toLowerCase();
             target = target.toLowerCase();
             
-            // Correspondance parfaite ou sous-chaîne exacte
             if (target.includes(query)) return true;
             
-            // Correspondance Floue (Tolérance 1 faute / Levenshtein <= 1)
             const targetWords = target.split(/[\s,;.-]+/);
             const queryWords = query.split(/[\s,;.-]+/);
             
-            // Chaque mot de la requête doit matcher (exact ou erreur de 1) un mot de la cible
             let allWordsMatch = true;
             for (let qw of queryWords) {
                 if (!qw) continue;
@@ -547,7 +543,7 @@
                     let linkifiedSubParts = subParts.map(subStr => {
                         let att = rowData._attachments.find(a => a.media_file_basename === subStr);
                         if (att && att.download_url) {
-                            return `<a href="${att.download_url}" target="_blank" class="badge bg-primary text-white text-decoration-none py-1 px-2 mx-1 shadow-sm"><i class="fas fa-external-link-alt"></i> ${subStr}</a>`;
+                            return `<a href="${att.download_url}" target="_blank" class="text-primary text-decoration-underline" style="word-break: break-all;" title="Ouvrir l'image"><i class="fas fa-link"></i> ${att.download_url}</a>`;
                         }
                         return subStr;
                     });
@@ -591,13 +587,13 @@
                 });
 
                 tr.data('search', {
-                    dren: String(dren),
-                    cisco: String(cisco),
-                    zap: String(zap),
-                    activite: String(activite),
-                    produit: String(produit),
-                    sousActivite: String(sousActivite),
-                    sousProduit: String(sousProduit)
+                    dren: String(dren).toLowerCase(),
+                    cisco: String(cisco).toLowerCase(),
+                    zap: String(zap).toLowerCase(),
+                    activite: String(activite).toLowerCase(),
+                    produit: String(produit).toLowerCase(),
+                    sousActivite: String(sousActivite).toLowerCase(),
+                    sousProduit: String(sousProduit).toLowerCase()
                 });
 
                 tbody.append(tr);
@@ -605,7 +601,6 @@
             $('#record-count').text(data.length);
         }
 
-        // Filtre mis à jour pour utiliser la distance de Levenshtein (Fuzzy Match)
         function applyFilters() {
             const filters = {
                 dren: $('#filter-dren').val(),
