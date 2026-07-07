@@ -53,7 +53,6 @@
             vertical-align: middle;
             text-align: center;
         }
-        /* Style pour la ligne supérieure de groupement */
         .group-header-survey {
             background-color: #2980b9 !important;
             color: white !important;
@@ -70,7 +69,6 @@
             letter-spacing: 0.5px;
             border-bottom: 2px solid #616a6b !important;
         }
-        /* Style pour les en-têtes individuels */
         .sub-header-survey {
             background-color: #34495e !important;
             color: white !important;
@@ -110,37 +108,37 @@
     <div class="container-fluid">
         <h2 class="text-center header-title"><i class="fas fa-database"></i> Tableau de Bord : Données KoboToolbox</h2>
 
-        <!-- Panneau de Filtres -->
+        <!-- Panneau de Filtres (Désactivation stricte du cache du navigateur) -->
         <div class="filter-card">
             <h5 class="mb-3 text-secondary"><i class="fas fa-filter"></i> Filtres de recherche</h5>
             <div class="row g-3">
                 <div class="col-md-3">
                     <label class="filter-label" id="lbl-dren">DREN</label>
-                    <input type="text" id="filter-dren" class="form-control filter-input" placeholder="Rechercher...">
+                    <input type="text" id="filter-dren" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                 </div>
                 <div class="col-md-3">
                     <label class="filter-label" id="lbl-cisco">CISCO</label>
-                    <input type="text" id="filter-cisco" class="form-control filter-input" placeholder="Rechercher...">
+                    <input type="text" id="filter-cisco" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                 </div>
                 <div class="col-md-3">
                     <label class="filter-label" id="lbl-zap">ZAP</label>
-                    <input type="text" id="filter-zap" class="form-control filter-input" placeholder="Rechercher...">
+                    <input type="text" id="filter-zap" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                 </div>
                 <div class="col-md-3">
                     <label class="filter-label" id="lbl-activite">Activité</label>
-                    <input type="text" id="filter-activite" class="form-control filter-input" placeholder="Rechercher...">
+                    <input type="text" id="filter-activite" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                 </div>
                 <div class="col-md-4">
                     <label class="filter-label" id="lbl-produit">Produit</label>
-                    <input type="text" id="filter-produit" class="form-control filter-input" placeholder="Rechercher...">
+                    <input type="text" id="filter-produit" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                 </div>
                 <div class="col-md-4">
                     <label class="filter-label" id="lbl-sous-activite">Sous-activité</label>
-                    <input type="text" id="filter-sous-activite" class="form-control filter-input" placeholder="Rechercher...">
+                    <input type="text" id="filter-sous-activite" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                 </div>
                 <div class="col-md-4">
                     <label class="filter-label" id="lbl-sous-produit">Sous-produit</label>
-                    <input type="text" id="filter-sous-produit" class="form-control filter-input" placeholder="Rechercher...">
+                    <input type="text" id="filter-sous-produit" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                 </div>
             </div>
             <div class="mt-3 text-end">
@@ -179,9 +177,9 @@
             <div class="table-responsive">
                 <table class="table table-striped table-hover table-bordered align-middle" id="data-table">
                     <thead>
-                        <!-- Ligne 1 : Les Grands Groupes (Générée dynamiquement en JS) -->
+                        <!-- Ligne 1 : Groupement -->
                         <tr id="table-group-header-row"></tr>
-                        <!-- Ligne 2 : Les En-têtes individuels (Générée dynamiquement en JS) -->
+                        <!-- Ligne 2 : En-têtes individuels -->
                         <tr id="table-sub-header-row"></tr>
                     </thead>
                     <tbody id="table-body">
@@ -201,8 +199,67 @@
         let valueMap = {};
         let questionListMap = {};
 
-        // Liste explicite des mots-clés identifiant les métadonnées système automatiques de Kobo
         const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
+
+        // ALGORITHME DE RECHERCHE : Distance de Levenshtein
+        function levenshtein(a, b) {
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+            
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
+            for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
+            
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1, // Substitution
+                            matrix[i][j - 1] + 1,     // Insertion
+                            matrix[i - 1][j] + 1      // Suppression
+                        );
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        // Fonction d'évaluation de la recherche avec seuil d'erreur
+        function fuzzyMatch(query, target) {
+            if (!query) return true;
+            if (!target) return false;
+            
+            query = query.trim().toLowerCase();
+            target = target.toLowerCase();
+            
+            // Correspondance parfaite ou sous-chaîne exacte
+            if (target.includes(query)) return true;
+            
+            // Correspondance Floue (Tolérance 1 faute / Levenshtein <= 1)
+            const targetWords = target.split(/[\s,;.-]+/);
+            const queryWords = query.split(/[\s,;.-]+/);
+            
+            // Chaque mot de la requête doit matcher (exact ou erreur de 1) un mot de la cible
+            let allWordsMatch = true;
+            for (let qw of queryWords) {
+                if (!qw) continue;
+                let wordMatch = false;
+                for (let tw of targetWords) {
+                    if (!tw) continue;
+                    if (tw.includes(qw) || levenshtein(qw, tw) <= 1) {
+                        wordMatch = true;
+                        break;
+                    }
+                }
+                if (!wordMatch) {
+                    allWordsMatch = false;
+                    break;
+                }
+            }
+            return allWordsMatch;
+        }
 
         async function fetchSchema() {
             const schemaUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf.json');
@@ -216,9 +273,7 @@
                         if (q.name) {
                             let label = q.label;
                             if (Array.isArray(label)) label = label[0];
-                            if (typeof label === 'object' && label !== null) {
-                                label = label[Object.keys(label)[0]]; 
-                            }
+                            if (typeof label === 'object' && label !== null) label = label[Object.keys(label)[0]]; 
                             if (label) headerMap[String(q.name).toLowerCase()] = label;
                             
                             let qType = q.type || '';
@@ -228,9 +283,7 @@
                                 let parts = qType.trim().split(/\s+/); 
                                 if (parts.length > 1) listName = parts[1];
                             }
-                            if (listName) {
-                                questionListMap[String(q.name).toLowerCase()] = String(listName).toLowerCase();
-                            }
+                            if (listName) questionListMap[String(q.name).toLowerCase()] = String(listName).toLowerCase();
                         }
                     });
                 }
@@ -240,9 +293,7 @@
                         if (c.list_name && c.name !== undefined) {
                             let label = c.label;
                             if (Array.isArray(label)) label = label[0];
-                            if (typeof label === 'object' && label !== null) {
-                                label = label[Object.keys(label)[0]];
-                            }
+                            if (typeof label === 'object' && label !== null) label = label[Object.keys(label)[0]];
                             if (label) {
                                 let key = String(c.list_name).toLowerCase() + '::' + String(c.name).toLowerCase();
                                 valueMap[key] = label;
@@ -371,7 +422,6 @@
                 return;
             }
 
-            // A. Définition ordonnée des 7 colonnes de base (Toujours considérées comme Questionnaire / Saisies)
             let baseColsInfo = [
                 { key: 'dren', matches: ['dren'], ex: ['activite', 'produit', 'budget', 'cisco', 'zap'], label: 'DREN', xmlName: '' },
                 { key: 'cisco', matches: ['cisco'], ex: ['activite', 'produit', 'budget'], label: 'CISCO', xmlName: '' },
@@ -396,7 +446,6 @@
                 return null;
             }
 
-            // Extraction des vrais noms XML pour traduire les 7 en-têtes de base
             for(let r of data) {
                 baseColsInfo.forEach(col => {
                     if (!col.xmlName) {
@@ -409,7 +458,6 @@
                 });
             }
 
-            // Helper pour savoir si une clé brute Kobo fait partie des 7 colonnes de base
             function isBaseColumn(key) {
                 let parts = key.split('/');
                 let v = parts[parts.length - 1].toLowerCase();
@@ -426,21 +474,17 @@
                 return false;
             }
 
-            // B. Tri et Répartition de toutes les AUTRES colonnes du JSON
             let extraSurveyKeysSet = new Set();
             let metadataKeysSet = new Set();
 
             data.forEach(row => {
                 Object.keys(row).forEach(key => {
-                    // Les pièces jointes et statuts de validation restent exclus ou traités à part
                     if (key === '_attachments' || key === '_validation_status') return; 
-                    if (isBaseColumn(key)) return; // Géré par les 7 de base
+                    if (isBaseColumn(key)) return; 
 
                     let parts = key.split('/');
                     let xmlNameLower = parts[parts.length - 1].toLowerCase();
-
-                    // Si le nom contient un mot-clé système ou commence par un tiret du bas -> C'est une métadonnée
-                    let isMeta = metaKeywords.some(kw => xmlNameLower.includes(keyKeywordsClean(kw))) || parts[parts.length - 1].startsWith('_');
+                    let isMeta = metaKeywords.some(kw => xmlNameLower.includes(kw.replace(/_/g, ''))) || parts[parts.length - 1].startsWith('_');
                     
                     if (isMeta) {
                         metadataKeysSet.add(key);
@@ -450,12 +494,9 @@
                 });
             });
 
-            function keyKeywordsClean(kw) { return kw.replace(/_/g, ''); }
-
             let extraSurveyKeys = Array.from(extraSurveyKeysSet);
             let metadataKeys = Array.from(metadataKeysSet);
 
-            // C. CALCUL ET RENDU DES DEUX GRANDS GROUPES (Ligne 1 de l'en-tête)
             let totalSurveyColumnsCount = baseColsInfo.length + extraSurveyKeys.length;
             let totalMetadataColumnsCount = metadataKeys.length;
 
@@ -466,24 +507,18 @@
                 groupHeaderTr.append(`<th colspan="${totalMetadataColumnsCount}" class="group-header-meta"><i class="fas fa-cogs"></i> Métadonnées KoboToolbox (Générées Automatiquement)</th>`);
             }
 
-            // D. RENDU DES EN-TÊTES INDIVIDUELS (Ligne 2 de l'en-tête)
-            // 1. Les 7 de base (A gauche)
             baseColsInfo.forEach(col => {
                 subHeaderTr.append(`<th class="sub-header-survey">${col.label}</th>`);
             });
-            // 2. Les questions de formulaire supplémentaires (Au milieu)
             extraSurveyKeys.forEach(key => {
                 let xmlName = key.split('/').pop();
                 subHeaderTr.append(`<th class="sub-header-survey">${getTranslatedHeader(xmlName)}</th>`);
             });
-            // 3. Les métadonnées automatiques (A droite)
             metadataKeys.forEach(key => {
                 let xmlName = key.split('/').pop();
                 subHeaderTr.append(`<th class="sub-header-meta">${getTranslatedHeader(xmlName)}</th>`);
             });
 
-
-            // E. FORMATAGE DES CELLULES ET CONSOLIDATION
             function formatExtraValue(val, colName, rowData, xmlName) {
                 if (val === null || val === undefined) return '';
 
@@ -522,7 +557,6 @@
                 return parts.map(p => linkify(p)).join(' ; ');
             }
 
-            // F. REMPLISSAGE DES LIGNES DE DONNÉES
             data.forEach(row => {
                 const dren = getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap']);
                 const cisco = getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget']);
@@ -534,7 +568,6 @@
 
                 const tr = $('<tr></tr>');
                 
-                // 1. Injection des 7 colonnes de base (Saisies)
                 tr.append($('<td></td>').text(dren));
                 tr.append($('<td></td>').text(cisco));
                 tr.append($('<td></td>').text(zap));
@@ -543,7 +576,6 @@
                 tr.append($('<td></td>').text(sousActivite));
                 tr.append($('<td></td>').text(sousProduit));
                 
-                // 2. Injection des questions de formulaire supplémentaires (Saisies)
                 extraSurveyKeys.forEach(key => {
                     let xmlName = key.split('/').pop();
                     let colName = xmlName.toUpperCase();
@@ -551,7 +583,6 @@
                     tr.append($('<td></td>').html(valHtml));
                 });
 
-                // 3. Injection des métadonnées automatiques (Système - Tout à droite)
                 metadataKeys.forEach(key => {
                     let xmlName = key.split('/').pop();
                     let colName = xmlName.toUpperCase();
@@ -559,15 +590,14 @@
                     tr.append($('<td></td>').html(valHtml));
                 });
 
-                // Moteur de filtrage (Basé sur les 7 clés d'indexation principales)
                 tr.data('search', {
-                    dren: String(dren).toLowerCase(),
-                    cisco: String(cisco).toLowerCase(),
-                    zap: String(zap).toLowerCase(),
-                    activite: String(activite).toLowerCase(),
-                    produit: String(produit).toLowerCase(),
-                    sousActivite: String(sousActivite).toLowerCase(),
-                    sousProduit: String(sousProduit).toLowerCase()
+                    dren: String(dren),
+                    cisco: String(cisco),
+                    zap: String(zap),
+                    activite: String(activite),
+                    produit: String(produit),
+                    sousActivite: String(sousActivite),
+                    sousProduit: String(sousProduit)
                 });
 
                 tbody.append(tr);
@@ -575,15 +605,16 @@
             $('#record-count').text(data.length);
         }
 
+        // Filtre mis à jour pour utiliser la distance de Levenshtein (Fuzzy Match)
         function applyFilters() {
             const filters = {
-                dren: $('#filter-dren').val().toLowerCase(),
-                cisco: $('#filter-cisco').val().toLowerCase(),
-                zap: $('#filter-zap').val().toLowerCase(),
-                activite: $('#filter-activite').val().toLowerCase(),
-                produit: $('#filter-produit').val().toLowerCase(),
-                sousActivite: $('#filter-sous-activite').val().toLowerCase(),
-                sousProduit: $('#filter-sous-produit').val().toLowerCase()
+                dren: $('#filter-dren').val(),
+                cisco: $('#filter-cisco').val(),
+                zap: $('#filter-zap').val(),
+                activite: $('#filter-activite').val(),
+                produit: $('#filter-produit').val(),
+                sousActivite: $('#filter-sous-activite').val(),
+                sousProduit: $('#filter-sous-produit').val()
             };
 
             let visibleCount = 0;
@@ -591,7 +622,7 @@
                 const s = $(this).data('search');
                 if (!s) return; 
 
-                const match = Object.keys(filters).every(k => s[k].includes(filters[k]));
+                const match = Object.keys(filters).every(k => fuzzyMatch(filters[k], s[k]));
 
                 if (match) {
                     $(this).show();
@@ -621,14 +652,10 @@
 
         function exportTableToCSV(filename) {
             let csv = [];
-            
-            // Pour l'export CSV, on prend les en-têtes de la ligne 2 (les noms réels des colonnes)
             let rows = document.querySelectorAll("#data-table tr");
             
             for (let i = 0; i < rows.length; i++) {
-                // On ignore la ligne 1 de groupement global dans l'export Excel/CSV pour garder une structure plate propre
                 if (rows[i].id === 'table-group-header-row') continue;
-
                 if (rows[i].style.display !== 'none') {
                     let row = [], cols = rows[i].querySelectorAll("td, th");
                     for (let j = 0; j < cols.length; j++) {
