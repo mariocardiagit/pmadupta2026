@@ -10,8 +10,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Chart.js pour les graphiques analytiques -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { 
             background-color: #f4f7f6; 
@@ -57,7 +55,7 @@
         }
         .table-responsive {
             max-height: 600px;
-            overflow: auto; /* Active le défilement Horizontal ET Vertical */
+            overflow: auto; 
             scroll-behavior: smooth;
         }
         #data-table th, #data-table td {
@@ -86,7 +84,6 @@
         .sub-header-survey { background-color: #34495e !important; color: white !important; font-weight: 500; }
         .sub-header-meta { background-color: #95a5a6 !important; color: white !important; font-weight: 500; }
         
-        /* Garde l'en-tête toujours visible lors du défilement vers le bas */
         thead { position: sticky; top: 0; z-index: 10; }
         
         .spinner-container { display: none; padding: 40px; text-align: center; }
@@ -136,7 +133,7 @@
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="analyse-tab" data-bs-toggle="tab" data-bs-target="#analyse" type="button" role="tab" aria-controls="analyse" aria-selected="false">
-                    <i class="fas fa-chart-pie"></i> Onglet 2 : Analyse & IA
+                    <i class="fas fa-chart-line"></i> Onglet 2 : Analyse & IA
                 </button>
             </li>
         </ul>
@@ -192,7 +189,6 @@
                     <h5 class="m-0 text-secondary">Lignes affichées : <span id="record-count" class="badge bg-primary">0</span></h5>
                     
                     <div class="d-flex align-items-center flex-wrap gap-3">
-                        <!-- Boutons Radios pour les images -->
                         <div class="btn-group" role="group" aria-label="Mode d'affichage des fichiers">
                             <input type="radio" class="btn-check" name="imageDisplayMode" id="mode-url" value="url" autocomplete="off" checked onchange="toggleImageMode()">
                             <label class="btn btn-outline-secondary btn-sm" for="mode-url"><i class="fas fa-link"></i> Chemins Absolus</label>
@@ -201,7 +197,6 @@
                             <label class="btn btn-outline-secondary btn-sm" for="mode-img"><i class="fas fa-image"></i> Véritables Images</label>
                         </div>
 
-                        <!-- Boutons de défilement (4 directions) -->
                         <div class="btn-group" role="group" aria-label="Défilement du tableau">
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableLeft()" title="Défiler vers la gauche"><i class="fas fa-arrow-left"></i></button>
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableRight()" title="Défiler vers la droite"><i class="fas fa-arrow-right"></i></button>
@@ -209,7 +204,6 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
-                        <!-- Bouton d'export -->
                         <button class="btn btn-success btn-sm" onclick="exportTableToCSV('donnees_kobo.csv')">
                             <i class="fas fa-file-csv"></i> Exporter CSV
                         </button>
@@ -229,7 +223,7 @@
                 </div>
             </div>
 
-            <!-- ONGLET 2 : ANALYSE & IA -->
+            <!-- ONGLET 2 : ANALYSE & IA (Tableaux détaillés) -->
             <div class="tab-pane fade" id="analyse" role="tabpanel" aria-labelledby="analyse-tab">
                 
                 <!-- Rapport IA -->
@@ -240,21 +234,45 @@
                     </div>
                 </div>
 
-                <!-- Graphiques -->
+                <!-- Tableaux DREN et CISCO -->
                 <div class="row">
                     <div class="col-md-6 mb-4">
-                        <div class="analysis-card shadow-sm h-100 text-center">
-                            <h5 class="text-secondary"><i class="fas fa-chart-pie"></i> Répartition des Soumissions par DREN</h5>
-                            <div style="position: relative; height:350px; width:100%">
-                                <canvas id="drenChart"></canvas>
+                        <div class="analysis-card shadow-sm h-100">
+                            <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par DREN</h5>
+                            <input type="text" id="search-dren-table" class="form-control form-control-sm mb-3" placeholder="Filtrer une DREN..." autocomplete="off">
+                            <div class="table-responsive" style="max-height: 350px;">
+                                <table class="table table-sm table-bordered table-hover text-center align-middle">
+                                    <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
+                                        <tr>
+                                            <th>Nom de la DREN</th>
+                                            <th>Soumissions</th>
+                                            <th>Part (%)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dren-summary-table">
+                                        <!-- JS Injection -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6 mb-4">
-                        <div class="analysis-card shadow-sm h-100 text-center">
-                            <h5 class="text-secondary"><i class="fas fa-chart-bar"></i> Volume des Soumissions par CISCO</h5>
-                            <div style="position: relative; height:350px; width:100%">
-                                <canvas id="ciscoChart"></canvas>
+                        <div class="analysis-card shadow-sm h-100">
+                            <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par CISCO</h5>
+                            <input type="text" id="search-cisco-table" class="form-control form-control-sm mb-3" placeholder="Filtrer une CISCO..." autocomplete="off">
+                            <div class="table-responsive" style="max-height: 350px;">
+                                <table class="table table-sm table-bordered table-hover text-center align-middle">
+                                    <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
+                                        <tr>
+                                            <th>Nom de la CISCO</th>
+                                            <th>Soumissions</th>
+                                            <th>Part (%)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cisco-summary-table">
+                                        <!-- JS Injection -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -264,13 +282,15 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="analysis-card shadow-sm">
-                            <h5 class="text-secondary mb-3"><i class="fas fa-list-ol"></i> Top Soumissions par ZAP</h5>
-                            <div class="table-responsive">
-                                <table class="table table-sm table-bordered table-striped text-center">
-                                    <thead class="table-dark">
+                            <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par ZAP</h5>
+                            <input type="text" id="search-zap-table" class="form-control form-control-sm mb-3" placeholder="Filtrer une ZAP..." autocomplete="off">
+                            <div class="table-responsive" style="max-height: 350px;">
+                                <table class="table table-sm table-bordered table-hover text-center align-middle">
+                                    <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
                                         <tr>
                                             <th>Nom de la ZAP</th>
-                                            <th>Nombre de formulaires soumis</th>
+                                            <th>Soumissions</th>
+                                            <th>Part (%)</th>
                                         </tr>
                                     </thead>
                                     <tbody id="zap-summary-table">
@@ -295,13 +315,11 @@
         let headerMap = {};
         let valueMap = {};
         let questionListMap = {};
-        let chartsInstances = {}; 
-        
         let currentImageMode = 'url'; 
 
         const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
-        // === UTILITAIRES UX (Défilement 4 directions) ===
+        // === UTILITAIRES UX ===
         function scrollTableLeft() { document.getElementById('table-scroll-container').scrollBy({ left: -400, behavior: 'smooth' }); }
         function scrollTableRight() { document.getElementById('table-scroll-container').scrollBy({ left: 400, behavior: 'smooth' }); }
         function scrollTableUp() { document.getElementById('table-scroll-container').scrollBy({ top: -400, behavior: 'smooth' }); }
@@ -313,12 +331,11 @@
             applyFilters();
         }
 
-        // === CORRECTEUR ORTHOGRAPHIQUE KOBO (Restauration intelligente des Accents & Apostrophes) ===
+        // === CORRECTEUR ORTHOGRAPHIQUE KOBO ===
         function smartKoboAutoCorrect(text) {
             if (!text) return '';
             let t = String(text).toLowerCase();
             
-            // 1. Dictionnaire des fragments corrompus Kobo courants (Administration/Éducation)
             const corrections = {
                 'b_n_ficiaire': 'bénéficiaire',
                 'r_f_rentiel': 'référentiel',
@@ -351,18 +368,12 @@
             for (const [bad, good] of Object.entries(corrections)) {
                 t = t.replace(new RegExp(bad, 'g'), good);
             }
-
-            // 2. Traitement dynamique des apostrophes (Kobo remplace l'apostrophe par un tiret)
             t = t.replace(/\b(d|l|qu|s|m|t|n)_/g, "$1'");
-
-            // 3. Remplacement des tirets restants par des espaces
             t = t.replace(/_/g, ' ');
-
-            // 4. Majuscule à la première lettre de la phrase (Sentence Case)
             return t.charAt(0).toUpperCase() + t.slice(1);
         }
 
-        // === FUZZY MATCH (Levenshtein) ===
+        // === FUZZY MATCH ===
         function levenshtein(a, b) {
             if (a.length === 0) return b.length;
             if (b.length === 0) return a.length;
@@ -447,11 +458,7 @@
 
         function getTranslatedHeader(xmlName) {
             let key = String(xmlName).toLowerCase();
-            
-            // 1. Cherche dans le dictionnaire Kobo (Schéma)
             if (headerMap[key]) return headerMap[key];
-            
-            // 2. Plan B de secours : Auto-correcteur orthographique intelligent
             return smartKoboAutoCorrect(xmlName);
         }
 
@@ -690,41 +697,13 @@
             $('#record-count').text(data.length);
         }
 
-        // === RENDU DES ANALYSES & IA (ONGLET 2) ===
+        // === RENDU DES ANALYSES & IA (ONGLET 2 : Tableaux Détaillés) ===
         function getFrequencies(arr) {
             return arr.reduce((acc, val) => {
                 let key = val ? String(val).trim() : "Non renseigné";
                 acc[key] = (acc[key] || 0) + 1;
                 return acc;
             }, {});
-        }
-
-        function drawChart(canvasId, type, dataObj, title) {
-            let ctx = document.getElementById(canvasId).getContext('2d');
-            if (chartsInstances[canvasId]) { chartsInstances[canvasId].destroy(); }
-
-            let labels = Object.keys(dataObj);
-            let data = Object.values(dataObj);
-            let bgColors = labels.map((_, i) => `hsl(${(i * 360) / (labels.length || 1)}, 70%, 55%)`);
-
-            chartsInstances[canvasId] = new Chart(ctx, {
-                type: type,
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Nombre de soumissions',
-                        data: data,
-                        backgroundColor: bgColors,
-                        borderColor: '#ffffff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: type === 'pie', position: 'bottom' }, title: { display: true, text: title, font: {size: 16} } },
-                    scales: type === 'bar' ? { y: { beginAtZero: true, ticks: { stepSize: 1 } } } : {}
-                }
-            });
         }
 
         function generateSmartInsights(drens, ciscos, zaps, totalRows) {
@@ -747,7 +726,38 @@
             $('#ai-report-content').html(html);
         }
 
+        function populateSummaryTable(tbodyId, freqData, totalRows) {
+            const tbody = $('#' + tbodyId);
+            tbody.empty();
+            let sorted = Object.entries(freqData).sort((a, b) => b[1] - a[1]);
+            
+            if(sorted.length === 0) {
+                tbody.append('<tr><td colspan="3" class="text-muted">Aucune donnée trouvée</td></tr>');
+            } else {
+                sorted.forEach(([name, count]) => {
+                    let pctRaw = totalRows > 0 ? (count / totalRows) * 100 : 0;
+                    let pctText = pctRaw.toFixed(1) + '%';
+                    
+                    let tr = $('<tr></tr>');
+                    tr.append(`<td><strong>${name}</strong></td>`);
+                    tr.append(`<td><span class="badge bg-primary fs-6">${count}</span></td>`);
+                    tr.append(`
+                        <td class="align-middle">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <span class="me-2" style="width: 45px; text-align: right; font-size: 0.85rem; font-weight: bold;">${pctText}</span>
+                                <div class="progress" style="width: 80px; height: 10px; border-radius: 5px;">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: ${pctText};" aria-valuenow="${pctRaw}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </td>
+                    `);
+                    tbody.append(tr);
+                });
+            }
+        }
+
         function renderAnalysis(data) {
+            let totalRows = data.length;
             let drens = [], ciscos = [], zaps = [];
 
             data.forEach(row => {
@@ -760,23 +770,26 @@
             let freqCisco = getFrequencies(ciscos);
             let freqZap = getFrequencies(zaps);
 
-            drawChart('drenChart', 'pie', freqDren, 'Répartition DREN');
-            drawChart('ciscoChart', 'bar', freqCisco, 'Volume CISCO');
-            generateSmartInsights(freqDren, freqCisco, freqZap, data.length);
+            generateSmartInsights(freqDren, freqCisco, freqZap, totalRows);
 
-            const tbodyZap = $('#zap-summary-table');
-            tbodyZap.empty();
-            let sortedZaps = Object.entries(freqZap).sort((a, b) => b[1] - a[1]);
-            if(sortedZaps.length === 0) {
-                tbodyZap.append('<tr><td colspan="2" class="text-muted">Aucune ZAP trouvée</td></tr>');
-            } else {
-                sortedZaps.forEach(([zapName, count]) => {
-                    tbodyZap.append(`<tr><td><strong>${zapName}</strong></td><td><span class="badge bg-secondary">${count}</span></td></tr>`);
-                });
-            }
+            // Remplissage des 3 nouveaux tableaux Bootstrap détaillés
+            populateSummaryTable('dren-summary-table', freqDren, totalRows);
+            populateSummaryTable('cisco-summary-table', freqCisco, totalRows);
+            populateSummaryTable('zap-summary-table', freqZap, totalRows);
         }
 
-        // === GESTION DES FILTRES ET EXPORTS ===
+        // Configuration du moteur de recherche pour les tableaux d'analyse
+        function setupAnalysisTableSearch(inputId, tbodyId) {
+            $('#' + inputId).on('keyup', function() {
+                let val = $(this).val().toLowerCase();
+                $('#' + tbodyId + ' tr').filter(function() {
+                    // Recherche textuelle simple pour être très réactif
+                    $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
+                });
+            });
+        }
+
+        // === GESTION DES FILTRES ET EXPORTS (Onglet 1) ===
         function applyFilters() {
             const filters = {
                 dren: $('#filter-dren').val(), cisco: $('#filter-cisco').val(), zap: $('#filter-zap').val(),
@@ -823,12 +836,19 @@
 
         $(document).ready(function() {
             fetchData();
+            
+            // Filtres de l'onglet Visualisation
             let typingTimer;
             $('.filter-input').on('keyup', function () {
                 clearTimeout(typingTimer);
                 typingTimer = setTimeout(applyFilters, 300);
             });
             $('.filter-input').on('change', applyFilters);
+
+            // Moteurs de recherche des tableaux de l'onglet Analyse
+            setupAnalysisTableSearch('search-dren-table', 'dren-summary-table');
+            setupAnalysisTableSearch('search-cisco-table', 'cisco-summary-table');
+            setupAnalysisTableSearch('search-zap-table', 'zap-summary-table');
         });
     </script>
 </body>
