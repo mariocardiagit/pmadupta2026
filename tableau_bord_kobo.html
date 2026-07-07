@@ -358,10 +358,11 @@
             if (!text) return '';
             let t = String(text).toLowerCase();
 
-            // 1. Remplacements EXACTS pour les variables tronquées par Kobo
+            // 1. Remplacements EXACTS pour les variables tronquées ou abrégées par Kobo
             const exactMatches = {
                 'vi_r_f_rentiel_standard_des_pr': "VI. Référentiel standard des preuves par type d'activité",
-                'date_enq': "Date de suivi"
+                'date_enq': "Date de suivi",
+                'nombre_personnes': "Combien de personnes souhaitez-vous enregistrer ?"
             };
             if (exactMatches[t]) return exactMatches[t];
             
