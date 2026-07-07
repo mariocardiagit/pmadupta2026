@@ -107,7 +107,6 @@
     <div class="container-fluid">
         <h2 class="text-center header-title"><i class="fas fa-database"></i> Tableau de Bord : Données & Analytics KoboToolbox</h2>
 
-        <!-- Messages globaux et Chargement -->
         <div class="error-message" id="error-box"></div>
         <div class="spinner-container" id="loading-box">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
@@ -125,7 +124,6 @@
             </div>
         </div>
 
-        <!-- Navigation par Onglets -->
         <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="visualisation-tab" data-bs-toggle="tab" data-bs-target="#visualisation" type="button" role="tab">
@@ -139,12 +137,10 @@
             </li>
         </ul>
 
-        <!-- Contenu des Onglets -->
         <div class="tab-content" id="dashboardTabsContent">
             
             <div class="tab-pane fade show active" id="visualisation" role="tabpanel">
                 
-                <!-- Panneau de Filtres -->
                 <div class="filter-card shadow-sm">
                     <h5 class="mb-3 text-secondary"><i class="fas fa-filter"></i> Filtres de recherche intelligents (Fuzzy Search)</h5>
                     <div class="row g-3">
@@ -184,7 +180,6 @@
                     </div>
                 </div>
 
-                <!-- Tableau et Contrôles -->
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
                     <h5 class="m-0 text-secondary">Lignes affichées : <span id="record-count" class="badge bg-primary">0</span></h5>
                     
@@ -478,11 +473,10 @@
             
             let xmlNameLower = String(xmlName).toLowerCase();
 
-            // RÈGLE D'EXCLUSION : Si la colonne est de type quantitatif, on retourne la valeur pure !
-            // On ne cherche pas à formater les Réalisations, Budgets, ou Nombres en "Code : Libellé"
-            if (xmlNameLower.includes('realisation') || xmlNameLower.includes('nombre') || xmlNameLower.includes('budget')) {
-                return String(val).trim();
-            }
+            // --- STRATÉGIE DE LA LISTE BLANCHE (WHITELIST) ---
+            // On vérifie si la colonne est une de celles qui nécessitent le format "Code : Libellé"
+            const requiresCodeLabel = ['dren', 'cisco', 'zap', 'activite', 'produit', 'sous'];
+            let isCodeLabelColumn = requiresCodeLabel.some(kw => xmlNameLower.includes(kw));
             
             let parts = String(val).split(' ');
             let translatedParts = parts.map(p => {
@@ -490,13 +484,17 @@
                 let pLower = pClean.toLowerCase();
                 let t = null;
 
+                // 1. MOTEUR DE RECHERCHE DANS LE DICTIONNAIRE
                 if (externalDict[pLower]) {
-                    // Evite les faux positifs sur les "1" et "2" simples
-                    if (pLower.length > 1 || isNaN(pLower)) {
+                    // Si c'est une colonne de la liste blanche (DREN, CISCO, etc.), 
+                    // on accepte toutes les valeurs, même les chiffres isolés.
+                    // Si ce N'EST PAS dans la liste blanche, on évite d'écraser les chiffres simples (comme les réalisations).
+                    if (isCodeLabelColumn || pLower.length > 1 || isNaN(pLower)) {
                         t = externalDict[pLower];
                     }
                 }
 
+                // 2. Base de secours en dur pour les DREN (uniquement si concerné)
                 if (!t && xmlNameLower.includes('dren')) {
                     const drenFallback = {
                         '11': 'ANALAMANGA', '12': 'VAKINANKARATRA', '13': 'ITASY', '14': 'BONGOLAVA',
@@ -509,7 +507,18 @@
                     t = drenFallback[pClean];
                 }
 
-                if (t) return pClean + ' : ' + t;
+                // 3. ASSEMBLAGE FINAL
+                if (t) {
+                    if (isCodeLabelColumn) {
+                        // C'est une colonne DREN, CISCO, ZAP, Activité... => Format "Code : Libellé"
+                        return pClean + ' : ' + t;
+                    } else {
+                        // Ce n'est pas une de ces colonnes, mais on a trouvé une traduction (ex: 1 = Oui) => Libellé seul
+                        return t;
+                    }
+                }
+                
+                // Si aucune traduction n'est trouvée (ou si c'est un nombre quantitatif) => Valeur brute
                 return pClean;
             });
             return translatedParts.join(' ; ');
