@@ -51,9 +51,13 @@
             color: #34495e; 
             font-size: 0.9rem;
         }
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
         .table-responsive {
             max-height: 600px;
-            overflow-x: auto;
+            overflow: auto; /* Active le défilement Horizontal ET Vertical */
             scroll-behavior: smooth;
         }
         #data-table th, #data-table td {
@@ -81,6 +85,8 @@
         .group-header-meta { background-color: #7f8c8d !important; color: white !important; font-weight: 600; border-bottom: 2px solid #616a6b !important; }
         .sub-header-survey { background-color: #34495e !important; color: white !important; font-weight: 500; }
         .sub-header-meta { background-color: #95a5a6 !important; color: white !important; font-weight: 500; }
+        
+        /* Garde l'en-tête toujours visible lors du défilement vers le bas */
         thead { position: sticky; top: 0; z-index: 10; }
         
         .spinner-container { display: none; padding: 40px; text-align: center; }
@@ -186,7 +192,7 @@
                     <h5 class="m-0 text-secondary">Lignes affichées : <span id="record-count" class="badge bg-primary">0</span></h5>
                     
                     <div class="d-flex align-items-center flex-wrap gap-3">
-                        <!-- NOUVEAU : Boutons Radios pour les images -->
+                        <!-- Boutons Radios pour les images -->
                         <div class="btn-group" role="group" aria-label="Mode d'affichage des fichiers">
                             <input type="radio" class="btn-check" name="imageDisplayMode" id="mode-url" value="url" autocomplete="off" checked onchange="toggleImageMode()">
                             <label class="btn btn-outline-secondary btn-sm" for="mode-url"><i class="fas fa-link"></i> Chemins Absolus</label>
@@ -195,10 +201,12 @@
                             <label class="btn btn-outline-secondary btn-sm" for="mode-img"><i class="fas fa-image"></i> Véritables Images</label>
                         </div>
 
-                        <!-- Boutons de défilement -->
-                        <div class="btn-group" role="group">
+                        <!-- Boutons de défilement (4 directions) -->
+                        <div class="btn-group" role="group" aria-label="Défilement du tableau">
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableLeft()" title="Défiler vers la gauche"><i class="fas fa-arrow-left"></i></button>
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableRight()" title="Défiler vers la droite"><i class="fas fa-arrow-right"></i></button>
+                            <button class="btn btn-secondary btn-sm" onclick="scrollTableUp()" title="Défiler vers le haut"><i class="fas fa-arrow-up"></i></button>
+                            <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
                         <!-- Bouton d'export -->
@@ -289,16 +297,16 @@
         let questionListMap = {};
         let chartsInstances = {}; 
         
-        // Stocke l'état d'affichage (url ou image)
         let currentImageMode = 'url'; 
 
         const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
-        // === UTILITAIRES UX ===
+        // === UTILITAIRES UX (Défilement 4 directions) ===
         function scrollTableLeft() { document.getElementById('table-scroll-container').scrollBy({ left: -400, behavior: 'smooth' }); }
         function scrollTableRight() { document.getElementById('table-scroll-container').scrollBy({ left: 400, behavior: 'smooth' }); }
+        function scrollTableUp() { document.getElementById('table-scroll-container').scrollBy({ top: -400, behavior: 'smooth' }); }
+        function scrollTableDown() { document.getElementById('table-scroll-container').scrollBy({ top: 400, behavior: 'smooth' }); }
 
-        // Actionnée par les boutons radios
         function toggleImageMode() {
             currentImageMode = $('input[name="imageDisplayMode"]:checked').val();
             renderTable(allData); 
@@ -563,7 +571,6 @@
             extraSurveyKeys.forEach(key => { subHeaderTr.append(`<th class="sub-header-survey">${getTranslatedHeader(key.split('/').pop())}</th>`); });
             metadataKeys.forEach(key => { subHeaderTr.append(`<th class="sub-header-meta">${getTranslatedHeader(key.split('/').pop())}</th>`); });
 
-            // Modification décisive pour séparer la Vue (HTML) de la Donnée (RAW CSV)
             function formatExtraValue(val, colName, rowData, xmlName, outputType = 'html') {
                 if (val === null || val === undefined) return '';
                 
@@ -579,11 +586,8 @@
                     let processed = subParts.map(subStr => {
                         let att = rowData._attachments.find(a => a.media_file_basename === subStr);
                         if (att && att.download_url) {
-                            
-                            // Si la fonction est appelée pour générer l'export CSV
                             if (outputType === 'raw') return att.download_url;
 
-                            // Si la fonction est appelée pour générer l'interface HTML
                             if (currentImageMode === 'image') {
                                 let isImg = (att.mimetype && att.mimetype.startsWith('image/')) || (att.filename && att.filename.match(/\.(jpeg|jpg|gif|png|webp)$/i));
                                 if (isImg) {
@@ -592,7 +596,6 @@
                                             </a>`;
                                 }
                             }
-                            
                             return `<a href="${att.download_url}" target="_blank" class="text-primary text-decoration-underline" style="word-break: break-all;" title="Ouvrir"><i class="fas fa-link"></i> ${att.download_url}</a>`;
                         }
                         return subStr;
@@ -607,15 +610,12 @@
                 const tr = $('<tr></tr>');
                 let rowSearchData = {};
                 
-                // Base
                 baseColsInfo.forEach(col => {
                     let val = getKoboValue(row, col.matches, col.ex);
-                    // Stocke la valeur brute dans data-csv pour garantir un export pur
                     tr.append($('<td></td>').attr('data-csv', val).text(val));
                     rowSearchData[col.key] = String(val).toLowerCase();
                 });
                 
-                // Extra Survey
                 extraSurveyKeys.forEach(key => {
                     let xmlName = key.split('/').pop();
                     let valHtml = formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName, 'html');
@@ -623,7 +623,6 @@
                     tr.append($('<td></td>').attr('data-csv', valRaw).html(valHtml));
                 });
 
-                // Meta
                 metadataKeys.forEach(key => {
                     let xmlName = key.split('/').pop();
                     let valHtml = formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName, 'html');
@@ -758,7 +757,6 @@
                 if (rows[i].style.display !== 'none') {
                     let row = [], cols = rows[i].querySelectorAll("td, th");
                     for (let j = 0; j < cols.length; j++) {
-                        // EXPORT PRIORITAIRE : On lit l'attribut data-csv généré par l'algorithme (raw url)
                         let cellData = cols[j].hasAttribute('data-csv') ? cols[j].getAttribute('data-csv') : cols[j].innerText;
                         cellData = cellData.replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""').trim();
                         row.push('"' + cellData + '"');
