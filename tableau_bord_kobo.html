@@ -57,7 +57,7 @@
         }
         .table-responsive {
             max-height: 600px;
-            overflow: auto; /* Active le défilement Horizontal ET Vertical */
+            overflow: auto; 
             scroll-behavior: smooth;
         }
         #data-table th, #data-table td {
@@ -398,6 +398,11 @@
 
         function getTranslatedHeader(xmlName) {
             let key = String(xmlName).toLowerCase();
+            
+            // CORRECTIF MANUEL : Pour forcer la traduction des libellés abîmés par KoboToolbox
+            if (key === 'liste_b_n_ficiaires') return 'Liste des Bénéficiaires';
+            if (key === 'vi_r_f_rentiel_standard_des_pr') return 'Référentiel standard des preuves';
+            
             return headerMap[key] ? headerMap[key] : xmlName.toUpperCase().replace(/_/g, ' ');
         }
 
