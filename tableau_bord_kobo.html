@@ -161,19 +161,19 @@
                             <input type="text" id="filter-zap" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                         </div>
                         <div class="col-md-3">
-                            <label class="filter-label" id="lbl-activite">Activité</label>
+                            <label class="filter-label" id="lbl-activite">Activité (Tous niveaux)</label>
                             <input type="text" id="filter-activite" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                         </div>
                         <div class="col-md-4">
-                            <label class="filter-label" id="lbl-produit">Produit</label>
+                            <label class="filter-label" id="lbl-produit">Produit (Tous niveaux)</label>
                             <input type="text" id="filter-produit" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                         </div>
                         <div class="col-md-4">
-                            <label class="filter-label" id="lbl-sous-activite">Sous-activité</label>
+                            <label class="filter-label" id="lbl-sous-activite">Sous-activité (Tous niveaux)</label>
                             <input type="text" id="filter-sous-activite" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                         </div>
                         <div class="col-md-4">
-                            <label class="filter-label" id="lbl-sous-produit">Sous-produit</label>
+                            <label class="filter-label" id="lbl-sous-produit">Sous-produit (Tous niveaux)</label>
                             <input type="text" id="filter-sous-produit" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                         </div>
                     </div>
@@ -204,7 +204,7 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
-                        <button class="btn btn-success btn-sm" onclick="exportTableToCSV('donnees_kobo.csv')">
+                        <button class="btn btn-success btn-sm" onclick="exportTableToCSV('donnees_kobo_granulaires.csv')">
                             <i class="fas fa-file-csv"></i> Exporter CSV
                         </button>
                     </div>
@@ -319,6 +319,28 @@
 
         const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
+        // ARCHITECTURE ÉCLATÉE DES COLONNES (Granularité Totale)
+        let baseColsInfo = [
+            { key: 'dren', matches: ['dren'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'DREN', xmlName: '' },
+            { key: 'cisco', matches: ['cisco'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'CISCO', xmlName: '' },
+            { key: 'zap', matches: ['zap'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'ZAP', xmlName: '' },
+
+            { key: 'activiteDren', matches: ['activite', 'activité'], mustMatch: ['dren'], ex: ['sous_activite', 'sous-activite'], label: 'Activité DREN', xmlName: '' },
+            { key: 'produitDren', matches: ['produit'], mustMatch: ['dren'], ex: ['sous_produit', 'sous-produit'], label: 'Produit DREN', xmlName: '' },
+            { key: 'sousActiviteDren', matches: ['sous_activite', 'sous-activite'], mustMatch: ['dren'], ex: [], label: 'Sous-activité DREN', xmlName: '' },
+            { key: 'sousProduitDren', matches: ['sous_produit', 'sous-produit'], mustMatch: ['dren'], ex: [], label: 'Sous-produit DREN', xmlName: '' },
+
+            { key: 'activiteCisco', matches: ['activite', 'activité'], mustMatch: ['cisco'], ex: ['sous_activite', 'sous-activite'], label: 'Activité CISCO', xmlName: '' },
+            { key: 'produitCisco', matches: ['produit'], mustMatch: ['cisco'], ex: ['sous_produit', 'sous-produit'], label: 'Produit CISCO', xmlName: '' },
+            { key: 'sousActiviteCisco', matches: ['sous_activite', 'sous-activite'], mustMatch: ['cisco'], ex: [], label: 'Sous-activité CISCO', xmlName: '' },
+            { key: 'sousProduitCisco', matches: ['sous_produit', 'sous-produit'], mustMatch: ['cisco'], ex: [], label: 'Sous-produit CISCO', xmlName: '' },
+
+            { key: 'activiteZap', matches: ['activite', 'activité'], mustMatch: ['zap'], ex: ['sous_activite', 'sous-activite'], label: 'Activité ZAP', xmlName: '' },
+            { key: 'produitZap', matches: ['produit'], mustMatch: ['zap'], ex: ['sous_produit', 'sous-produit'], label: 'Produit ZAP', xmlName: '' },
+            { key: 'sousActiviteZap', matches: ['sous_activite', 'sous-activite'], mustMatch: ['zap'], ex: [], label: 'Sous-activité ZAP', xmlName: '' },
+            { key: 'sousProduitZap', matches: ['sous_produit', 'sous-produit'], mustMatch: ['zap'], ex: [], label: 'Sous-produit ZAP', xmlName: '' }
+        ];
+
         // === UTILITAIRES UX ===
         function scrollTableLeft() { document.getElementById('table-scroll-container').scrollBy({ left: -400, behavior: 'smooth' }); }
         function scrollTableRight() { document.getElementById('table-scroll-container').scrollBy({ left: 400, behavior: 'smooth' }); }
@@ -337,37 +359,16 @@
             let t = String(text).toLowerCase();
             
             const corrections = {
-                'b_n_ficiaire': 'bénéficiaire',
-                'r_f_rentiel': 'référentiel',
-                'd_margement': "d'émargement",
-                'activit_': 'activité',
-                'num_ro': 'numéro',
-                'p_dagogique': 'pédagogique',
-                'g_n_ral': 'général',
-                'pr_sence': 'présence',
-                'dipl_me': 'diplôme',
-                't_l_phone': 'téléphone',
-                'cr_ation': 'création',
-                'r_union': 'réunion',
-                'd_tail': 'détail',
-                'fr_quence': 'fréquence',
-                'p_riode': 'période',
-                'd_but': 'début',
-                'cl_ture': 'clôture',
-                'mat_riel': 'matériel',
-                'r_ponse': 'réponse',
-                'identit_': 'identité',
-                'r_gion': 'région',
-                'd_partement': 'département',
-                '_tablissement': 'établissement',
-                '_cole': 'école',
-                '_l_ve': 'élève',
-                's_curit_': 'sécurité'
+                'b_n_ficiaire': 'bénéficiaire', 'r_f_rentiel': 'référentiel', 'd_margement': "d'émargement",
+                'activit_': 'activité', 'num_ro': 'numéro', 'p_dagogique': 'pédagogique', 'g_n_ral': 'général',
+                'pr_sence': 'présence', 'dipl_me': 'diplôme', 't_l_phone': 'téléphone', 'cr_ation': 'création',
+                'r_union': 'réunion', 'd_tail': 'détail', 'fr_quence': 'fréquence', 'p_riode': 'période',
+                'd_but': 'début', 'cl_ture': 'clôture', 'mat_riel': 'matériel', 'r_ponse': 'réponse',
+                'identit_': 'identité', 'r_gion': 'région', 'd_partement': 'département', '_tablissement': 'établissement',
+                '_cole': 'école', '_l_ve': 'élève', 's_curit_': 'sécurité'
             };
 
-            for (const [bad, good] of Object.entries(corrections)) {
-                t = t.replace(new RegExp(bad, 'g'), good);
-            }
+            for (const [bad, good] of Object.entries(corrections)) { t = t.replace(new RegExp(bad, 'g'), good); }
             t = t.replace(/\b(d|l|qu|s|m|t|n)_/g, "$1'");
             t = t.replace(/_/g, ' ');
             return t.charAt(0).toUpperCase() + t.slice(1);
@@ -382,11 +383,8 @@
             for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
             for (let i = 1; i <= b.length; i++) {
                 for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                        matrix[i][j] = matrix[i - 1][j - 1];
-                    } else {
-                        matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
-                    }
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) { matrix[i][j] = matrix[i - 1][j - 1]; } 
+                    else { matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1); }
                 }
             }
             return matrix[b.length][a.length];
@@ -408,9 +406,7 @@
                 let wordMatch = false;
                 for (let tw of targetWords) {
                     if (!tw) continue;
-                    if (tw.includes(qw) || levenshtein(qw, tw) <= 1) {
-                        wordMatch = true; break;
-                    }
+                    if (tw.includes(qw) || levenshtein(qw, tw) <= 1) { wordMatch = true; break; }
                 }
                 if (!wordMatch) { allWordsMatch = false; break; }
             }
@@ -478,20 +474,45 @@
             return val;
         }
 
-        function getKoboValue(row, possibleKeys, excludeKeys = []) {
+        function findXmlName(row, possibleKeys, excludeKeys, mustMatchKeys) {
             for (let key of Object.keys(row)) {
                 let parts = key.split('/');
                 let variableName = parts[parts.length - 1].toLowerCase();
-                let originalXmlName = parts[parts.length - 1];
-                if (excludeKeys.some(ex => variableName.includes(ex))) continue;
+                
+                if (excludeKeys && excludeKeys.some(ex => variableName.includes(ex))) continue;
+                if (mustMatchKeys && mustMatchKeys.length > 0 && !mustMatchKeys.every(req => variableName.includes(req))) continue;
 
                 for (let pk of possibleKeys) {
-                    if (variableName.includes(pk)) {
+                    if (variableName.includes(pk)) return parts[parts.length - 1];
+                }
+            }
+            return null;
+        }
+
+        function getKoboValue(row, possibleKeys, excludeKeys = [], mustMatchKeys = []) {
+            let originalXmlName = findXmlName(row, possibleKeys, excludeKeys, mustMatchKeys);
+            if (originalXmlName) {
+                for (let key of Object.keys(row)) {
+                    if (key.endsWith('/' + originalXmlName) || key === originalXmlName) {
                         return getTranslatedValue(row[key], originalXmlName);
                     }
                 }
             }
             return '';
+        }
+
+        function isBaseColumn(key) {
+            let parts = key.split('/');
+            let variableName = parts[parts.length - 1].toLowerCase();
+            
+            for (let col of baseColsInfo) {
+                let hasEx = col.ex && col.ex.some(e => variableName.includes(e));
+                let hasMust = col.mustMatch && col.mustMatch.length > 0 ? col.mustMatch.every(m => variableName.includes(m)) : true;
+                let hasMatch = col.matches.some(m => variableName.includes(m));
+                
+                if (!hasEx && hasMust && hasMatch) return true;
+            }
+            return false;
         }
 
         // === PROCESSUS PRINCIPAL ===
@@ -556,50 +577,17 @@
                 return;
             }
 
-            let baseColsInfo = [
-                { key: 'dren', matches: ['dren'], ex: ['activite', 'produit', 'budget', 'cisco', 'zap'], label: 'DREN', xmlName: '' },
-                { key: 'cisco', matches: ['cisco'], ex: ['activite', 'produit', 'budget'], label: 'CISCO', xmlName: '' },
-                { key: 'zap', matches: ['zap'], ex: ['activite', 'produit', 'budget'], label: 'ZAP', xmlName: '' },
-                { key: 'activite', matches: ['activite', 'activité'], ex: ['sous_activite', 'sous-activite'], label: 'Activité', xmlName: '' },
-                { key: 'produit', matches: ['produit'], ex: ['sous_produit', 'sous-produit'], label: 'Produit', xmlName: '' },
-                { key: 'sousActivite', matches: ['sous_activite', 'sous-activite'], ex: [], label: 'Sous-activité', xmlName: '' },
-                { key: 'sousProduit', matches: ['sous_produit', 'sous-produit'], ex: [], label: 'Sous-produit', xmlName: '' }
-            ];
-
-            function findXmlName(row, possibleKeys, excludeKeys) {
-                for (let key of Object.keys(row)) {
-                    let parts = key.split('/');
-                    let variableName = parts[parts.length - 1].toLowerCase();
-                    if (excludeKeys.some(ex => variableName.includes(ex))) continue;
-                    for (let pk of possibleKeys) {
-                        if (variableName.includes(pk)) return parts[parts.length - 1];
-                    }
-                }
-                return null;
-            }
-
+            // Génération dynamique des labels d'en-tête depuis le dictionnaire (si existant)
             for(let r of data) {
                 baseColsInfo.forEach(col => {
                     if (!col.xmlName) {
-                        let found = findXmlName(r, col.matches, col.ex);
-                        if (found) { col.xmlName = found; col.label = getTranslatedHeader(found); }
+                        let found = findXmlName(r, col.matches, col.ex, col.mustMatch);
+                        if (found) { 
+                            col.xmlName = found; 
+                            col.label = getTranslatedHeader(found); 
+                        }
                     }
                 });
-            }
-
-            function isBaseColumn(key) {
-                let parts = key.split('/');
-                let v = parts[parts.length - 1].toLowerCase();
-                let isEx = (arr) => arr.some(ex => v.includes(ex));
-
-                if (v.includes('dren') && !isEx(['activite', 'produit', 'budget', 'cisco', 'zap'])) return true;
-                if (v.includes('cisco') && !isEx(['activite', 'produit', 'budget'])) return true;
-                if (v.includes('zap') && !isEx(['activite', 'produit', 'budget'])) return true;
-                if ((v.includes('activite') || v.includes('activité')) && !isEx(['sous_activite', 'sous-activite'])) return true;
-                if (v.includes('produit') && !isEx(['sous_produit', 'sous-produit'])) return true;
-                if (v.includes('sous_activite') || v.includes('sous-activite')) return true;
-                if (v.includes('sous_produit') || v.includes('sous-produit')) return true;
-                return false;
             }
 
             let extraSurveyKeysSet = new Set();
@@ -622,7 +610,7 @@
             let metadataKeys = Array.from(metadataKeysSet);
 
             if (baseColsInfo.length + extraSurveyKeys.length > 0) {
-                groupHeaderTr.append(`<th colspan="${baseColsInfo.length + extraSurveyKeys.length}" class="group-header-survey"><i class="fas fa-edit"></i> Réponses aux Questionnaires (Saisies)</th>`);
+                groupHeaderTr.append(`<th colspan="${baseColsInfo.length + extraSurveyKeys.length}" class="group-header-survey"><i class="fas fa-edit"></i> Réponses aux Questionnaires (Matrice Complète)</th>`);
             }
             if (metadataKeys.length > 0) {
                 groupHeaderTr.append(`<th colspan="${metadataKeys.length}" class="group-header-meta"><i class="fas fa-cogs"></i> Métadonnées (Système)</th>`);
@@ -672,7 +660,7 @@
                 let rowSearchData = {};
                 
                 baseColsInfo.forEach(col => {
-                    let val = getKoboValue(row, col.matches, col.ex);
+                    let val = getKoboValue(row, col.matches, col.ex, col.mustMatch);
                     tr.append($('<td></td>').attr('data-csv', val).text(val));
                     rowSearchData[col.key] = String(val).toLowerCase();
                 });
@@ -760,10 +748,11 @@
             let totalRows = data.length;
             let drens = [], ciscos = [], zaps = [];
 
+            // Utilisation de la nouvelle logique stricte pour l'extraction statistique
             data.forEach(row => {
-                drens.push(getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap']));
-                ciscos.push(getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget']));
-                zaps.push(getKoboValue(row, ['zap'], ['activite', 'produit', 'budget']));
+                drens.push(getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous'], []));
+                ciscos.push(getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous'], []));
+                zaps.push(getKoboValue(row, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous'], []));
             });
 
             let freqDren = getFrequencies(drens);
@@ -772,24 +761,21 @@
 
             generateSmartInsights(freqDren, freqCisco, freqZap, totalRows);
 
-            // Remplissage des 3 nouveaux tableaux Bootstrap détaillés
             populateSummaryTable('dren-summary-table', freqDren, totalRows);
             populateSummaryTable('cisco-summary-table', freqCisco, totalRows);
             populateSummaryTable('zap-summary-table', freqZap, totalRows);
         }
 
-        // Configuration du moteur de recherche pour les tableaux d'analyse
         function setupAnalysisTableSearch(inputId, tbodyId) {
             $('#' + inputId).on('keyup', function() {
                 let val = $(this).val().toLowerCase();
                 $('#' + tbodyId + ' tr').filter(function() {
-                    // Recherche textuelle simple pour être très réactif
                     $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
                 });
             });
         }
 
-        // === GESTION DES FILTRES ET EXPORTS (Onglet 1) ===
+        // === GESTION DES FILTRES ET EXPORTS (Filtres Combinés multi-niveaux) ===
         function applyFilters() {
             const filters = {
                 dren: $('#filter-dren').val(), cisco: $('#filter-cisco').val(), zap: $('#filter-zap').val(),
@@ -801,8 +787,22 @@
             $('#table-body tr').each(function() {
                 const s = $(this).data('search');
                 if (!s) return; 
-                const match = Object.keys(filters).every(k => fuzzyMatch(filters[k], s[k]));
-                if (match) { $(this).show(); visibleCount++; } else { $(this).hide(); }
+                
+                let matchDren = fuzzyMatch(filters.dren, s.dren);
+                let matchCisco = fuzzyMatch(filters.cisco, s.cisco);
+                let matchZap = fuzzyMatch(filters.zap, s.zap);
+                
+                // Recherche adaptative : vérifie simultanément dans les colonnes DREN, CISCO et ZAP
+                let matchActivite = fuzzyMatch(filters.activite, s.activiteDren) || fuzzyMatch(filters.activite, s.activiteCisco) || fuzzyMatch(filters.activite, s.activiteZap);
+                let matchProduit = fuzzyMatch(filters.produit, s.produitDren) || fuzzyMatch(filters.produit, s.produitCisco) || fuzzyMatch(filters.produit, s.produitZap);
+                let matchSousAct = fuzzyMatch(filters.sousActivite, s.sousActiviteDren) || fuzzyMatch(filters.sousActivite, s.sousActiviteCisco) || fuzzyMatch(filters.sousActivite, s.sousActiviteZap);
+                let matchSousProd = fuzzyMatch(filters.sousProduit, s.sousProduitDren) || fuzzyMatch(filters.sousProduit, s.sousProduitCisco) || fuzzyMatch(filters.sousProduit, s.sousProduitZap);
+
+                if (matchDren && matchCisco && matchZap && matchActivite && matchProduit && matchSousAct && matchSousProd) { 
+                    $(this).show(); visibleCount++; 
+                } else { 
+                    $(this).hide(); 
+                }
             });
             $('#record-count').text(visibleCount);
         }
@@ -837,7 +837,6 @@
         $(document).ready(function() {
             fetchData();
             
-            // Filtres de l'onglet Visualisation
             let typingTimer;
             $('.filter-input').on('keyup', function () {
                 clearTimeout(typingTimer);
@@ -845,7 +844,6 @@
             });
             $('.filter-input').on('change', applyFilters);
 
-            // Moteurs de recherche des tableaux de l'onglet Analyse
             setupAnalysisTableSearch('search-dren-table', 'dren-summary-table');
             setupAnalysisTableSearch('search-cisco-table', 'cisco-summary-table');
             setupAnalysisTableSearch('search-zap-table', 'zap-summary-table');
