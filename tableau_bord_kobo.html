@@ -89,31 +89,31 @@
             <h5 class="mb-3 text-secondary"><i class="fas fa-filter"></i> Filtres de recherche</h5>
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label class="filter-label">DREN</label>
+                    <label class="filter-label" id="lbl-dren">DREN</label>
                     <input type="text" id="filter-dren" class="form-control filter-input" placeholder="Rechercher...">
                 </div>
                 <div class="col-md-3">
-                    <label class="filter-label">CISCO</label>
+                    <label class="filter-label" id="lbl-cisco">CISCO</label>
                     <input type="text" id="filter-cisco" class="form-control filter-input" placeholder="Rechercher...">
                 </div>
                 <div class="col-md-3">
-                    <label class="filter-label">ZAP</label>
+                    <label class="filter-label" id="lbl-zap">ZAP</label>
                     <input type="text" id="filter-zap" class="form-control filter-input" placeholder="Rechercher...">
                 </div>
                 <div class="col-md-3">
-                    <label class="filter-label">Activité</label>
+                    <label class="filter-label" id="lbl-activite">Activité</label>
                     <input type="text" id="filter-activite" class="form-control filter-input" placeholder="Rechercher...">
                 </div>
                 <div class="col-md-4">
-                    <label class="filter-label">Produit</label>
+                    <label class="filter-label" id="lbl-produit">Produit</label>
                     <input type="text" id="filter-produit" class="form-control filter-input" placeholder="Rechercher...">
                 </div>
                 <div class="col-md-4">
-                    <label class="filter-label">Sous-activité</label>
+                    <label class="filter-label" id="lbl-sous-activite">Sous-activité</label>
                     <input type="text" id="filter-sous-activite" class="form-control filter-input" placeholder="Rechercher...">
                 </div>
                 <div class="col-md-4">
-                    <label class="filter-label">Sous-produit</label>
+                    <label class="filter-label" id="lbl-sous-produit">Sous-produit</label>
                     <input type="text" id="filter-sous-produit" class="form-control filter-input" placeholder="Rechercher...">
                 </div>
             </div>
@@ -130,7 +130,7 @@
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
                 <span class="visually-hidden">Chargement...</span>
             </div>
-            <h5 class="mt-3 text-secondary">Synchronisation en cours avec KoboToolbox...</h5>
+            <h5 class="mt-3 text-secondary" id="loading-text">Synchronisation en cours avec KoboToolbox...</h5>
         </div>
 
         <!-- Tableau des données -->
@@ -176,18 +176,95 @@
 
     <script>
         let allData = [];
+        // Dictionnaires pour stocker les correspondances "Code XML" <-> "Vrai Texte"
+        let headerMap = {};
+        let valueMap = {};
+        let questionListMap = {};
+
+        // 1. Fonction pour extraire le schéma du formulaire Kobo (Les vrais Labels)
+        async function fetchSchema() {
+            const schemaUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf.json');
+            try {
+                const response = await fetch(schemaUrl, { cache: 'no-store' });
+                if (!response.ok) return;
+                const schema = await response.json();
+                
+                // Mappage des questions (En-têtes)
+                if (schema.content && schema.content.survey) {
+                    schema.content.survey.forEach(q => {
+                        if (q.name) {
+                            let label = q.label;
+                            if (Array.isArray(label)) label = label[0];
+                            if (typeof label === 'object' && label !== null) {
+                                label = label[Object.keys(label)[0]]; // Gestion multilingue
+                            }
+                            if (label) headerMap[q.name] = label;
+                            
+                            // Détection si c'est un choix unique/multiple pour mapper les réponses
+                            if (q.type && (q.type.startsWith('select_one') || q.type.startsWith('select_multiple'))) {
+                                let parts = q.type.split(' ');
+                                if (parts.length > 1) questionListMap[q.name] = parts[1]; // Stocke le nom de la liste Kobo
+                            }
+                        }
+                    });
+                }
+                
+                // Mappage des choix (Valeurs)
+                if (schema.content && schema.content.choices) {
+                    schema.content.choices.forEach(c => {
+                        if (c.list_name && c.name) {
+                            let label = c.label;
+                            if (Array.isArray(label)) label = label[0];
+                            if (typeof label === 'object' && label !== null) {
+                                label = label[Object.keys(label)[0]];
+                            }
+                            if (label) valueMap[c.list_name + '::' + c.name] = label;
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Erreur lors de la récupération des labels.", e);
+            }
+        }
+
+        // 2. Fonctions de traduction (Code XML -> Label Vrai)
+        function getTranslatedHeader(xmlName) {
+            if (headerMap[xmlName]) return headerMap[xmlName];
+            return xmlName.toUpperCase().replace(/_/g, ' '); // Plan B de nettoyage
+        }
+
+        function getTranslatedValue(val, xmlName) {
+            if (val === null || val === undefined || val === '') return '';
+            if (Array.isArray(val)) return val; // Ne traduit pas les groupes répétés entiers
+            
+            let listName = questionListMap[xmlName];
+            if (listName) {
+                // Sépare en cas de choix multiples
+                let parts = String(val).split(' ');
+                let translatedParts = parts.map(p => {
+                    let t = valueMap[listName + '::' + p];
+                    if (t) return p + ' : ' + t; // Génère le format "A3121 : Former et recruter..."
+                    return p;
+                });
+                return translatedParts.join(' ; ');
+            }
+            return val;
+        }
 
         function getKoboValue(row, possibleKeys, excludeKeys = []) {
             for (let key of Object.keys(row)) {
                 let parts = key.split('/');
                 let variableName = parts[parts.length - 1].toLowerCase();
+                let originalXmlName = parts[parts.length - 1];
                 
                 let isExcluded = excludeKeys.some(ex => variableName.includes(ex));
                 if (isExcluded) continue;
 
                 for (let pk of possibleKeys) {
                     if (variableName.includes(pk)) {
-                        return row[key] || '';
+                        let rawValue = row[key];
+                        // Traduction instantanée de la valeur brute
+                        return getTranslatedValue(rawValue, originalXmlName);
                     }
                 }
             }
@@ -196,9 +273,7 @@
 
         function verifyDataSync(apiCount) {
             let tableCount = 0;
-            if (apiCount > 0) {
-                tableCount = $('#table-body tr').length;
-            }
+            if (apiCount > 0) tableCount = $('#table-body tr').length;
 
             const statusDiv = $('#sync-status');
             if (apiCount === tableCount) {
@@ -214,6 +289,12 @@
             $('#table-body').empty();
             $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Audit en cours...</span>');
             
+            // 1. Récupération du Dictionnaire de traduction en premier
+            $('#loading-text').text("1/2: Récupération des libellés (schéma)...");
+            await fetchSchema();
+
+            // 2. Récupération des Données (avec Cache Busting)
+            $('#loading-text').text("2/2: Synchronisation des données avec KoboToolbox...");
             const timestamp = new Date().getTime();
             const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + timestamp;
             const apiUrl = 'https://corsproxy.io/?' + encodeURIComponent(koboUrl);
@@ -257,6 +338,44 @@
                 return;
             }
 
+            // A. Dynamisation des 7 en-têtes principaux
+            let colXmlNames = { dren: null, cisco: null, zap: null, activite: null, produit: null, sousActivite: null, sousProduit: null };
+            
+            function findXmlName(row, possibleKeys, excludeKeys) {
+                for (let key of Object.keys(row)) {
+                    let parts = key.split('/');
+                    let variableName = parts[parts.length - 1].toLowerCase();
+                    let originalXmlName = parts[parts.length - 1];
+                    let isExcluded = excludeKeys.some(ex => variableName.includes(ex));
+                    if (isExcluded) continue;
+                    for (let pk of possibleKeys) {
+                        if (variableName.includes(pk)) return originalXmlName;
+                    }
+                }
+                return null;
+            }
+
+            for(let r of data) {
+                if (!colXmlNames.dren) colXmlNames.dren = findXmlName(r, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap']);
+                if (!colXmlNames.cisco) colXmlNames.cisco = findXmlName(r, ['cisco'], ['activite', 'produit', 'budget']);
+                if (!colXmlNames.zap) colXmlNames.zap = findXmlName(r, ['zap'], ['activite', 'produit', 'budget']);
+                if (!colXmlNames.activite) colXmlNames.activite = findXmlName(r, ['activite', 'activité'], ['sous_activite', 'sous-activite']);
+                if (!colXmlNames.produit) colXmlNames.produit = findXmlName(r, ['produit'], ['sous_produit', 'sous-produit']);
+                if (!colXmlNames.sousActivite) colXmlNames.sousActivite = findXmlName(r, ['sous_activite', 'sous-activite'], []);
+                if (!colXmlNames.sousProduit) colXmlNames.sousProduit = findXmlName(r, ['sous_produit', 'sous-produit'], []);
+            }
+
+            let ths = $('#data-table thead tr th');
+            $(ths[0]).text(colXmlNames.dren ? getTranslatedHeader(colXmlNames.dren) : 'DREN');
+            $(ths[1]).text(colXmlNames.cisco ? getTranslatedHeader(colXmlNames.cisco) : 'CISCO');
+            $(ths[2]).text(colXmlNames.zap ? getTranslatedHeader(colXmlNames.zap) : 'ZAP');
+            $(ths[3]).text(colXmlNames.activite ? getTranslatedHeader(colXmlNames.activite) : 'Activité');
+            $(ths[4]).text(colXmlNames.produit ? getTranslatedHeader(colXmlNames.produit) : 'Produit');
+            $(ths[5]).text(colXmlNames.sousActivite ? getTranslatedHeader(colXmlNames.sousActivite) : 'Sous-activité');
+            $(ths[6]).text(colXmlNames.sousProduit ? getTranslatedHeader(colXmlNames.sousProduit) : 'Sous-produit');
+
+
+            // B. Détection et traduction des colonnes supplémentaires (à droite)
             let extraKeysSet = new Set();
             
             function isBaseColumn(key) {
@@ -284,26 +403,27 @@
 
             let extraKeys = Array.from(extraKeysSet);
             extraKeys.forEach(key => {
-                let cleanName = key.split('/').pop().toUpperCase().replace(/_/g, ' ');
+                let xmlName = key.split('/').pop();
+                let cleanName = getTranslatedHeader(xmlName); // Traduction de l'en-tête dynamique
                 theadTr.append(`<th>${cleanName}</th>`);
             });
 
-            // Nouvelle fonction de formatage pour gérer les liens
-            function formatExtraValue(val, colName, rowData) {
+            function formatExtraValue(val, colName, rowData, xmlName) {
                 if (val === null || val === undefined) return '';
 
-                // 1. Extraction et aplatissement des textes bruts
+                // Traduction immédiate si c'est une liste de choix
+                let translatedVal = getTranslatedValue(val, xmlName);
+
                 let parts = [];
-                if (Array.isArray(val)) {
-                    parts = val.map(item => {
+                if (Array.isArray(translatedVal)) {
+                    parts = translatedVal.map(item => {
                         if (typeof item === 'object') return Object.values(item).join(' | ');
                         return String(item);
                     });
                 } else {
-                    parts = [String(val)];
+                    parts = [String(translatedVal)];
                 }
 
-                // 2. Consolidation spécifique
                 if (colName && colName.includes('ENTITE')) {
                     let allSubParts = parts.flatMap(p => p.split(/\s*;\s*/)).filter(Boolean);
                     parts = [...new Set(allSubParts)];
@@ -312,17 +432,13 @@
                     parts = allSubParts;
                 }
 
-                // 3. Transformation intelligente des fichiers en liens HTML
                 const linkify = (str) => {
                     if (!rowData || !rowData._attachments) return str;
-                    
-                    // On gère le cas où plusieurs infos sont séparées par ' | '
                     let subParts = str.split(' | ');
                     let linkifiedSubParts = subParts.map(subStr => {
-                        // Cherche une correspondance exacte avec le nom du fichier
                         let att = rowData._attachments.find(a => a.media_file_basename === subStr);
                         if (att && att.download_url) {
-                            return `<a href="${att.download_url}" target="_blank" class="badge bg-primary text-white text-decoration-none py-1 px-2 mx-1 shadow-sm" title="Cliquez pour visualiser le document"><i class="fas fa-external-link-alt"></i> ${subStr}</a>`;
+                            return `<a href="${att.download_url}" target="_blank" class="badge bg-primary text-white text-decoration-none py-1 px-2 mx-1 shadow-sm"><i class="fas fa-external-link-alt"></i> ${subStr}</a>`;
                         }
                         return subStr;
                     });
@@ -351,14 +467,13 @@
                 tr.append($('<td></td>').text(sousProduit));
                 
                 extraKeys.forEach(key => {
-                    let colName = key.split('/').pop().toUpperCase();
-                    // On passe la ligne complète 'row' pour permettre l'analyse des pièces jointes
-                    let valHtml = formatExtraValue(row[key], colName, row);
-                    
-                    // Remplacement de .text() par .html() pour afficher les boutons cliquables
+                    let xmlName = key.split('/').pop();
+                    let colName = xmlName.toUpperCase();
+                    let valHtml = formatExtraValue(row[key], colName, row, xmlName);
                     tr.append($('<td></td>').html(valHtml));
                 });
 
+                // Le filtre de recherche est mis à jour pour englober les textes complets traduits
                 tr.data('search', {
                     dren: String(dren).toLowerCase(),
                     cisco: String(cisco).toLowerCase(),
@@ -426,7 +541,6 @@
                 if (rows[i].style.display !== 'none') {
                     let row = [], cols = rows[i].querySelectorAll("td, th");
                     for (let j = 0; j < cols.length; j++) {
-                        // innerText extrait parfaitement le nom du fichier caché derrière le bouton
                         let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""').trim();
                         row.push('"' + data + '"');
                     }
