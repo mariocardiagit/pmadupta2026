@@ -47,6 +47,7 @@
         .table-responsive {
             max-height: 600px;
             overflow-x: auto;
+            scroll-behavior: smooth; /* Permet un défilement doux */
         }
         #data-table th, #data-table td {
             white-space: nowrap;
@@ -164,9 +165,19 @@
                 
                 <div id="sync-status"></div>
 
-                <div>
+                <div class="d-flex align-items-center">
+                    <!-- Boutons de défilement horizontal -->
+                    <div class="btn-group me-3" role="group" aria-label="Défilement horizontal">
+                        <button class="btn btn-secondary btn-sm" onclick="scrollTableLeft()" title="Défiler vers la gauche">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="scrollTableRight()" title="Défiler vers la droite">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+
                     <button class="btn btn-primary btn-sm me-2" onclick="fetchData()">
-                        <i class="fas fa-sync-alt"></i> Rafraîchir les données
+                        <i class="fas fa-sync-alt"></i> Rafraîchir
                     </button>
                     <button class="btn btn-success btn-sm" onclick="exportTableToCSV('donnees_kobo.csv')">
                         <i class="fas fa-file-csv"></i> Exporter CSV
@@ -174,7 +185,8 @@
                 </div>
             </div>
             
-            <div class="table-responsive">
+            <!-- Ajout d'un ID pour cibler la zone de scroll -->
+            <div class="table-responsive" id="table-scroll-container">
                 <table class="table table-striped table-hover table-bordered align-middle" id="data-table">
                     <thead>
                         <!-- Ligne 1 : Groupement -->
@@ -201,7 +213,18 @@
 
         const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
-        // ALGORITHME DE RECHERCHE : Distance de Levenshtein
+        // --- FONCTIONS DE DÉFILEMENT HORIZONTAL ---
+        function scrollTableLeft() {
+            const container = document.getElementById('table-scroll-container');
+            container.scrollBy({ left: -400, behavior: 'smooth' });
+        }
+
+        function scrollTableRight() {
+            const container = document.getElementById('table-scroll-container');
+            container.scrollBy({ left: 400, behavior: 'smooth' });
+        }
+
+        // --- ALGORITHME DE RECHERCHE : Distance de Levenshtein ---
         function levenshtein(a, b) {
             if (a.length === 0) return b.length;
             if (b.length === 0) return a.length;
@@ -587,13 +610,13 @@
                 });
 
                 tr.data('search', {
-                    dren: String(dren).toLowerCase(),
-                    cisco: String(cisco).toLowerCase(),
-                    zap: String(zap).toLowerCase(),
-                    activite: String(activite).toLowerCase(),
-                    produit: String(produit).toLowerCase(),
-                    sousActivite: String(sousActivite).toLowerCase(),
-                    sousProduit: String(sousProduit).toLowerCase()
+                    dren: String(dren),
+                    cisco: String(cisco),
+                    zap: String(zap),
+                    activite: String(activite),
+                    produit: String(produit),
+                    sousActivite: String(sousActivite),
+                    sousProduit: String(sousProduit)
                 });
 
                 tbody.append(tr);
