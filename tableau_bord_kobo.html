@@ -10,6 +10,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- EXCEL SheetJS (Pour lire le dictionnaire Kobo localement) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { 
             background-color: #f4f7f6; 
@@ -63,7 +65,6 @@
             vertical-align: middle;
             text-align: center;
         }
-        /* Style des miniatures d'images */
         .table-img {
             max-width: 80px;
             max-height: 80px;
@@ -106,13 +107,28 @@
     <div class="container-fluid">
         <h2 class="text-center header-title"><i class="fas fa-database"></i> Tableau de Bord : Données & Analytics KoboToolbox</h2>
 
-        <!-- Messages globaux et Chargement -->
         <div class="error-message" id="error-box"></div>
         <div class="spinner-container" id="loading-box">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
                 <span class="visually-hidden">Chargement...</span>
             </div>
-            <h5 class="mt-3 text-secondary" id="loading-text">Synchronisation en cours avec KoboToolbox...</h5>
+            <h5 class="mt-3 text-secondary" id="loading-text">Synchronisation en cours...</h5>
+        </div>
+
+        <!-- ZONE DE CHARGEMENT DU DICTIONNAIRE EXCEL -->
+        <div class="filter-card mb-3 shadow-sm" style="border-top: 4px solid #f39c12;">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h5 class="m-0 text-secondary"><i class="fas fa-book"></i> Importateur de Dictionnaire Kobo (XLSX)</h5>
+                    <small class="text-muted">Chargez votre formulaire Excel Kobo pour traduire automatiquement les codes CISCO, ZAP, Activités, etc.</small>
+                </div>
+                <div class="d-flex align-items-center">
+                    <input type="file" id="file-dict" accept=".xlsx, .xls" class="form-control form-control-sm me-2" style="max-width: 300px;">
+                    <button class="btn btn-warning btn-sm fw-bold text-dark" onclick="loadDictionary()">
+                        <i class="fas fa-upload"></i> Appliquer le dictionnaire
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -124,27 +140,23 @@
             </div>
         </div>
 
-        <!-- Navigation par Onglets -->
         <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="visualisation-tab" data-bs-toggle="tab" data-bs-target="#visualisation" type="button" role="tab" aria-controls="visualisation" aria-selected="true">
+                <button class="nav-link active" id="visualisation-tab" data-bs-toggle="tab" data-bs-target="#visualisation" type="button" role="tab">
                     <i class="fas fa-table"></i> Onglet 1 : Visualisation des Données
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="analyse-tab" data-bs-toggle="tab" data-bs-target="#analyse" type="button" role="tab" aria-controls="analyse" aria-selected="false">
+                <button class="nav-link" id="analyse-tab" data-bs-toggle="tab" data-bs-target="#analyse" type="button" role="tab">
                     <i class="fas fa-chart-line"></i> Onglet 2 : Analyse & IA
                 </button>
             </li>
         </ul>
 
-        <!-- Contenu des Onglets -->
         <div class="tab-content" id="dashboardTabsContent">
-            
             <!-- ONGLET 1 : VISUALISATION -->
-            <div class="tab-pane fade show active" id="visualisation" role="tabpanel" aria-labelledby="visualisation-tab">
+            <div class="tab-pane fade show active" id="visualisation" role="tabpanel">
                 
-                <!-- Panneau de Filtres -->
                 <div class="filter-card shadow-sm">
                     <h5 class="mb-3 text-secondary"><i class="fas fa-filter"></i> Filtres de recherche intelligents (Fuzzy Search)</h5>
                     <div class="row g-3">
@@ -184,12 +196,11 @@
                     </div>
                 </div>
 
-                <!-- Tableau et Contrôles -->
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
                     <h5 class="m-0 text-secondary">Lignes affichées : <span id="record-count" class="badge bg-primary">0</span></h5>
                     
                     <div class="d-flex align-items-center flex-wrap gap-3">
-                        <div class="btn-group" role="group" aria-label="Mode d'affichage des fichiers">
+                        <div class="btn-group" role="group">
                             <input type="radio" class="btn-check" name="imageDisplayMode" id="mode-url" value="url" autocomplete="off" checked onchange="toggleImageMode()">
                             <label class="btn btn-outline-secondary btn-sm" for="mode-url"><i class="fas fa-link"></i> Chemins Absolus</label>
 
@@ -197,7 +208,7 @@
                             <label class="btn btn-outline-secondary btn-sm" for="mode-img"><i class="fas fa-image"></i> Véritables Images</label>
                         </div>
 
-                        <div class="btn-group" role="group" aria-label="Défilement du tableau">
+                        <div class="btn-group" role="group">
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableLeft()" title="Défiler vers la gauche"><i class="fas fa-arrow-left"></i></button>
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableRight()" title="Défiler vers la droite"><i class="fas fa-arrow-right"></i></button>
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableUp()" title="Défiler vers le haut"><i class="fas fa-arrow-up"></i></button>
@@ -223,18 +234,13 @@
                 </div>
             </div>
 
-            <!-- ONGLET 2 : ANALYSE & IA (Tableaux détaillés) -->
-            <div class="tab-pane fade" id="analyse" role="tabpanel" aria-labelledby="analyse-tab">
-                
-                <!-- Rapport IA -->
+            <!-- ONGLET 2 : ANALYSE & IA -->
+            <div class="tab-pane fade" id="analyse" role="tabpanel">
                 <div class="ai-insights shadow-sm" id="ai-report-container">
                     <h5><i class="fas fa-robot text-primary"></i> Rapport d'Analyse Intelligente (Généré automatiquement)</h5>
-                    <div id="ai-report-content">
-                        <!-- JS Injection -->
-                    </div>
+                    <div id="ai-report-content"></div>
                 </div>
 
-                <!-- Tableaux DREN et CISCO -->
                 <div class="row">
                     <div class="col-md-6 mb-4">
                         <div class="analysis-card shadow-sm h-100">
@@ -249,9 +255,7 @@
                                             <th>Part (%)</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="dren-summary-table">
-                                        <!-- JS Injection -->
-                                    </tbody>
+                                    <tbody id="dren-summary-table"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -269,16 +273,13 @@
                                             <th>Part (%)</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="cisco-summary-table">
-                                        <!-- JS Injection -->
-                                    </tbody>
+                                    <tbody id="cisco-summary-table"></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tableau Récapitulatif ZAP -->
                 <div class="row">
                     <div class="col-12">
                         <div class="analysis-card shadow-sm">
@@ -293,15 +294,12 @@
                                             <th>Part (%)</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="zap-summary-table">
-                                        <!-- JS Injection -->
-                                    </tbody>
+                                    <tbody id="zap-summary-table"></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -315,11 +313,12 @@
         let headerMap = {};
         let valueMap = {};
         let questionListMap = {};
+        let externalDict = {}; // Dictionnaire Excel chargé par l'utilisateur
         let currentImageMode = 'url'; 
 
         const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
-        // ARCHITECTURE ÉCLATÉE DES COLONNES
+        // ARCHITECTURE ÉCLATÉE
         let baseColsInfo = [
             { key: 'dren', matches: ['dren'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'DREN', xmlName: '' },
             { key: 'cisco', matches: ['cisco'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'CISCO', xmlName: '' },
@@ -341,6 +340,47 @@
             { key: 'sousProduitZap', matches: ['sous_produit', 'sous-produit'], mustMatch: ['zap'], ex: [], label: 'Sous-produit de la ZAP', xmlName: '' }
         ];
 
+        // === LECTURE DU DICTIONNAIRE EXCEL EN LOCAL ===
+        function loadDictionary() {
+            let fileInput = document.getElementById('file-dict');
+            if (!fileInput.files.length) {
+                alert("Veuillez sélectionner le fichier Excel KoboToolbox contenant les onglets (ex: ath6cv2Nr...).");
+                return;
+            }
+            
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, {type: 'array'});
+                    
+                    if(workbook.SheetNames.includes('choices')) {
+                        let sheet = workbook.Sheets['choices'];
+                        let jsonChoices = XLSX.utils.sheet_to_json(sheet);
+                        
+                        let count = 0;
+                        jsonChoices.forEach(row => {
+                            if(row.name !== undefined && row.label !== undefined) {
+                                // On stocke tous les codes uniques du fichier Excel
+                                externalDict[String(row.name).trim().toLowerCase()] = String(row.label).trim();
+                                count++;
+                            }
+                        });
+                        alert(`Super ! Le dictionnaire est chargé avec succès (${count} codes reconnus). Vos données CISCO, ZAP et Activités seront traduites instantanément.`);
+                        // Rafraîchir l'affichage avec le nouveau dictionnaire
+                        renderTable(allData);
+                        renderAnalysis(allData);
+                    } else {
+                        alert("Erreur : La feuille 'choices' est introuvable dans ce fichier Excel. Avez-vous sélectionné le bon fichier KoboToolbox ?");
+                    }
+                } catch(err) {
+                    alert("Erreur lors de la lecture du fichier Excel.");
+                    console.error(err);
+                }
+            };
+            reader.readAsArrayBuffer(fileInput.files[0]);
+        }
+
         // === UTILITAIRES UX ===
         function scrollTableLeft() { document.getElementById('table-scroll-container').scrollBy({ left: -400, behavior: 'smooth' }); }
         function scrollTableRight() { document.getElementById('table-scroll-container').scrollBy({ left: 400, behavior: 'smooth' }); }
@@ -353,40 +393,15 @@
             applyFilters();
         }
 
-        // === CORRECTEUR ORTHOGRAPHIQUE KOBO ===
         function smartKoboAutoCorrect(text) {
             if (!text) return '';
             let t = String(text).toLowerCase();
 
-            const exactMatches = {
-                'vi_r_f_rentiel_standard_des_pr': "VI. Référentiel standard des preuves par type d'activité",
-                'date_enq': "Date de suivi",
-                'nombre_personnes': "Combien de personnes souhaitez-vous enregistrer ?",
-                'personnes': "Personne (Nom et Prénom puis ORDRE DE MISSION)",
-                'liste_b_n_ficiaires': "Liste des bénéficiaires",
-                'liste_d_margement': "Liste d'émargement"
-            };
-            if (exactMatches[t]) return exactMatches[t];
-            
-            const corrections = {
-                'b_n_ficiaire': 'bénéficiaire', 'r_f_rentiel': 'référentiel', 'd_margement': "d'émargement",
-                'activit_': 'activité', 'num_ro': 'numéro', 'p_dagogique': 'pédagogique', 'g_n_ral': 'général',
-                'pr_sence': 'présence', 'dipl_me': 'diplôme', 't_l_phone': 'téléphone', 'cr_ation': 'création',
-                'r_union': 'réunion', 'd_tail': 'détail', 'fr_quence': 'fréquence', 'p_riode': 'période',
-                'd_but': 'début', 'cl_ture': 'clôture', 'mat_riel': 'matériel', 'r_ponse': 'réponse',
-                'identit_': 'identité', 'r_gion': 'région', 'd_partement': 'département', '_tablissement': 'établissement',
-                '_cole': 'école', '_l_ve': 'élève', 's_curit_': 'sécurité'
-            };
-
-            for (const [bad, good] of Object.entries(corrections)) { 
-                t = t.replace(new RegExp(bad, 'g'), good); 
-            }
             t = t.replace(/\b(d|l|qu|s|m|t|n)_/g, "$1'");
             t = t.replace(/_/g, ' ');
             return t.charAt(0).toUpperCase() + t.slice(1);
         }
 
-        // === FUZZY MATCH ===
         function levenshtein(a, b) {
             if (a.length === 0) return b.length;
             if (b.length === 0) return a.length;
@@ -425,7 +440,6 @@
             return allWordsMatch;
         }
 
-        // === KOBO API & TRADUCTION ===
         async function fetchSchema() {
             const schemaUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf.json');
             try {
@@ -467,7 +481,6 @@
         function getTranslatedHeader(xmlName) {
             let key = String(xmlName).toLowerCase();
             
-            // 1. PRIORITÉ ABSOLUE : Forçage manuel des titres selon votre demande
             const exactMatches = {
                 'vi_r_f_rentiel_standard_des_pr': "VI. Référentiel standard des preuves par type d'activité",
                 'date_enq': "Date de suivi",
@@ -478,14 +491,10 @@
             };
             if (exactMatches[key]) return exactMatches[key];
 
-            // 2. Dictionnaire Kobo API
             if (headerMap[key]) return headerMap[key];
-            
-            // 3. Auto-correcteur pour le reste
             return smartKoboAutoCorrect(xmlName);
         }
 
-        // MOTEUR D'ASSEMBLAGE (CODE : LIBELLE)
         function getTranslatedValue(val, xmlName) {
             if (val === null || val === undefined || val === '') return '';
             if (Array.isArray(val)) return val; 
@@ -493,46 +502,45 @@
             let xmlNameLower = String(xmlName).toLowerCase();
             let listName = questionListMap[xmlNameLower];
             
-            // Astuce : Recherche partielle si Kobo a modifié le nom XML (ex: dren_1)
             if (!listName) {
                 let foundKey = Object.keys(questionListMap).find(k => xmlNameLower.includes(k));
                 if (foundKey) listName = questionListMap[foundKey];
             }
             
-            if (listName) {
-                let parts = String(val).split(' ');
-                let translatedParts = parts.map(p => {
-                    let pClean = String(p).trim();
-                    let t = valueMap[listName + '::' + pClean.toLowerCase()];
-                    // L'ASSEMBLEUR "CODE : LIBELLE" EST ICI
-                    if (t) return pClean + ' : ' + t;
-                    return pClean;
-                });
-                return translatedParts.join(' ; ');
-            }
-            
-            // DICTIONNAIRE D'URGENCE (FALLBACK) POUR LES DREN DE MADAGASCAR
-            // S'active si la liste est issue d'un fichier CSV externe non fourni par l'API JSON
-            if (xmlNameLower.includes('dren')) {
-                const drenFallback = {
-                    '11': 'ANALAMANGA', '12': 'VAKINANKARATRA', '13': 'ITASY', '14': 'BONGOLAVA',
-                    '21': 'HAUTE MATSIATRA', '22': "AMORON'I MANIA", '23': 'VATOVAVY', '24': 'FITOVINANY',
-                    '25': 'ATSIMO ATSINANANA', '26': 'IHOROMBE', '31': 'ALAOTRA MANGORO', '32': 'ATSINANANA',
-                    '33': 'ANALANJIROFO', '41': 'BOENY', '42': 'SOFIA', '43': 'BETSIBOKA', '44': 'MELAKY',
-                    '51': 'ATSIMO ANDREFANA', '52': 'ANDROY', '53': 'ANOSY', '54': 'MENABE',
-                    '71': 'DIANA', '72': 'SAVA'
-                };
-                let parts = String(val).split(' ');
-                let translatedParts = parts.map(p => {
-                    let pClean = String(p).trim();
-                    // ASSEMBLEUR DE SECOURS "CODE : LIBELLE"
-                    if (drenFallback[pClean]) return pClean + ' : ' + drenFallback[pClean];
-                    return pClean;
-                });
-                return translatedParts.join(' ; ');
-            }
+            let parts = String(val).split(' ');
+            let translatedParts = parts.map(p => {
+                let pClean = String(p).trim();
+                let pLower = pClean.toLowerCase();
+                let t = null;
 
-            return val;
+                // 1. Cherche dans le dictionnaire Kobo standard
+                if (listName) {
+                    t = valueMap[listName + '::' + pLower];
+                }
+                
+                // 2. Si pas trouvé (ex: CISCO, ZAP cascade), cherche dans le fichier Excel chargé
+                if (!t && externalDict[pLower]) {
+                    t = externalDict[pLower];
+                }
+
+                // 3. Secours natif (pour DREN) si l'utilisateur n'a pas encore chargé l'Excel
+                if (!t && xmlNameLower.includes('dren')) {
+                    const drenFallback = {
+                        '11': 'ANALAMANGA', '12': 'VAKINANKARATRA', '13': 'ITASY', '14': 'BONGOLAVA',
+                        '21': 'HAUTE MATSIATRA', '22': "AMORON'I MANIA", '23': 'VATOVAVY', '24': 'FITOVINANY',
+                        '25': 'ATSIMO ATSINANANA', '26': 'IHOROMBE', '31': 'ALAOTRA MANGORO', '32': 'ATSINANANA',
+                        '33': 'ANALANJIROFO', '41': 'BOENY', '42': 'SOFIA', '43': 'BETSIBOKA', '44': 'MELAKY',
+                        '51': 'ATSIMO ANDREFANA', '52': 'ANDROY', '53': 'ANOSY', '54': 'MENABE',
+                        '71': 'DIANA', '72': 'SAVA'
+                    };
+                    t = drenFallback[pClean];
+                }
+
+                // L'ASSEMBLEUR MAGIQUE "CODE : LIBELLÉ" EST BIEN ICI !
+                if (t) return pClean + ' : ' + t;
+                return pClean;
+            });
+            return translatedParts.join(' ; ');
         }
 
         function findXmlName(row, possibleKeys, excludeKeys, mustMatchKeys) {
@@ -576,7 +584,6 @@
             return false;
         }
 
-        // === PROCESSUS PRINCIPAL ===
         async function fetchData() {
             $('#loading-box').show(); $('#error-box').hide();
             $('#table-body').empty(); $('#table-group-header-row').empty(); $('#table-sub-header-row').empty();
@@ -620,7 +627,6 @@
             }
         }
 
-        // === RENDU DU TABLEAU (ONGLET 1) ===
         function renderTable(data) {
             const tbody = $('#table-body');
             const groupHeaderTr = $('#table-group-header-row');
@@ -742,7 +748,6 @@
             $('#record-count').text(data.length);
         }
 
-        // === RENDU DES ANALYSES & IA (ONGLET 2 : Tableaux Détaillés) ===
         function getFrequencies(arr) {
             return arr.reduce((acc, val) => {
                 let key = val ? String(val).trim() : "Non renseigné";
@@ -831,7 +836,6 @@
             });
         }
 
-        // === GESTION DES FILTRES ET EXPORTS ===
         function applyFilters() {
             const filters = {
                 dren: $('#filter-dren').val(), cisco: $('#filter-cisco').val(), zap: $('#filter-zap').val(),
