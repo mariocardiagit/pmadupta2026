@@ -61,6 +61,22 @@
             vertical-align: middle;
             text-align: center;
         }
+        /* Style des miniatures d'images */
+        .table-img {
+            max-width: 80px;
+            max-height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .table-img:hover {
+            transform: scale(1.5);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 100;
+            position: relative;
+        }
         .group-header-survey { background-color: #2980b9 !important; color: white !important; font-weight: 600; border-bottom: 2px solid #1f618d !important; }
         .group-header-meta { background-color: #7f8c8d !important; color: white !important; font-weight: 600; border-bottom: 2px solid #616a6b !important; }
         .sub-header-survey { background-color: #34495e !important; color: white !important; font-weight: 500; }
@@ -165,14 +181,27 @@
                     </div>
                 </div>
 
-                <!-- Tableau -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <!-- Tableau et Contrôles -->
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
                     <h5 class="m-0 text-secondary">Lignes affichées : <span id="record-count" class="badge bg-primary">0</span></h5>
-                    <div class="d-flex align-items-center">
-                        <div class="btn-group me-3" role="group">
+                    
+                    <div class="d-flex align-items-center flex-wrap gap-3">
+                        <!-- NOUVEAU : Boutons Radios pour les images -->
+                        <div class="btn-group" role="group" aria-label="Mode d'affichage des fichiers">
+                            <input type="radio" class="btn-check" name="imageDisplayMode" id="mode-url" value="url" autocomplete="off" checked onchange="toggleImageMode()">
+                            <label class="btn btn-outline-secondary btn-sm" for="mode-url"><i class="fas fa-link"></i> Chemins Absolus</label>
+
+                            <input type="radio" class="btn-check" name="imageDisplayMode" id="mode-img" value="image" autocomplete="off" onchange="toggleImageMode()">
+                            <label class="btn btn-outline-secondary btn-sm" for="mode-img"><i class="fas fa-image"></i> Véritables Images</label>
+                        </div>
+
+                        <!-- Boutons de défilement -->
+                        <div class="btn-group" role="group">
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableLeft()" title="Défiler vers la gauche"><i class="fas fa-arrow-left"></i></button>
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableRight()" title="Défiler vers la droite"><i class="fas fa-arrow-right"></i></button>
                         </div>
+                        
+                        <!-- Bouton d'export -->
                         <button class="btn btn-success btn-sm" onclick="exportTableToCSV('donnees_kobo.csv')">
                             <i class="fas fa-file-csv"></i> Exporter CSV
                         </button>
@@ -258,13 +287,23 @@
         let headerMap = {};
         let valueMap = {};
         let questionListMap = {};
-        let chartsInstances = {}; // Stocke les graphiques pour les détruire lors du rafraîchissement
+        let chartsInstances = {}; 
+        
+        // Stocke l'état d'affichage (url ou image)
+        let currentImageMode = 'url'; 
 
         const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
         // === UTILITAIRES UX ===
         function scrollTableLeft() { document.getElementById('table-scroll-container').scrollBy({ left: -400, behavior: 'smooth' }); }
         function scrollTableRight() { document.getElementById('table-scroll-container').scrollBy({ left: 400, behavior: 'smooth' }); }
+
+        // Actionnée par les boutons radios
+        function toggleImageMode() {
+            currentImageMode = $('input[name="imageDisplayMode"]:checked').val();
+            renderTable(allData); 
+            applyFilters();
+        }
 
         // === FUZZY MATCH (Levenshtein) ===
         function levenshtein(a, b) {
@@ -408,11 +447,8 @@
                 const json = await response.json();
                 allData = json.results || [];
                 
-                // Rendu de l'onglet 1
                 renderTable(allData);
                 verifyDataSync(allData.length);
-                
-                // Rendu de l'onglet 2 (Statistiques IA)
                 renderAnalysis(allData);
 
             } catch (error) {
@@ -439,6 +475,10 @@
             const groupHeaderTr = $('#table-group-header-row');
             const subHeaderTr = $('#table-sub-header-row');
             
+            tbody.empty();
+            groupHeaderTr.empty();
+            subHeaderTr.empty();
+
             if (data.length === 0) {
                 groupHeaderTr.append('<th class="group-header-survey">Données</th>');
                 subHeaderTr.append('<th class="sub-header-survey">Aucune donnée</th>');
@@ -523,23 +563,44 @@
             extraSurveyKeys.forEach(key => { subHeaderTr.append(`<th class="sub-header-survey">${getTranslatedHeader(key.split('/').pop())}</th>`); });
             metadataKeys.forEach(key => { subHeaderTr.append(`<th class="sub-header-meta">${getTranslatedHeader(key.split('/').pop())}</th>`); });
 
-            function formatExtraValue(val, colName, rowData, xmlName) {
+            // Modification décisive pour séparer la Vue (HTML) de la Donnée (RAW CSV)
+            function formatExtraValue(val, colName, rowData, xmlName, outputType = 'html') {
                 if (val === null || val === undefined) return '';
+                
                 let translatedVal = getTranslatedValue(val, xmlName);
                 let parts = Array.isArray(translatedVal) ? translatedVal.map(item => typeof item === 'object' ? Object.values(item).join(' | ') : String(item)) : [String(translatedVal)];
 
                 if (colName && colName.includes('ENTITE')) parts = [...new Set(parts.flatMap(p => p.split(/\s*;\s*/)).filter(Boolean))];
                 else if (colName && colName.includes('OBSERVATIONS')) parts = parts.flatMap(p => p.split(/\s*;\s*/)).filter(Boolean);
 
-                return parts.map(p => {
-                    if (!rowData || !rowData._attachments) return p;
-                    let subParts = p.split(' | ');
-                    return subParts.map(subStr => {
+                const linkify = (str) => {
+                    if (!rowData || !rowData._attachments) return str;
+                    let subParts = str.split(' | ');
+                    let processed = subParts.map(subStr => {
                         let att = rowData._attachments.find(a => a.media_file_basename === subStr);
-                        if (att && att.download_url) return `<a href="${att.download_url}" target="_blank" class="text-primary text-decoration-underline" style="word-break: break-all;" title="Ouvrir"><i class="fas fa-link"></i> ${att.download_url}</a>`;
+                        if (att && att.download_url) {
+                            
+                            // Si la fonction est appelée pour générer l'export CSV
+                            if (outputType === 'raw') return att.download_url;
+
+                            // Si la fonction est appelée pour générer l'interface HTML
+                            if (currentImageMode === 'image') {
+                                let isImg = (att.mimetype && att.mimetype.startsWith('image/')) || (att.filename && att.filename.match(/\.(jpeg|jpg|gif|png|webp)$/i));
+                                if (isImg) {
+                                    return `<a href="${att.download_url}" target="_blank" title="Cliquez pour agrandir">
+                                                <img src="${att.download_url}" class="table-img" alt="${subStr}">
+                                            </a>`;
+                                }
+                            }
+                            
+                            return `<a href="${att.download_url}" target="_blank" class="text-primary text-decoration-underline" style="word-break: break-all;" title="Ouvrir"><i class="fas fa-link"></i> ${att.download_url}</a>`;
+                        }
                         return subStr;
-                    }).join(' | ');
-                }).join(' ; ');
+                    });
+                    return processed.join(' | ');
+                };
+
+                return parts.map(p => linkify(p)).join(' ; ');
             }
 
             data.forEach(row => {
@@ -549,20 +610,25 @@
                 // Base
                 baseColsInfo.forEach(col => {
                     let val = getKoboValue(row, col.matches, col.ex);
-                    tr.append($('<td></td>').text(val));
+                    // Stocke la valeur brute dans data-csv pour garantir un export pur
+                    tr.append($('<td></td>').attr('data-csv', val).text(val));
                     rowSearchData[col.key] = String(val).toLowerCase();
                 });
                 
                 // Extra Survey
                 extraSurveyKeys.forEach(key => {
                     let xmlName = key.split('/').pop();
-                    tr.append($('<td></td>').html(formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName)));
+                    let valHtml = formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName, 'html');
+                    let valRaw = formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName, 'raw');
+                    tr.append($('<td></td>').attr('data-csv', valRaw).html(valHtml));
                 });
 
                 // Meta
                 metadataKeys.forEach(key => {
                     let xmlName = key.split('/').pop();
-                    tr.append($('<td></td>').html(formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName)));
+                    let valHtml = formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName, 'html');
+                    let valRaw = formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName, 'raw');
+                    tr.append($('<td></td>').attr('data-csv', valRaw).html(valHtml));
                 });
 
                 tr.data('search', rowSearchData);
@@ -586,7 +652,6 @@
 
             let labels = Object.keys(dataObj);
             let data = Object.values(dataObj);
-            // Couleurs générées dynamiquement
             let bgColors = labels.map((_, i) => `hsl(${(i * 360) / (labels.length || 1)}, 70%, 55%)`);
 
             chartsInstances[canvasId] = new Chart(ctx, {
@@ -617,7 +682,6 @@
 
             let drenCount = Object.keys(drens).filter(k => k !== "Non renseigné").length;
             let maxDren = Object.entries(drens).filter(([k,v]) => k !== "Non renseigné").sort((a,b) => b[1] - a[1])[0];
-            
             let ciscoCount = Object.keys(ciscos).filter(k => k !== "Non renseigné").length;
             
             let html = `<p>L'analyse intelligente révèle que <span class="highlight-val">${totalRows}</span> formulaires ont été soumis avec succès.</p>`;
@@ -627,7 +691,6 @@
                 let percent = Math.round((maxDren[1] / totalRows) * 100);
                 html += `<p>La zone la plus active est la DREN <span class="highlight-val">${maxDren[0]}</span>, représentant <span class="highlight-val">${percent}%</span> du volume total des remontées terrain.</p>`;
             }
-
             $('#ai-report-content').html(html);
         }
 
@@ -644,18 +707,12 @@
             let freqCisco = getFrequencies(ciscos);
             let freqZap = getFrequencies(zaps);
 
-            // 1. Mise à jour des Graphiques
             drawChart('drenChart', 'pie', freqDren, 'Répartition DREN');
             drawChart('ciscoChart', 'bar', freqCisco, 'Volume CISCO');
-
-            // 2. Génération de l'Insight IA
             generateSmartInsights(freqDren, freqCisco, freqZap, data.length);
 
-            // 3. Remplissage du Tableau ZAP
             const tbodyZap = $('#zap-summary-table');
             tbodyZap.empty();
-            
-            // Tri des ZAP par ordre décroissant
             let sortedZaps = Object.entries(freqZap).sort((a, b) => b[1] - a[1]);
             if(sortedZaps.length === 0) {
                 tbodyZap.append('<tr><td colspan="2" class="text-muted">Aucune ZAP trouvée</td></tr>');
@@ -701,8 +758,10 @@
                 if (rows[i].style.display !== 'none') {
                     let row = [], cols = rows[i].querySelectorAll("td, th");
                     for (let j = 0; j < cols.length; j++) {
-                        let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""').trim();
-                        row.push('"' + data + '"');
+                        // EXPORT PRIORITAIRE : On lit l'attribut data-csv généré par l'algorithme (raw url)
+                        let cellData = cols[j].hasAttribute('data-csv') ? cols[j].getAttribute('data-csv') : cols[j].innerText;
+                        cellData = cellData.replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""').trim();
+                        row.push('"' + cellData + '"');
                     }
                     csv.push(row.join(";")); 
                 }
