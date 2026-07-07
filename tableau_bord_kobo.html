@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau de Bord KoboToolbox</title>
+    <title>Tableau de Bord KoboToolbox & Analytics</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome pour les icônes -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Chart.js pour les graphiques analytiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { 
             background-color: #f4f7f6; 
@@ -21,135 +23,71 @@
             font-weight: 700;
             margin-bottom: 20px;
         }
-        .filter-card {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
-            border-top: 4px solid #3498db;
+        .nav-tabs .nav-link {
+            font-weight: 600;
+            color: #7f8c8d;
+            border-radius: 10px 10px 0 0;
         }
-        .table-card {
+        .nav-tabs .nav-link.active {
+            color: #2980b9;
+            border-bottom: 3px solid #2980b9;
+            background-color: #ffffff;
+        }
+        .tab-content {
             background: #ffffff;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 0 0 10px 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .filter-card, .analysis-card {
+            background: #fdfdfd;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            margin-bottom: 20px;
         }
         .filter-label { 
             font-weight: 600; 
             color: #34495e; 
             font-size: 0.9rem;
         }
-        .form-control:focus {
-            border-color: #3498db;
-            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
-        }
         .table-responsive {
             max-height: 600px;
             overflow-x: auto;
-            scroll-behavior: smooth; /* Permet un défilement doux */
+            scroll-behavior: smooth;
         }
         #data-table th, #data-table td {
             white-space: nowrap;
             vertical-align: middle;
             text-align: center;
         }
-        .group-header-survey {
-            background-color: #2980b9 !important;
-            color: white !important;
-            font-weight: 600;
-            font-size: 1rem;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid #1f618d !important;
+        .group-header-survey { background-color: #2980b9 !important; color: white !important; font-weight: 600; border-bottom: 2px solid #1f618d !important; }
+        .group-header-meta { background-color: #7f8c8d !important; color: white !important; font-weight: 600; border-bottom: 2px solid #616a6b !important; }
+        .sub-header-survey { background-color: #34495e !important; color: white !important; font-weight: 500; }
+        .sub-header-meta { background-color: #95a5a6 !important; color: white !important; font-weight: 500; }
+        thead { position: sticky; top: 0; z-index: 10; }
+        
+        .spinner-container { display: none; padding: 40px; text-align: center; }
+        .error-message { display: none; background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #f5c6cb; }
+        .sync-badge { font-size: 0.9rem; padding: 8px 12px; }
+        
+        .ai-insights {
+            background: linear-gradient(135deg, #e0f7fa 0%, #d4e6f1 100%);
+            border-left: 5px solid #2980b9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
         }
-        .group-header-meta {
-            background-color: #7f8c8d !important;
-            color: white !important;
-            font-weight: 600;
-            font-size: 1rem;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid #616a6b !important;
-        }
-        .sub-header-survey {
-            background-color: #34495e !important;
-            color: white !important;
-            font-weight: 500;
-        }
-        .sub-header-meta {
-            background-color: #95a5a6 !important;
-            color: white !important;
-            font-weight: 500;
-        }
-        thead {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .spinner-container {
-            display: none;
-            padding: 40px;
-            text-align: center;
-        }
-        .error-message {
-            display: none;
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border: 1px solid #f5c6cb;
-        }
-        .sync-badge {
-            font-size: 0.9rem;
-            padding: 8px 12px;
-        }
+        .ai-insights h5 { color: #2c3e50; font-weight: 700; margin-bottom: 15px; }
+        .ai-insights p { margin-bottom: 8px; color: #34495e; font-size: 1.05rem; }
+        .highlight-val { font-weight: 700; color: #e67e22; }
     </style>
 </head>
 <body>
     <div class="container-fluid">
-        <h2 class="text-center header-title"><i class="fas fa-database"></i> Tableau de Bord : Données KoboToolbox</h2>
+        <h2 class="text-center header-title"><i class="fas fa-database"></i> Tableau de Bord : Données & Analytics KoboToolbox</h2>
 
-        <!-- Panneau de Filtres (Désactivation stricte du cache du navigateur) -->
-        <div class="filter-card">
-            <h5 class="mb-3 text-secondary"><i class="fas fa-filter"></i> Filtres de recherche</h5>
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="filter-label" id="lbl-dren">DREN</label>
-                    <input type="text" id="filter-dren" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
-                </div>
-                <div class="col-md-3">
-                    <label class="filter-label" id="lbl-cisco">CISCO</label>
-                    <input type="text" id="filter-cisco" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
-                </div>
-                <div class="col-md-3">
-                    <label class="filter-label" id="lbl-zap">ZAP</label>
-                    <input type="text" id="filter-zap" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
-                </div>
-                <div class="col-md-3">
-                    <label class="filter-label" id="lbl-activite">Activité</label>
-                    <input type="text" id="filter-activite" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
-                </div>
-                <div class="col-md-4">
-                    <label class="filter-label" id="lbl-produit">Produit</label>
-                    <input type="text" id="filter-produit" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
-                </div>
-                <div class="col-md-4">
-                    <label class="filter-label" id="lbl-sous-activite">Sous-activité</label>
-                    <input type="text" id="filter-sous-activite" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
-                </div>
-                <div class="col-md-4">
-                    <label class="filter-label" id="lbl-sous-produit">Sous-produit</label>
-                    <input type="text" id="filter-sous-produit" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
-                </div>
-            </div>
-            <div class="mt-3 text-end">
-                <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
-                    <i class="fas fa-times"></i> Réinitialiser les filtres
-                </button>
-            </div>
-        </div>
-
-        <!-- Messages et Chargement -->
+        <!-- Messages globaux et Chargement -->
         <div class="error-message" id="error-box"></div>
         <div class="spinner-container" id="loading-box">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
@@ -158,46 +96,155 @@
             <h5 class="mt-3 text-secondary" id="loading-text">Synchronisation en cours avec KoboToolbox...</h5>
         </div>
 
-        <!-- Tableau des données -->
-        <div class="table-card">
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h5 class="m-0 text-secondary"><i class="fas fa-table"></i> Résultats (<span id="record-count">0</span> affichés)</h5>
-                
-                <div id="sync-status"></div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div id="sync-status"></div>
+            <div>
+                <button class="btn btn-primary btn-sm me-2" onclick="fetchData()">
+                    <i class="fas fa-sync-alt"></i> Rafraîchir les données
+                </button>
+            </div>
+        </div>
 
-                <div class="d-flex align-items-center">
-                    <!-- Boutons de défilement horizontal -->
-                    <div class="btn-group me-3" role="group" aria-label="Défilement horizontal">
-                        <button class="btn btn-secondary btn-sm" onclick="scrollTableLeft()" title="Défiler vers la gauche">
-                            <i class="fas fa-arrow-left"></i>
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="scrollTableRight()" title="Défiler vers la droite">
-                            <i class="fas fa-arrow-right"></i>
+        <!-- Navigation par Onglets -->
+        <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="visualisation-tab" data-bs-toggle="tab" data-bs-target="#visualisation" type="button" role="tab" aria-controls="visualisation" aria-selected="true">
+                    <i class="fas fa-table"></i> Onglet 1 : Visualisation des Données
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="analyse-tab" data-bs-toggle="tab" data-bs-target="#analyse" type="button" role="tab" aria-controls="analyse" aria-selected="false">
+                    <i class="fas fa-chart-pie"></i> Onglet 2 : Analyse & IA
+                </button>
+            </li>
+        </ul>
+
+        <!-- Contenu des Onglets -->
+        <div class="tab-content" id="dashboardTabsContent">
+            
+            <!-- ONGLET 1 : VISUALISATION -->
+            <div class="tab-pane fade show active" id="visualisation" role="tabpanel" aria-labelledby="visualisation-tab">
+                
+                <!-- Panneau de Filtres -->
+                <div class="filter-card shadow-sm">
+                    <h5 class="mb-3 text-secondary"><i class="fas fa-filter"></i> Filtres de recherche intelligents (Fuzzy Search)</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="filter-label" id="lbl-dren">DREN</label>
+                            <input type="text" id="filter-dren" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="filter-label" id="lbl-cisco">CISCO</label>
+                            <input type="text" id="filter-cisco" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="filter-label" id="lbl-zap">ZAP</label>
+                            <input type="text" id="filter-zap" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="filter-label" id="lbl-activite">Activité</label>
+                            <input type="text" id="filter-activite" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="filter-label" id="lbl-produit">Produit</label>
+                            <input type="text" id="filter-produit" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="filter-label" id="lbl-sous-activite">Sous-activité</label>
+                            <input type="text" id="filter-sous-activite" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="filter-label" id="lbl-sous-produit">Sous-produit</label>
+                            <input type="text" id="filter-sous-produit" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="mt-3 text-end">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                            <i class="fas fa-times"></i> Réinitialiser les filtres
                         </button>
                     </div>
+                </div>
 
-                    <button class="btn btn-primary btn-sm me-2" onclick="fetchData()">
-                        <i class="fas fa-sync-alt"></i> Rafraîchir
-                    </button>
-                    <button class="btn btn-success btn-sm" onclick="exportTableToCSV('donnees_kobo.csv')">
-                        <i class="fas fa-file-csv"></i> Exporter CSV
-                    </button>
+                <!-- Tableau -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="m-0 text-secondary">Lignes affichées : <span id="record-count" class="badge bg-primary">0</span></h5>
+                    <div class="d-flex align-items-center">
+                        <div class="btn-group me-3" role="group">
+                            <button class="btn btn-secondary btn-sm" onclick="scrollTableLeft()" title="Défiler vers la gauche"><i class="fas fa-arrow-left"></i></button>
+                            <button class="btn btn-secondary btn-sm" onclick="scrollTableRight()" title="Défiler vers la droite"><i class="fas fa-arrow-right"></i></button>
+                        </div>
+                        <button class="btn btn-success btn-sm" onclick="exportTableToCSV('donnees_kobo.csv')">
+                            <i class="fas fa-file-csv"></i> Exporter CSV
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="table-responsive border rounded" id="table-scroll-container">
+                    <table class="table table-striped table-hover table-bordered align-middle mb-0" id="data-table">
+                        <thead>
+                            <tr id="table-group-header-row"></tr>
+                            <tr id="table-sub-header-row"></tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- JS Injection -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            
-            <!-- Ajout d'un ID pour cibler la zone de scroll -->
-            <div class="table-responsive" id="table-scroll-container">
-                <table class="table table-striped table-hover table-bordered align-middle" id="data-table">
-                    <thead>
-                        <!-- Ligne 1 : Groupement -->
-                        <tr id="table-group-header-row"></tr>
-                        <!-- Ligne 2 : En-têtes individuels -->
-                        <tr id="table-sub-header-row"></tr>
-                    </thead>
-                    <tbody id="table-body">
-                        <!-- Les lignes seront insérées ici par JavaScript -->
-                    </tbody>
-                </table>
+
+            <!-- ONGLET 2 : ANALYSE & IA -->
+            <div class="tab-pane fade" id="analyse" role="tabpanel" aria-labelledby="analyse-tab">
+                
+                <!-- Rapport IA -->
+                <div class="ai-insights shadow-sm" id="ai-report-container">
+                    <h5><i class="fas fa-robot text-primary"></i> Rapport d'Analyse Intelligente (Généré automatiquement)</h5>
+                    <div id="ai-report-content">
+                        <!-- JS Injection -->
+                    </div>
+                </div>
+
+                <!-- Graphiques -->
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="analysis-card shadow-sm h-100 text-center">
+                            <h5 class="text-secondary"><i class="fas fa-chart-pie"></i> Répartition des Soumissions par DREN</h5>
+                            <div style="position: relative; height:350px; width:100%">
+                                <canvas id="drenChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="analysis-card shadow-sm h-100 text-center">
+                            <h5 class="text-secondary"><i class="fas fa-chart-bar"></i> Volume des Soumissions par CISCO</h5>
+                            <div style="position: relative; height:350px; width:100%">
+                                <canvas id="ciscoChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tableau Récapitulatif ZAP -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="analysis-card shadow-sm">
+                            <h5 class="text-secondary mb-3"><i class="fas fa-list-ol"></i> Top Soumissions par ZAP</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered table-striped text-center">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Nom de la ZAP</th>
+                                            <th>Nombre de formulaires soumis</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="zap-summary-table">
+                                        <!-- JS Injection -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -206,43 +253,32 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // === VARIABLES GLOBALES ===
         let allData = [];
         let headerMap = {};
         let valueMap = {};
         let questionListMap = {};
+        let chartsInstances = {}; // Stocke les graphiques pour les détruire lors du rafraîchissement
 
         const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
-        // --- FONCTIONS DE DÉFILEMENT HORIZONTAL ---
-        function scrollTableLeft() {
-            const container = document.getElementById('table-scroll-container');
-            container.scrollBy({ left: -400, behavior: 'smooth' });
-        }
+        // === UTILITAIRES UX ===
+        function scrollTableLeft() { document.getElementById('table-scroll-container').scrollBy({ left: -400, behavior: 'smooth' }); }
+        function scrollTableRight() { document.getElementById('table-scroll-container').scrollBy({ left: 400, behavior: 'smooth' }); }
 
-        function scrollTableRight() {
-            const container = document.getElementById('table-scroll-container');
-            container.scrollBy({ left: 400, behavior: 'smooth' });
-        }
-
-        // --- ALGORITHME DE RECHERCHE : Distance de Levenshtein ---
+        // === FUZZY MATCH (Levenshtein) ===
         function levenshtein(a, b) {
             if (a.length === 0) return b.length;
             if (b.length === 0) return a.length;
-            
             const matrix = [];
             for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
             for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
-            
             for (let i = 1; i <= b.length; i++) {
                 for (let j = 1; j <= a.length; j++) {
                     if (b.charAt(i - 1) === a.charAt(j - 1)) {
                         matrix[i][j] = matrix[i - 1][j - 1];
                     } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1, // Substitution
-                            matrix[i][j - 1] + 1,     // Insertion
-                            matrix[i - 1][j] + 1      // Suppression
-                        );
+                        matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
                     }
                 }
             }
@@ -252,10 +288,8 @@
         function fuzzyMatch(query, target) {
             if (!query) return true;
             if (!target) return false;
-            
             query = query.trim().toLowerCase();
             target = target.toLowerCase();
-            
             if (target.includes(query)) return true;
             
             const targetWords = target.split(/[\s,;.-]+/);
@@ -268,18 +302,15 @@
                 for (let tw of targetWords) {
                     if (!tw) continue;
                     if (tw.includes(qw) || levenshtein(qw, tw) <= 1) {
-                        wordMatch = true;
-                        break;
+                        wordMatch = true; break;
                     }
                 }
-                if (!wordMatch) {
-                    allWordsMatch = false;
-                    break;
-                }
+                if (!wordMatch) { allWordsMatch = false; break; }
             }
             return allWordsMatch;
         }
 
+        // === KOBO API & TRADUCTION ===
         async function fetchSchema() {
             const schemaUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf.json');
             try {
@@ -297,7 +328,6 @@
                             
                             let qType = q.type || '';
                             let listName = q.select_from_list_name; 
-                            
                             if (!listName && (qType.includes('select_one') || qType.includes('select_multiple'))) {
                                 let parts = qType.trim().split(/\s+/); 
                                 if (parts.length > 1) listName = parts[1];
@@ -306,45 +336,34 @@
                         }
                     });
                 }
-                
                 if (schema.content && schema.content.choices) {
                     schema.content.choices.forEach(c => {
                         if (c.list_name && c.name !== undefined) {
                             let label = c.label;
                             if (Array.isArray(label)) label = label[0];
                             if (typeof label === 'object' && label !== null) label = label[Object.keys(label)[0]];
-                            if (label) {
-                                let key = String(c.list_name).toLowerCase() + '::' + String(c.name).toLowerCase();
-                                valueMap[key] = label;
-                            }
+                            if (label) valueMap[String(c.list_name).toLowerCase() + '::' + String(c.name).toLowerCase()] = label;
                         }
                     });
                 }
-            } catch (e) {
-                console.error("Erreur lors de la récupération des labels.", e);
-            }
+            } catch (e) { console.error("Erreur schéma", e); }
         }
 
         function getTranslatedHeader(xmlName) {
             let key = String(xmlName).toLowerCase();
-            if (headerMap[key]) return headerMap[key];
-            return xmlName.toUpperCase().replace(/_/g, ' ');
+            return headerMap[key] ? headerMap[key] : xmlName.toUpperCase().replace(/_/g, ' ');
         }
 
         function getTranslatedValue(val, xmlName) {
             if (val === null || val === undefined || val === '') return '';
             if (Array.isArray(val)) return val; 
             
-            let xmlNameLower = String(xmlName).toLowerCase();
-            let listName = questionListMap[xmlNameLower];
-            
+            let listName = questionListMap[String(xmlName).toLowerCase()];
             if (listName) {
                 let parts = String(val).split(' ');
                 let translatedParts = parts.map(p => {
-                    let pLower = String(p).toLowerCase();
-                    let t = valueMap[listName + '::' + pLower];
-                    if (t) return p + ' : ' + t;
-                    return p;
+                    let t = valueMap[listName + '::' + String(p).toLowerCase()];
+                    return t ? p + ' : ' + t : p;
                 });
                 return translatedParts.join(' ; ');
             }
@@ -356,44 +375,25 @@
                 let parts = key.split('/');
                 let variableName = parts[parts.length - 1].toLowerCase();
                 let originalXmlName = parts[parts.length - 1];
-                
-                let isExcluded = excludeKeys.some(ex => variableName.includes(ex));
-                if (isExcluded) continue;
+                if (excludeKeys.some(ex => variableName.includes(ex))) continue;
 
                 for (let pk of possibleKeys) {
                     if (variableName.includes(pk)) {
-                        let rawValue = row[key];
-                        return getTranslatedValue(rawValue, originalXmlName);
+                        return getTranslatedValue(row[key], originalXmlName);
                     }
                 }
             }
             return '';
         }
 
-        function verifyDataSync(apiCount) {
-            let tableCount = 0;
-            if (apiCount > 0) tableCount = $('#table-body tr').length;
-
-            const statusDiv = $('#sync-status');
-            if (apiCount === tableCount) {
-                statusDiv.html(`<span class="badge bg-success sync-badge"><i class="fas fa-check-double"></i> Intégrité Validée : ${apiCount} JSON = ${tableCount} HTML</span>`);
-            } else {
-                statusDiv.html(`<span class="badge bg-danger sync-badge"><i class="fas fa-exclamation-triangle"></i> Alerte de sécurité : JSON (${apiCount}) ≠ HTML (${tableCount})</span>`);
-            }
-        }
-
+        // === PROCESSUS PRINCIPAL ===
         async function fetchData() {
-            $('#loading-box').show();
-            $('#error-box').hide();
-            $('#table-body').empty();
-            $('#table-group-header-row').empty();
-            $('#table-sub-header-row').empty();
+            $('#loading-box').show(); $('#error-box').hide();
+            $('#table-body').empty(); $('#table-group-header-row').empty(); $('#table-sub-header-row').empty();
             $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Audit en cours...</span>');
             
-            $('#loading-text').text("1/2: Récupération du dictionnaire Kobo...");
             await fetchSchema();
 
-            $('#loading-text').text("2/2: Téléchargement des données de terrain...");
             const timestamp = new Date().getTime();
             const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + timestamp;
             const apiUrl = 'https://corsproxy.io/?' + encodeURIComponent(koboUrl);
@@ -401,42 +401,48 @@
             try {
                 const response = await fetch(apiUrl, { 
                     cache: 'no-store',
-                    headers: {
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
-                    }
+                    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
                 });
-                
                 if (!response.ok) throw new Error('Erreur réseau : Code ' + response.status);
                 
                 const json = await response.json();
                 allData = json.results || [];
                 
+                // Rendu de l'onglet 1
                 renderTable(allData);
                 verifyDataSync(allData.length);
+                
+                // Rendu de l'onglet 2 (Statistiques IA)
+                renderAnalysis(allData);
 
             } catch (error) {
-                $('#error-box').html('<strong>Erreur de synchronisation :</strong> ' + error.message).show();
-                $('#sync-status').html('<span class="badge bg-danger sync-badge"><i class="fas fa-times-circle"></i> Échec du contrôle</span>');
+                $('#error-box').html('<strong>Erreur :</strong> ' + error.message).show();
+                $('#sync-status').html('<span class="badge bg-danger sync-badge">Échec du contrôle</span>');
             } finally {
                 $('#loading-box').hide();
             }
         }
 
+        function verifyDataSync(apiCount) {
+            let tableCount = apiCount > 0 ? $('#table-body tr').length : 0;
+            const statusDiv = $('#sync-status');
+            if (apiCount === tableCount) {
+                statusDiv.html(`<span class="badge bg-success sync-badge"><i class="fas fa-check-double"></i> Intégrité Validée : ${apiCount} JSON = ${tableCount} HTML</span>`);
+            } else {
+                statusDiv.html(`<span class="badge bg-danger sync-badge"><i class="fas fa-exclamation-triangle"></i> Alerte : JSON (${apiCount}) ≠ HTML (${tableCount})</span>`);
+            }
+        }
+
+        // === RENDU DU TABLEAU (ONGLET 1) ===
         function renderTable(data) {
             const tbody = $('#table-body');
             const groupHeaderTr = $('#table-group-header-row');
             const subHeaderTr = $('#table-sub-header-row');
             
-            tbody.empty();
-            groupHeaderTr.empty();
-            subHeaderTr.empty();
-
             if (data.length === 0) {
                 groupHeaderTr.append('<th class="group-header-survey">Données</th>');
                 subHeaderTr.append('<th class="sub-header-survey">Aucune donnée</th>');
-                tbody.append('<tr><td class="text-center py-4 text-muted">Aucune donnée trouvée sur le serveur KoboToolbox.</td></tr>');
+                tbody.append('<tr><td class="text-center py-4 text-muted">Base de données vide.</td></tr>');
                 $('#record-count').text(0);
                 return;
             }
@@ -455,11 +461,9 @@
                 for (let key of Object.keys(row)) {
                     let parts = key.split('/');
                     let variableName = parts[parts.length - 1].toLowerCase();
-                    let originalXmlName = parts[parts.length - 1];
-                    let isExcluded = excludeKeys.some(ex => variableName.includes(ex));
-                    if (isExcluded) continue;
+                    if (excludeKeys.some(ex => variableName.includes(ex))) continue;
                     for (let pk of possibleKeys) {
-                        if (variableName.includes(pk)) return originalXmlName;
+                        if (variableName.includes(pk)) return parts[parts.length - 1];
                     }
                 }
                 return null;
@@ -469,10 +473,7 @@
                 baseColsInfo.forEach(col => {
                     if (!col.xmlName) {
                         let found = findXmlName(r, col.matches, col.ex);
-                        if (found) {
-                            col.xmlName = found;
-                            col.label = getTranslatedHeader(found);
-                        }
+                        if (found) { col.xmlName = found; col.label = getTranslatedHeader(found); }
                     }
                 });
             }
@@ -489,7 +490,6 @@
                 if (v.includes('produit') && !isEx(['sous_produit', 'sous-produit'])) return true;
                 if (v.includes('sous_activite') || v.includes('sous-activite')) return true;
                 if (v.includes('sous_produit') || v.includes('sous-produit')) return true;
-                
                 return false;
             }
 
@@ -505,173 +505,197 @@
                     let xmlNameLower = parts[parts.length - 1].toLowerCase();
                     let isMeta = metaKeywords.some(kw => xmlNameLower.includes(kw.replace(/_/g, ''))) || parts[parts.length - 1].startsWith('_');
                     
-                    if (isMeta) {
-                        metadataKeysSet.add(key);
-                    } else {
-                        extraSurveyKeysSet.add(key);
-                    }
+                    if (isMeta) metadataKeysSet.add(key); else extraSurveyKeysSet.add(key);
                 });
             });
 
             let extraSurveyKeys = Array.from(extraSurveyKeysSet);
             let metadataKeys = Array.from(metadataKeysSet);
 
-            let totalSurveyColumnsCount = baseColsInfo.length + extraSurveyKeys.length;
-            let totalMetadataColumnsCount = metadataKeys.length;
-
-            if (totalSurveyColumnsCount > 0) {
-                groupHeaderTr.append(`<th colspan="${totalSurveyColumnsCount}" class="group-header-survey"><i class="fas fa-edit"></i> Réponses aux Questionnaires KoboToolbox (Saisies Utilisateurs)</th>`);
+            if (baseColsInfo.length + extraSurveyKeys.length > 0) {
+                groupHeaderTr.append(`<th colspan="${baseColsInfo.length + extraSurveyKeys.length}" class="group-header-survey"><i class="fas fa-edit"></i> Réponses aux Questionnaires (Saisies)</th>`);
             }
-            if (totalMetadataColumnsCount > 0) {
-                groupHeaderTr.append(`<th colspan="${totalMetadataColumnsCount}" class="group-header-meta"><i class="fas fa-cogs"></i> Métadonnées KoboToolbox (Générées Automatiquement)</th>`);
+            if (metadataKeys.length > 0) {
+                groupHeaderTr.append(`<th colspan="${metadataKeys.length}" class="group-header-meta"><i class="fas fa-cogs"></i> Métadonnées (Système)</th>`);
             }
 
-            baseColsInfo.forEach(col => {
-                subHeaderTr.append(`<th class="sub-header-survey">${col.label}</th>`);
-            });
-            extraSurveyKeys.forEach(key => {
-                let xmlName = key.split('/').pop();
-                subHeaderTr.append(`<th class="sub-header-survey">${getTranslatedHeader(xmlName)}</th>`);
-            });
-            metadataKeys.forEach(key => {
-                let xmlName = key.split('/').pop();
-                subHeaderTr.append(`<th class="sub-header-meta">${getTranslatedHeader(xmlName)}</th>`);
-            });
+            baseColsInfo.forEach(col => { subHeaderTr.append(`<th class="sub-header-survey">${col.label}</th>`); });
+            extraSurveyKeys.forEach(key => { subHeaderTr.append(`<th class="sub-header-survey">${getTranslatedHeader(key.split('/').pop())}</th>`); });
+            metadataKeys.forEach(key => { subHeaderTr.append(`<th class="sub-header-meta">${getTranslatedHeader(key.split('/').pop())}</th>`); });
 
             function formatExtraValue(val, colName, rowData, xmlName) {
                 if (val === null || val === undefined) return '';
-
                 let translatedVal = getTranslatedValue(val, xmlName);
-                let parts = [];
-                if (Array.isArray(translatedVal)) {
-                    parts = translatedVal.map(item => {
-                        if (typeof item === 'object') return Object.values(item).join(' | ');
-                        return String(item);
-                    });
-                } else {
-                    parts = [String(translatedVal)];
-                }
+                let parts = Array.isArray(translatedVal) ? translatedVal.map(item => typeof item === 'object' ? Object.values(item).join(' | ') : String(item)) : [String(translatedVal)];
 
-                if (colName && colName.includes('ENTITE')) {
-                    let allSubParts = parts.flatMap(p => p.split(/\s*;\s*/)).filter(Boolean);
-                    parts = [...new Set(allSubParts)];
-                } else if (colName && colName.includes('OBSERVATIONS')) {
-                    let allSubParts = parts.flatMap(p => p.split(/\s*;\s*/)).filter(Boolean);
-                    parts = allSubParts;
-                }
+                if (colName && colName.includes('ENTITE')) parts = [...new Set(parts.flatMap(p => p.split(/\s*;\s*/)).filter(Boolean))];
+                else if (colName && colName.includes('OBSERVATIONS')) parts = parts.flatMap(p => p.split(/\s*;\s*/)).filter(Boolean);
 
-                const linkify = (str) => {
-                    if (!rowData || !rowData._attachments) return str;
-                    let subParts = str.split(' | ');
-                    let linkifiedSubParts = subParts.map(subStr => {
+                return parts.map(p => {
+                    if (!rowData || !rowData._attachments) return p;
+                    let subParts = p.split(' | ');
+                    return subParts.map(subStr => {
                         let att = rowData._attachments.find(a => a.media_file_basename === subStr);
-                        if (att && att.download_url) {
-                            return `<a href="${att.download_url}" target="_blank" class="text-primary text-decoration-underline" style="word-break: break-all;" title="Ouvrir l'image"><i class="fas fa-link"></i> ${att.download_url}</a>`;
-                        }
+                        if (att && att.download_url) return `<a href="${att.download_url}" target="_blank" class="text-primary text-decoration-underline" style="word-break: break-all;" title="Ouvrir"><i class="fas fa-link"></i> ${att.download_url}</a>`;
                         return subStr;
-                    });
-                    return linkifiedSubParts.join(' | ');
-                };
-
-                return parts.map(p => linkify(p)).join(' ; ');
+                    }).join(' | ');
+                }).join(' ; ');
             }
 
             data.forEach(row => {
-                const dren = getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap']);
-                const cisco = getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget']);
-                const zap = getKoboValue(row, ['zap'], ['activite', 'produit', 'budget']);
-                const activite = getKoboValue(row, ['activite', 'activité'], ['sous_activite', 'sous-activite']);
-                const produit = getKoboValue(row, ['produit'], ['sous_produit', 'sous-produit']);
-                const sousActivite = getKoboValue(row, ['sous_activite', 'sous-activite'], []);
-                const sousProduit = getKoboValue(row, ['sous_produit', 'sous-produit'], []);
-
                 const tr = $('<tr></tr>');
+                let rowSearchData = {};
                 
-                tr.append($('<td></td>').text(dren));
-                tr.append($('<td></td>').text(cisco));
-                tr.append($('<td></td>').text(zap));
-                tr.append($('<td></td>').text(activite));
-                tr.append($('<td></td>').text(produit));
-                tr.append($('<td></td>').text(sousActivite));
-                tr.append($('<td></td>').text(sousProduit));
+                // Base
+                baseColsInfo.forEach(col => {
+                    let val = getKoboValue(row, col.matches, col.ex);
+                    tr.append($('<td></td>').text(val));
+                    rowSearchData[col.key] = String(val).toLowerCase();
+                });
                 
+                // Extra Survey
                 extraSurveyKeys.forEach(key => {
                     let xmlName = key.split('/').pop();
-                    let colName = xmlName.toUpperCase();
-                    let valHtml = formatExtraValue(row[key], colName, row, xmlName);
-                    tr.append($('<td></td>').html(valHtml));
+                    tr.append($('<td></td>').html(formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName)));
                 });
 
+                // Meta
                 metadataKeys.forEach(key => {
                     let xmlName = key.split('/').pop();
-                    let colName = xmlName.toUpperCase();
-                    let valHtml = formatExtraValue(row[key], colName, row, xmlName);
-                    tr.append($('<td></td>').html(valHtml));
+                    tr.append($('<td></td>').html(formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName)));
                 });
 
-                tr.data('search', {
-                    dren: String(dren),
-                    cisco: String(cisco),
-                    zap: String(zap),
-                    activite: String(activite),
-                    produit: String(produit),
-                    sousActivite: String(sousActivite),
-                    sousProduit: String(sousProduit)
-                });
-
+                tr.data('search', rowSearchData);
                 tbody.append(tr);
             });
             $('#record-count').text(data.length);
         }
 
+        // === RENDU DES ANALYSES & IA (ONGLET 2) ===
+        function getFrequencies(arr) {
+            return arr.reduce((acc, val) => {
+                let key = val ? String(val).trim() : "Non renseigné";
+                acc[key] = (acc[key] || 0) + 1;
+                return acc;
+            }, {});
+        }
+
+        function drawChart(canvasId, type, dataObj, title) {
+            let ctx = document.getElementById(canvasId).getContext('2d');
+            if (chartsInstances[canvasId]) { chartsInstances[canvasId].destroy(); }
+
+            let labels = Object.keys(dataObj);
+            let data = Object.values(dataObj);
+            // Couleurs générées dynamiquement
+            let bgColors = labels.map((_, i) => `hsl(${(i * 360) / (labels.length || 1)}, 70%, 55%)`);
+
+            chartsInstances[canvasId] = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Nombre de soumissions',
+                        data: data,
+                        backgroundColor: bgColors,
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: type === 'pie', position: 'bottom' }, title: { display: true, text: title, font: {size: 16} } },
+                    scales: type === 'bar' ? { y: { beginAtZero: true, ticks: { stepSize: 1 } } } : {}
+                }
+            });
+        }
+
+        function generateSmartInsights(drens, ciscos, zaps, totalRows) {
+            if (totalRows === 0) {
+                $('#ai-report-content').html("<p>Aucune donnée à analyser pour le moment.</p>");
+                return;
+            }
+
+            let drenCount = Object.keys(drens).filter(k => k !== "Non renseigné").length;
+            let maxDren = Object.entries(drens).filter(([k,v]) => k !== "Non renseigné").sort((a,b) => b[1] - a[1])[0];
+            
+            let ciscoCount = Object.keys(ciscos).filter(k => k !== "Non renseigné").length;
+            
+            let html = `<p>L'analyse intelligente révèle que <span class="highlight-val">${totalRows}</span> formulaires ont été soumis avec succès.</p>`;
+            html += `<p>La couverture géographique actuelle s'étend sur <span class="highlight-val">${drenCount}</span> DREN(s) et <span class="highlight-val">${ciscoCount}</span> CISCO(s) différentes.</p>`;
+            
+            if (maxDren) {
+                let percent = Math.round((maxDren[1] / totalRows) * 100);
+                html += `<p>La zone la plus active est la DREN <span class="highlight-val">${maxDren[0]}</span>, représentant <span class="highlight-val">${percent}%</span> du volume total des remontées terrain.</p>`;
+            }
+
+            $('#ai-report-content').html(html);
+        }
+
+        function renderAnalysis(data) {
+            let drens = [], ciscos = [], zaps = [];
+
+            data.forEach(row => {
+                drens.push(getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap']));
+                ciscos.push(getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget']));
+                zaps.push(getKoboValue(row, ['zap'], ['activite', 'produit', 'budget']));
+            });
+
+            let freqDren = getFrequencies(drens);
+            let freqCisco = getFrequencies(ciscos);
+            let freqZap = getFrequencies(zaps);
+
+            // 1. Mise à jour des Graphiques
+            drawChart('drenChart', 'pie', freqDren, 'Répartition DREN');
+            drawChart('ciscoChart', 'bar', freqCisco, 'Volume CISCO');
+
+            // 2. Génération de l'Insight IA
+            generateSmartInsights(freqDren, freqCisco, freqZap, data.length);
+
+            // 3. Remplissage du Tableau ZAP
+            const tbodyZap = $('#zap-summary-table');
+            tbodyZap.empty();
+            
+            // Tri des ZAP par ordre décroissant
+            let sortedZaps = Object.entries(freqZap).sort((a, b) => b[1] - a[1]);
+            if(sortedZaps.length === 0) {
+                tbodyZap.append('<tr><td colspan="2" class="text-muted">Aucune ZAP trouvée</td></tr>');
+            } else {
+                sortedZaps.forEach(([zapName, count]) => {
+                    tbodyZap.append(`<tr><td><strong>${zapName}</strong></td><td><span class="badge bg-secondary">${count}</span></td></tr>`);
+                });
+            }
+        }
+
+        // === GESTION DES FILTRES ET EXPORTS ===
         function applyFilters() {
             const filters = {
-                dren: $('#filter-dren').val(),
-                cisco: $('#filter-cisco').val(),
-                zap: $('#filter-zap').val(),
-                activite: $('#filter-activite').val(),
-                produit: $('#filter-produit').val(),
-                sousActivite: $('#filter-sous-activite').val(),
-                sousProduit: $('#filter-sous-produit').val()
+                dren: $('#filter-dren').val(), cisco: $('#filter-cisco').val(), zap: $('#filter-zap').val(),
+                activite: $('#filter-activite').val(), produit: $('#filter-produit').val(),
+                sousActivite: $('#filter-sous-activite').val(), sousProduit: $('#filter-sous-produit').val()
             };
 
             let visibleCount = 0;
             $('#table-body tr').each(function() {
                 const s = $(this).data('search');
                 if (!s) return; 
-
                 const match = Object.keys(filters).every(k => fuzzyMatch(filters[k], s[k]));
-
-                if (match) {
-                    $(this).show();
-                    visibleCount++;
-                } else {
-                    $(this).hide();
-                }
+                if (match) { $(this).show(); visibleCount++; } else { $(this).hide(); }
             });
             $('#record-count').text(visibleCount);
         }
 
-        function clearFilters() {
-            $('.filter-input').val('');
-            applyFilters();
-        }
+        function clearFilters() { $('.filter-input').val(''); applyFilters(); }
         
         function downloadCSV(csv, filename) {
             let csvFile = new Blob(["\uFEFF" + csv], {type: "text/csv;charset=utf-8;"});
-            let downloadLink = document.createElement("a");
-            downloadLink.download = filename;
-            downloadLink.href = window.URL.createObjectURL(csvFile);
-            downloadLink.style.display = "none";
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+            let downloadLink = document.createElement("a"); downloadLink.download = filename;
+            downloadLink.href = window.URL.createObjectURL(csvFile); downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink); downloadLink.click(); document.body.removeChild(downloadLink);
         }
 
         function exportTableToCSV(filename) {
             let csv = [];
             let rows = document.querySelectorAll("#data-table tr");
-            
             for (let i = 0; i < rows.length; i++) {
                 if (rows[i].id === 'table-group-header-row') continue;
                 if (rows[i].style.display !== 'none') {
