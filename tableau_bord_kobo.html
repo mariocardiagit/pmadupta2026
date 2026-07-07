@@ -142,7 +142,6 @@
         <!-- Contenu des Onglets -->
         <div class="tab-content" id="dashboardTabsContent">
             
-            <!-- ONGLET 1 : VISUALISATION -->
             <div class="tab-pane fade show active" id="visualisation" role="tabpanel">
                 
                 <!-- Panneau de Filtres -->
@@ -224,18 +223,12 @@
                 </div>
             </div>
 
-            <!-- ONGLET 2 : ANALYSE & IA -->
             <div class="tab-pane fade" id="analyse" role="tabpanel">
-                
-                <!-- Rapport IA -->
                 <div class="ai-insights shadow-sm" id="ai-report-container">
                     <h5><i class="fas fa-robot text-primary"></i> Rapport d'Analyse Intelligente (Généré automatiquement)</h5>
-                    <div id="ai-report-content">
-                        <!-- JS Injection -->
-                    </div>
+                    <div id="ai-report-content"></div>
                 </div>
 
-                <!-- Tableaux DREN et CISCO -->
                 <div class="row">
                     <div class="col-md-6 mb-4">
                         <div class="analysis-card shadow-sm h-100">
@@ -250,9 +243,7 @@
                                             <th>Part (%)</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="dren-summary-table">
-                                        <!-- JS Injection -->
-                                    </tbody>
+                                    <tbody id="dren-summary-table"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -270,16 +261,13 @@
                                             <th>Part (%)</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="cisco-summary-table">
-                                        <!-- JS Injection -->
-                                    </tbody>
+                                    <tbody id="cisco-summary-table"></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tableau Récapitulatif ZAP -->
                 <div class="row">
                     <div class="col-12">
                         <div class="analysis-card shadow-sm">
@@ -294,15 +282,12 @@
                                             <th>Part (%)</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="zap-summary-table">
-                                        <!-- JS Injection -->
-                                    </tbody>
+                                    <tbody id="zap-summary-table"></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -313,13 +298,12 @@
     <script>
         // === VARIABLES GLOBALES ===
         let allData = [];
-        let externalDict = {}; // Dictionnaire chargé depuis GitHub
+        let externalDict = {}; 
         let currentImageMode = 'url'; 
         let isExcelLoaded = false;
 
         const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
-        // ARCHITECTURE ÉCLATÉE DES COLONNES
         let baseColsInfo = [
             { key: 'dren', matches: ['dren'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'DREN', xmlName: '' },
             { key: 'cisco', matches: ['cisco'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'CISCO', xmlName: '' },
@@ -341,39 +325,61 @@
             { key: 'sousProduitZap', matches: ['sous_produit', 'sous-produit'], mustMatch: ['zap'], ex: [], label: 'Sous-produit de la ZAP', xmlName: '' }
         ];
 
-        // === MOTEUR DE TÉLÉCHARGEMENT EXCEL DEPUIS GITHUB ===
         async function loadDictionaryAutomatically() {
             try {
                 $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire Excel depuis GitHub...</span>');
 
-                // Remplacez le nom du fichier si jamais il change sur votre dépôt GitHub
+                // 1. TENTATIVE CHARGEMENT EXCEL
                 const excelUrl = "ath6cv2NrXEUijffeKJqSf(12).xlsx"; 
-
                 const response = await fetch(excelUrl);
-                if (!response.ok) throw new Error("Fichier Excel introuvable sur GitHub");
-
-                const arrayBuffer = await response.arrayBuffer();
-                const data = new Uint8Array(arrayBuffer);
-                const workbook = XLSX.read(data, {type: 'array'});
-                
-                if(workbook.SheetNames.includes('choices')) {
-                    const sheet = workbook.Sheets['choices'];
-                    const jsonChoices = XLSX.utils.sheet_to_json(sheet);
+                if (response.ok) {
+                    const arrayBuffer = await response.arrayBuffer();
+                    const data = new Uint8Array(arrayBuffer);
+                    const workbook = XLSX.read(data, {type: 'array'});
                     
-                    let count = 0;
-                    jsonChoices.forEach(row => {
-                        if(row.name !== undefined && row.label !== undefined) {
-                            externalDict[String(row.name).trim().toLowerCase()] = String(row.label).trim();
-                            count++;
-                        }
-                    });
-                    isExcelLoaded = true;
-                    console.log(`Dictionnaire Excel chargé avec succès (${count} codes reconnus).`);
-                    $('#dict-status').replaceWith('<span class="badge bg-success ms-2" title="Codes parfaitement traduits depuis Excel"><i class="fas fa-check-circle"></i> Base Excel Synchronisée</span>');
+                    if(workbook.SheetNames.includes('choices')) {
+                        const sheet = workbook.Sheets['choices'];
+                        const jsonChoices = XLSX.utils.sheet_to_json(sheet);
+                        jsonChoices.forEach(row => {
+                            if(row.name !== undefined && row.label !== undefined) {
+                                externalDict[String(row.name).trim().toLowerCase()] = String(row.label).trim();
+                            }
+                        });
+                        isExcelLoaded = true;
+                    }
                 }
+
+                // 2. TENTATIVE CHARGEMENT CSV (Fichier en cascade)
+                try {
+                    const csvUrl = "zaps.csv"; 
+                    const responseCsv = await fetch(csvUrl);
+                    if (responseCsv.ok) {
+                        const csvText = await responseCsv.text();
+                        const lines = csvText.split('\n');
+                        lines.forEach(line => {
+                            const cols = line.split(/[,;]/);
+                            if(cols.length >= 2) {
+                                const code = String(cols[0]).replace(/["'\r]/g, '').trim().toLowerCase();
+                                const label = String(cols[1]).replace(/["'\r]/g, '').trim();
+                                if(code && label && code !== 'name') {
+                                    externalDict[code] = label;
+                                }
+                            }
+                        });
+                        console.log("Fichier ZAPs externe (CSV) fusionné au dictionnaire !");
+                    }
+                } catch(err) {
+                    console.log("Fichier zaps.csv optionnel non trouvé. Ce n'est pas bloquant.");
+                }
+
+                if (isExcelLoaded) {
+                    $('#dict-status').replaceWith('<span class="badge bg-success ms-2" title="Codes parfaitement traduits depuis Excel"><i class="fas fa-check-circle"></i> Base Excel Synchronisée</span>');
+                } else {
+                    throw new Error("Fichier Excel introuvable");
+                }
+
             } catch (e) {
                 isExcelLoaded = false;
-                console.warn("L'Excel hébergé sur GitHub n'a pas pu être chargé :", e.message);
                 $('#dict-status').replaceWith('<span class="badge bg-danger ms-2" title="Assurez-vous que le fichier Excel est dans le même dossier sur GitHub"><i class="fas fa-exclamation-triangle"></i> Fichier Excel Introuvable</span>');
             }
         }
@@ -453,7 +459,6 @@
         function getTranslatedHeader(xmlName) {
             let key = String(xmlName).toLowerCase();
             
-            // PRIORITÉ ABSOLUE : Forçage manuel des titres
             const exactMatches = {
                 'vi_r_f_rentiel_standard_des_pr': "VI. Référentiel standard des preuves par type d'activité",
                 'date_enq': "Date de suivi",
@@ -463,17 +468,21 @@
                 'liste_d_margement': "Liste d'émargement"
             };
             if (exactMatches[key]) return exactMatches[key];
-            
-            // Auto-correcteur
+
             return smartKoboAutoCorrect(xmlName);
         }
 
-        // MOTEUR D'ASSEMBLAGE ET DE TRADUCTION DE LA MATRICE ("CODE : LIBELLÉ")
         function getTranslatedValue(val, xmlName) {
             if (val === null || val === undefined || val === '') return '';
             if (Array.isArray(val)) return val; 
             
             let xmlNameLower = String(xmlName).toLowerCase();
+
+            // RÈGLE D'EXCLUSION : Si la colonne est de type quantitatif, on retourne la valeur pure !
+            // On ne cherche pas à formater les Réalisations, Budgets, ou Nombres en "Code : Libellé"
+            if (xmlNameLower.includes('realisation') || xmlNameLower.includes('nombre') || xmlNameLower.includes('budget')) {
+                return String(val).trim();
+            }
             
             let parts = String(val).split(' ');
             let translatedParts = parts.map(p => {
@@ -481,16 +490,13 @@
                 let pLower = pClean.toLowerCase();
                 let t = null;
 
-                // 1. Priorité N°1 : Moteur de recherche via le Dictionnaire Excel de GitHub
                 if (externalDict[pLower]) {
-                    // On vérifie que ce n'est pas un faux positif simple (comme le chiffre '1' pour "Oui")
-                    // Les codes de CISCO, ZAP ou Activités font plus d'un caractère ou comportent des lettres.
+                    // Evite les faux positifs sur les "1" et "2" simples
                     if (pLower.length > 1 || isNaN(pLower)) {
                         t = externalDict[pLower];
                     }
                 }
 
-                // 2. Base de secours en dur pour les DREN (Garantit un affichage minimal si Excel absent)
                 if (!t && xmlNameLower.includes('dren')) {
                     const drenFallback = {
                         '11': 'ANALAMANGA', '12': 'VAKINANKARATRA', '13': 'ITASY', '14': 'BONGOLAVA',
@@ -503,7 +509,6 @@
                     t = drenFallback[pClean];
                 }
 
-                // L'ASSEMBLEUR "CODE : LIBELLÉ"
                 if (t) return pClean + ' : ' + t;
                 return pClean;
             });
@@ -551,16 +556,13 @@
             return false;
         }
 
-        // === PROCESSUS PRINCIPAL ===
         async function fetchData() {
             $('#loading-box').show(); $('#error-box').hide();
             $('#table-body').empty(); $('#table-group-header-row').empty(); $('#table-sub-header-row').empty();
-            $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Lancement du système...</span>');
+            $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Audit en cours...</span>');
             
-            // 1. CHARGEMENT SILENCIEUX DU DICTIONNAIRE EXCEL DEPUIS GITHUB
             await loadDictionaryAutomatically();
 
-            // 2. RECUPERATION DES DONNÉES KOBO
             const timestamp = new Date().getTime();
             const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + timestamp;
             const apiUrl = 'https://corsproxy.io/?' + encodeURIComponent(koboUrl);
