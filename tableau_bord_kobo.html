@@ -324,7 +324,6 @@
             try {
                 $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire Excel depuis GitHub...</span>');
 
-                // 1. TENTATIVE CHARGEMENT EXCEL
                 const excelUrl = "ath6cv2NrXEUijffeKJqSf(12).xlsx"; 
                 const response = await fetch(excelUrl);
                 if (response.ok) {
@@ -344,7 +343,6 @@
                     }
                 }
 
-                // 2. TENTATIVE CHARGEMENT CSV (Fichier en cascade)
                 try {
                     const csvUrl = "zaps.csv"; 
                     const responseCsv = await fetch(csvUrl);
@@ -363,9 +361,7 @@
                         });
                         console.log("Fichier ZAPs externe (CSV) fusionné au dictionnaire !");
                     }
-                } catch(err) {
-                    console.log("Fichier zaps.csv optionnel non trouvé. Ce n'est pas bloquant.");
-                }
+                } catch(err) {}
 
                 if (isExcelLoaded) {
                     $('#dict-status').replaceWith('<span class="badge bg-success ms-2" title="Codes parfaitement traduits depuis Excel"><i class="fas fa-check-circle"></i> Base Excel Synchronisée</span>');
@@ -379,7 +375,6 @@
             }
         }
 
-        // === UTILITAIRES UX ===
         function scrollTableLeft() { document.getElementById('table-scroll-container').scrollBy({ left: -400, behavior: 'smooth' }); }
         function scrollTableRight() { document.getElementById('table-scroll-container').scrollBy({ left: 400, behavior: 'smooth' }); }
         function scrollTableUp() { document.getElementById('table-scroll-container').scrollBy({ top: -400, behavior: 'smooth' }); }
@@ -473,10 +468,12 @@
             
             let xmlNameLower = String(xmlName).toLowerCase();
 
-            // 1. RÈGLE D'EXCLUSION STRICTE : Ne pas traduire les colonnes purement quantitatives
-            const noTranslationKeywords = ['realisation', 'nombre', 'budget', 'montant', 'quantit', 'effectif'];
-            if (noTranslationKeywords.some(kw => xmlNameLower.includes(kw))) {
-                return String(val).trim(); // Retourne le chiffre pur
+            // 1. RÈGLE D'EXCLUSION STRICTE : Ne pas traduire les colonnes quantitatives
+            // CORRECTION: On exclut le mot "budgetiser" de la règle d'exclusion pour laisser passer "sous_activite_a_budgetiser"
+            const noTranslationKeywords = ['realisation', 'nombre', 'montant', 'quantit', 'effectif'];
+            if (noTranslationKeywords.some(kw => xmlNameLower.includes(kw)) || 
+               (xmlNameLower.includes('budget') && !xmlNameLower.includes('budgetiser'))) {
+                return String(val).trim(); // Retourne le chiffre pur sans chercher à le traduire
             }
 
             // 2. STRATÉGIE DE LA LISTE BLANCHE (WHITELIST)
@@ -489,14 +486,12 @@
                 let pLower = pClean.toLowerCase();
                 let t = null;
 
-                // MOTEUR DE RECHERCHE DANS LE DICTIONNAIRE
                 if (externalDict[pLower]) {
                     if (isCodeLabelColumn || pLower.length > 1 || isNaN(pLower)) {
                         t = externalDict[pLower];
                     }
                 }
 
-                // Base de secours en dur pour les DREN (uniquement si concerné)
                 if (!t && xmlNameLower.includes('dren')) {
                     const drenFallback = {
                         '11': 'ANALAMANGA', '12': 'VAKINANKARATRA', '13': 'ITASY', '14': 'BONGOLAVA',
@@ -509,7 +504,6 @@
                     t = drenFallback[pClean];
                 }
 
-                // ASSEMBLAGE FINAL
                 if (t) {
                     if (isCodeLabelColumn) {
                         return pClean + ' : ' + t;
