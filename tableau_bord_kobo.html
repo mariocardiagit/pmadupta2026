@@ -10,6 +10,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- EXCEL SheetJS (Pour lire le dictionnaire hébergé sur GitHub) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { 
             background-color: #f4f7f6; 
@@ -63,7 +65,6 @@
             vertical-align: middle;
             text-align: center;
         }
-        /* Style des miniatures d'images */
         .table-img {
             max-width: 80px;
             max-height: 80px;
@@ -112,7 +113,7 @@
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
                 <span class="visually-hidden">Chargement...</span>
             </div>
-            <h5 class="mt-3 text-secondary" id="loading-text">Synchronisation et traduction en cours...</h5>
+            <h5 class="mt-3 text-secondary" id="loading-text">Synchronisation et construction de la matrice...</h5>
         </div>
 
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -127,12 +128,12 @@
         <!-- Navigation par Onglets -->
         <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="visualisation-tab" data-bs-toggle="tab" data-bs-target="#visualisation" type="button" role="tab" aria-controls="visualisation" aria-selected="true">
+                <button class="nav-link active" id="visualisation-tab" data-bs-toggle="tab" data-bs-target="#visualisation" type="button" role="tab">
                     <i class="fas fa-table"></i> Onglet 1 : Visualisation des Données
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="analyse-tab" data-bs-toggle="tab" data-bs-target="#analyse" type="button" role="tab" aria-controls="analyse" aria-selected="false">
+                <button class="nav-link" id="analyse-tab" data-bs-toggle="tab" data-bs-target="#analyse" type="button" role="tab">
                     <i class="fas fa-chart-line"></i> Onglet 2 : Analyse & IA
                 </button>
             </li>
@@ -142,7 +143,7 @@
         <div class="tab-content" id="dashboardTabsContent">
             
             <!-- ONGLET 1 : VISUALISATION -->
-            <div class="tab-pane fade show active" id="visualisation" role="tabpanel" aria-labelledby="visualisation-tab">
+            <div class="tab-pane fade show active" id="visualisation" role="tabpanel">
                 
                 <!-- Panneau de Filtres -->
                 <div class="filter-card shadow-sm">
@@ -189,7 +190,7 @@
                     <h5 class="m-0 text-secondary">Lignes affichées : <span id="record-count" class="badge bg-primary">0</span></h5>
                     
                     <div class="d-flex align-items-center flex-wrap gap-3">
-                        <div class="btn-group" role="group" aria-label="Mode d'affichage des fichiers">
+                        <div class="btn-group" role="group">
                             <input type="radio" class="btn-check" name="imageDisplayMode" id="mode-url" value="url" autocomplete="off" checked onchange="toggleImageMode()">
                             <label class="btn btn-outline-secondary btn-sm" for="mode-url"><i class="fas fa-link"></i> Chemins Absolus</label>
 
@@ -197,7 +198,7 @@
                             <label class="btn btn-outline-secondary btn-sm" for="mode-img"><i class="fas fa-image"></i> Véritables Images</label>
                         </div>
 
-                        <div class="btn-group" role="group" aria-label="Défilement du tableau">
+                        <div class="btn-group" role="group">
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableLeft()" title="Défiler vers la gauche"><i class="fas fa-arrow-left"></i></button>
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableRight()" title="Défiler vers la droite"><i class="fas fa-arrow-right"></i></button>
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableUp()" title="Défiler vers le haut"><i class="fas fa-arrow-up"></i></button>
@@ -224,7 +225,7 @@
             </div>
 
             <!-- ONGLET 2 : ANALYSE & IA -->
-            <div class="tab-pane fade" id="analyse" role="tabpanel" aria-labelledby="analyse-tab">
+            <div class="tab-pane fade" id="analyse" role="tabpanel">
                 
                 <!-- Rapport IA -->
                 <div class="ai-insights shadow-sm" id="ai-report-container">
@@ -312,15 +313,13 @@
     <script>
         // === VARIABLES GLOBALES ===
         let allData = [];
-        let headerMap = {};
-        let valueMap = {};
-        let questionListMap = {};
-        let globalKoboDict = {}; // LE NOUVEAU MOTEUR DE RECHERCHE GLOBAL
+        let externalDict = {}; // Dictionnaire chargé depuis GitHub
         let currentImageMode = 'url'; 
+        let isExcelLoaded = false;
 
         const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
-        // ARCHITECTURE ÉCLATÉE DES COLONNES (Avec titres génériques forcés)
+        // ARCHITECTURE ÉCLATÉE DES COLONNES
         let baseColsInfo = [
             { key: 'dren', matches: ['dren'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'DREN', xmlName: '' },
             { key: 'cisco', matches: ['cisco'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'CISCO', xmlName: '' },
@@ -342,6 +341,43 @@
             { key: 'sousProduitZap', matches: ['sous_produit', 'sous-produit'], mustMatch: ['zap'], ex: [], label: 'Sous-produit de la ZAP', xmlName: '' }
         ];
 
+        // === MOTEUR DE TÉLÉCHARGEMENT EXCEL DEPUIS GITHUB ===
+        async function loadDictionaryAutomatically() {
+            try {
+                $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire Excel depuis GitHub...</span>');
+
+                // Remplacez le nom du fichier si jamais il change sur votre dépôt GitHub
+                const excelUrl = "ath6cv2NrXEUijffeKJqSf(12).xlsx"; 
+
+                const response = await fetch(excelUrl);
+                if (!response.ok) throw new Error("Fichier Excel introuvable sur GitHub");
+
+                const arrayBuffer = await response.arrayBuffer();
+                const data = new Uint8Array(arrayBuffer);
+                const workbook = XLSX.read(data, {type: 'array'});
+                
+                if(workbook.SheetNames.includes('choices')) {
+                    const sheet = workbook.Sheets['choices'];
+                    const jsonChoices = XLSX.utils.sheet_to_json(sheet);
+                    
+                    let count = 0;
+                    jsonChoices.forEach(row => {
+                        if(row.name !== undefined && row.label !== undefined) {
+                            externalDict[String(row.name).trim().toLowerCase()] = String(row.label).trim();
+                            count++;
+                        }
+                    });
+                    isExcelLoaded = true;
+                    console.log(`Dictionnaire Excel chargé avec succès (${count} codes reconnus).`);
+                    $('#dict-status').replaceWith('<span class="badge bg-success ms-2" title="Codes parfaitement traduits depuis Excel"><i class="fas fa-check-circle"></i> Base Excel Synchronisée</span>');
+                }
+            } catch (e) {
+                isExcelLoaded = false;
+                console.warn("L'Excel hébergé sur GitHub n'a pas pu être chargé :", e.message);
+                $('#dict-status').replaceWith('<span class="badge bg-danger ms-2" title="Assurez-vous que le fichier Excel est dans le même dossier sur GitHub"><i class="fas fa-exclamation-triangle"></i> Fichier Excel Introuvable</span>');
+            }
+        }
+
         // === UTILITAIRES UX ===
         function scrollTableLeft() { document.getElementById('table-scroll-container').scrollBy({ left: -400, behavior: 'smooth' }); }
         function scrollTableRight() { document.getElementById('table-scroll-container').scrollBy({ left: 400, behavior: 'smooth' }); }
@@ -354,39 +390,18 @@
             applyFilters();
         }
 
-        // === CORRECTEUR ORTHOGRAPHIQUE KOBO ===
         function smartKoboAutoCorrect(text) {
             if (!text) return '';
             let t = String(text).toLowerCase();
 
-            // Remplacements partiels intelligents
             const corrections = {
-                'b_n_ficiaire': 'bénéficiaire', 
-                'r_f_rentiel': 'référentiel', 
-                'd_margement': "d'émargement",
-                'activit_': 'activité', 
-                'num_ro': 'numéro', 
-                'p_dagogique': 'pédagogique', 
-                'g_n_ral': 'général',
-                'pr_sence': 'présence', 
-                'dipl_me': 'diplôme', 
-                't_l_phone': 'téléphone', 
-                'cr_ation': 'création',
-                'r_union': 'réunion', 
-                'd_tail': 'détail', 
-                'fr_quence': 'fréquence', 
-                'p_riode': 'période',
-                'd_but': 'début', 
-                'cl_ture': 'clôture', 
-                'mat_riel': 'matériel', 
-                'r_ponse': 'réponse',
-                'identit_': 'identité', 
-                'r_gion': 'région', 
-                'd_partement': 'département', 
-                '_tablissement': 'établissement',
-                '_cole': 'école', 
-                '_l_ve': 'élève', 
-                's_curit_': 'sécurité'
+                'b_n_ficiaire': 'bénéficiaire', 'r_f_rentiel': 'référentiel', 'd_margement': "d'émargement",
+                'activit_': 'activité', 'num_ro': 'numéro', 'p_dagogique': 'pédagogique', 'g_n_ral': 'général',
+                'pr_sence': 'présence', 'dipl_me': 'diplôme', 't_l_phone': 'téléphone', 'cr_ation': 'création',
+                'r_union': 'réunion', 'd_tail': 'détail', 'fr_quence': 'fréquence', 'p_riode': 'période',
+                'd_but': 'début', 'cl_ture': 'clôture', 'mat_riel': 'matériel', 'r_ponse': 'réponse',
+                'identit_': 'identité', 'r_gion': 'région', 'd_partement': 'département', '_tablissement': 'établissement',
+                '_cole': 'école', '_l_ve': 'élève', 's_curit_': 'sécurité'
             };
 
             for (const [bad, good] of Object.entries(corrections)) { 
@@ -397,7 +412,6 @@
             return t.charAt(0).toUpperCase() + t.slice(1);
         }
 
-        // === FUZZY MATCH ===
         function levenshtein(a, b) {
             if (a.length === 0) return b.length;
             if (b.length === 0) return a.length;
@@ -436,56 +450,10 @@
             return allWordsMatch;
         }
 
-        // === KOBO API & TRADUCTION ===
-        async function fetchSchema() {
-            const schemaUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf.json');
-            try {
-                const response = await fetch(schemaUrl, { cache: 'no-store' });
-                if (!response.ok) return;
-                const schema = await response.json();
-                
-                if (schema.content && schema.content.survey) {
-                    schema.content.survey.forEach(q => {
-                        if (q.name) {
-                            let label = q.label;
-                            if (Array.isArray(label)) label = label[0];
-                            if (typeof label === 'object' && label !== null) label = label[Object.keys(label)[0]]; 
-                            if (label) headerMap[String(q.name).toLowerCase()] = label;
-                            
-                            let qType = q.type || '';
-                            let listName = q.select_from_list_name; 
-                            if (!listName && (qType.includes('select_one') || qType.includes('select_multiple'))) {
-                                let parts = qType.trim().split(/\s+/); 
-                                if (parts.length > 1) listName = parts[1];
-                            }
-                            if (listName) questionListMap[String(q.name).toLowerCase()] = String(listName).toLowerCase();
-                        }
-                    });
-                }
-                if (schema.content && schema.content.choices) {
-                    schema.content.choices.forEach(c => {
-                        if (c.list_name && c.name !== undefined) {
-                            let label = c.label;
-                            if (Array.isArray(label)) label = label[0];
-                            if (typeof label === 'object' && label !== null) label = label[Object.keys(label)[0]];
-                            
-                            let code = String(c.name).toLowerCase();
-                            valueMap[String(c.list_name).toLowerCase() + '::' + code] = label;
-                            
-                            // ALIMENTATION DU MOTEUR DE RECHERCHE GLOBAL
-                            if (label) {
-                                globalKoboDict[code] = label;
-                            }
-                        }
-                    });
-                }
-            } catch (e) { console.error("Erreur schéma", e); }
-        }
-
         function getTranslatedHeader(xmlName) {
             let key = String(xmlName).toLowerCase();
             
-            // 1. PRIORITÉ ABSOLUE : Forçage manuel des titres
+            // PRIORITÉ ABSOLUE : Forçage manuel des titres
             const exactMatches = {
                 'vi_r_f_rentiel_standard_des_pr': "VI. Référentiel standard des preuves par type d'activité",
                 'date_enq': "Date de suivi",
@@ -495,20 +463,17 @@
                 'liste_d_margement': "Liste d'émargement"
             };
             if (exactMatches[key]) return exactMatches[key];
-
-            // 2. Dictionnaire Kobo API
-            if (headerMap[key]) return headerMap[key];
             
-            // 3. Auto-correcteur pour le reste
+            // Auto-correcteur
             return smartKoboAutoCorrect(xmlName);
         }
 
+        // MOTEUR D'ASSEMBLAGE ET DE TRADUCTION DE LA MATRICE ("CODE : LIBELLÉ")
         function getTranslatedValue(val, xmlName) {
             if (val === null || val === undefined || val === '') return '';
             if (Array.isArray(val)) return val; 
             
             let xmlNameLower = String(xmlName).toLowerCase();
-            let listName = questionListMap[xmlNameLower];
             
             let parts = String(val).split(' ');
             let translatedParts = parts.map(p => {
@@ -516,22 +481,16 @@
                 let pLower = pClean.toLowerCase();
                 let t = null;
 
-                // 1. Dictionnaire Kobo Strict (Par Nom de Liste)
-                if (listName && valueMap[listName + '::' + pLower]) {
-                    t = valueMap[listName + '::' + pLower];
-                }
-                
-                // 2. MOTEUR DE RECHERCHE GLOBAL API KOBO (L'ASTUCE MAGIQUE !)
-                // Si la liste n'est pas identifiée, on fouille dans tout le JSON de Kobo.
-                // Sécurité : On ignore les codes à 1 chiffre (ex: "1" ou "2") pour ne pas confondre un Oui/Non avec un vrai code, 
-                // sauf si ce n'est pas un nombre (ex: lettre "A").
-                if (!t && globalKoboDict[pLower]) {
+                // 1. Priorité N°1 : Moteur de recherche via le Dictionnaire Excel de GitHub
+                if (externalDict[pLower]) {
+                    // On vérifie que ce n'est pas un faux positif simple (comme le chiffre '1' pour "Oui")
+                    // Les codes de CISCO, ZAP ou Activités font plus d'un caractère ou comportent des lettres.
                     if (pLower.length > 1 || isNaN(pLower)) {
-                        t = globalKoboDict[pLower];
+                        t = externalDict[pLower];
                     }
                 }
 
-                // 3. Fallback de secours ultime pour la DREN (Si Kobo est déconnecté)
+                // 2. Base de secours en dur pour les DREN (Garantit un affichage minimal si Excel absent)
                 if (!t && xmlNameLower.includes('dren')) {
                     const drenFallback = {
                         '11': 'ANALAMANGA', '12': 'VAKINANKARATRA', '13': 'ITASY', '14': 'BONGOLAVA',
@@ -544,6 +503,7 @@
                     t = drenFallback[pClean];
                 }
 
+                // L'ASSEMBLEUR "CODE : LIBELLÉ"
                 if (t) return pClean + ' : ' + t;
                 return pClean;
             });
@@ -595,10 +555,12 @@
         async function fetchData() {
             $('#loading-box').show(); $('#error-box').hide();
             $('#table-body').empty(); $('#table-group-header-row').empty(); $('#table-sub-header-row').empty();
-            $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Audit en cours...</span>');
+            $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Lancement du système...</span>');
             
-            await fetchSchema();
+            // 1. CHARGEMENT SILENCIEUX DU DICTIONNAIRE EXCEL DEPUIS GITHUB
+            await loadDictionaryAutomatically();
 
+            // 2. RECUPERATION DES DONNÉES KOBO
             const timestamp = new Date().getTime();
             const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + timestamp;
             const apiUrl = 'https://corsproxy.io/?' + encodeURIComponent(koboUrl);
@@ -614,28 +576,28 @@
                 allData = json.results || [];
                 
                 renderTable(allData);
-                verifyDataSync(allData.length);
+                
+                let tableCount = allData.length > 0 ? $('#table-body tr').length : 0;
+                let badgeExcel = isExcelLoaded ? 
+                    '<span class="badge bg-success ms-2" title="Le dictionnaire Excel a été appliqué sur vos données !"><i class="fas fa-check-circle"></i> Traduction Réussie</span>' : 
+                    '<span class="badge bg-warning text-dark ms-2" title="Le dictionnaire est introuvable sur GitHub."><i class="fas fa-info-circle"></i> Affichage Brut</span>';
+                
+                if (allData.length === tableCount) {
+                    $('#sync-status').html(`<span class="badge bg-success sync-badge"><i class="fas fa-check-double"></i> Intégrité Validée : ${allData.length} Lignes</span>`).append(badgeExcel);
+                } else {
+                    $('#sync-status').html(`<span class="badge bg-danger sync-badge"><i class="fas fa-exclamation-triangle"></i> Alerte Intégrité : JSON (${allData.length}) ≠ HTML (${tableCount})</span>`).append(badgeExcel);
+                }
+
                 renderAnalysis(allData);
 
             } catch (error) {
                 $('#error-box').html('<strong>Erreur :</strong> ' + error.message).show();
-                $('#sync-status').html('<span class="badge bg-danger sync-badge">Échec du contrôle</span>');
+                $('#sync-status').html('<span class="badge bg-danger sync-badge">Échec du téléchargement Kobo</span>');
             } finally {
                 $('#loading-box').hide();
             }
         }
 
-        function verifyDataSync(apiCount) {
-            let tableCount = apiCount > 0 ? $('#table-body tr').length : 0;
-            const statusDiv = $('#sync-status');
-            if (apiCount === tableCount) {
-                statusDiv.html(`<span class="badge bg-success sync-badge"><i class="fas fa-check-double"></i> Intégrité Validée : ${apiCount} JSON = ${tableCount} HTML</span>`);
-            } else {
-                statusDiv.html(`<span class="badge bg-danger sync-badge"><i class="fas fa-exclamation-triangle"></i> Alerte : JSON (${apiCount}) ≠ HTML (${tableCount})</span>`);
-            }
-        }
-
-        // === RENDU DU TABLEAU (ONGLET 1) ===
         function renderTable(data) {
             const tbody = $('#table-body');
             const groupHeaderTr = $('#table-group-header-row');
@@ -757,7 +719,6 @@
             $('#record-count').text(data.length);
         }
 
-        // === RENDU DES ANALYSES & IA (ONGLET 2 : Tableaux Détaillés) ===
         function getFrequencies(arr) {
             return arr.reduce((acc, val) => {
                 let key = val ? String(val).trim() : "Non renseigné";
@@ -846,7 +807,6 @@
             });
         }
 
-        // === GESTION DES FILTRES ET EXPORTS ===
         function applyFilters() {
             const filters = {
                 dren: $('#filter-dren').val(), cisco: $('#filter-cisco').val(), zap: $('#filter-zap').val(),
