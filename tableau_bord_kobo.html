@@ -161,7 +161,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json';
+        // SOLUTION ANTI-CACHE : On ajoute un timestamp unique à chaque appel
+        const timestamp = new Date().getTime();
+        const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?t=' + timestamp;
         const apiUrl = 'https://corsproxy.io/?' + encodeURIComponent(koboUrl);
         
         let allData = [];
@@ -189,7 +191,7 @@
             $('#table-body').empty();
             
             try {
-                const response = await fetch(apiUrl);
+                const response = await fetch(apiUrl, { cache: 'no-store' }); // Double sécurité anti-cache
                 if (!response.ok) throw new Error('Erreur réseau : Code ' + response.status);
                 const json = await response.json();
                 allData = json.results || [];
@@ -203,11 +205,9 @@
 
         function renderTable(data) {
             const tbody = $('#table-body');
-            // Ciblage robuste de la ligne d'en-tête, sans dépendre d'un ID
             const theadTr = $('#data-table thead tr');
             
             tbody.empty();
-            // Réinitialiser les en-têtes dynamiques (on garde les 7 premiers index 0 à 6)
             theadTr.find('th:gt(6)').remove();
 
             if (data.length === 0) {
@@ -216,7 +216,6 @@
                 return;
             }
 
-            // 1. Détection des colonnes supplémentaires
             let extraKeysSet = new Set();
             
             function isBaseColumn(key) {
@@ -237,20 +236,17 @@
 
             data.forEach(row => {
                 Object.keys(row).forEach(key => {
-                    // Ignorer les métadonnées de système Kobo
                     if (key.startsWith('_') || key.startsWith('meta/') || key === 'formhub/uuid') return;
                     if (!isBaseColumn(key)) extraKeysSet.add(key);
                 });
             });
 
-            // 2. Génération des en-têtes à droite
             let extraKeys = Array.from(extraKeysSet);
             extraKeys.forEach(key => {
                 let cleanName = key.split('/').pop().toUpperCase().replace(/_/g, ' ');
                 theadTr.append(`<th>${cleanName}</th>`);
             });
 
-            // 3. Formatage et consolidation
             function formatExtraValue(val, colName) {
                 if (val === null || val === undefined) return '';
                 let formattedStr = '';
@@ -264,7 +260,6 @@
                     formattedStr = String(val);
                 }
 
-                // Application des règles de consolidation spécifiques
                 if (colName && colName.includes('ENTITE')) {
                     let parts = formattedStr.split(/\s*;\s*/).filter(Boolean);
                     let uniqueParts = [...new Set(parts)];
@@ -277,7 +272,6 @@
                 return formattedStr;
             }
 
-            // 4. Remplissage du tableau
             data.forEach(row => {
                 const dren = getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap']);
                 const cisco = getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget']);
@@ -317,7 +311,6 @@
             $('#record-count').text(data.length);
         }
 
-        // --- Fonctions de Filtrage et Export (identiques) ---
         function applyFilters() {
             const filters = {
                 dren: $('#filter-dren').val().toLowerCase(),
