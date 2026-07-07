@@ -176,7 +176,7 @@
 
     <script>
         let allData = [];
-        // Dictionnaires pour stocker les correspondances "Code XML" <-> "Vrai Texte"
+        // Dictionnaires de traduction
         let headerMap = {};
         let valueMap = {};
         let questionListMap = {};
@@ -196,14 +196,23 @@
                             let label = q.label;
                             if (Array.isArray(label)) label = label[0];
                             if (typeof label === 'object' && label !== null) {
-                                label = label[Object.keys(label)[0]]; // Gestion multilingue
+                                label = label[Object.keys(label)[0]]; 
                             }
-                            if (label) headerMap[q.name] = label;
+                            // On stocke le nom XML en minuscules pour être sûr que ça corresponde
+                            if (label) headerMap[String(q.name).toLowerCase()] = label;
                             
-                            // Détection si c'est un choix unique/multiple pour mapper les réponses
-                            if (q.type && (q.type.startsWith('select_one') || q.type.startsWith('select_multiple'))) {
-                                let parts = q.type.split(' ');
-                                if (parts.length > 1) questionListMap[q.name] = parts[1]; // Stocke le nom de la liste Kobo
+                            // Détection robuste des listes de choix (gère les espaces multiples)
+                            let qType = q.type || '';
+                            let listName = q.select_from_list_name; 
+                            
+                            if (!listName && (qType.includes('select_one') || qType.includes('select_multiple'))) {
+                                // .split(/\s+/) sépare correctement même s'il y a 3 espaces de suite
+                                let parts = qType.trim().split(/\s+/); 
+                                if (parts.length > 1) listName = parts[1];
+                            }
+                            
+                            if (listName) {
+                                questionListMap[String(q.name).toLowerCase()] = String(listName).toLowerCase();
                             }
                         }
                     });
@@ -212,13 +221,17 @@
                 // Mappage des choix (Valeurs)
                 if (schema.content && schema.content.choices) {
                     schema.content.choices.forEach(c => {
-                        if (c.list_name && c.name) {
+                        if (c.list_name && c.name !== undefined) {
                             let label = c.label;
                             if (Array.isArray(label)) label = label[0];
                             if (typeof label === 'object' && label !== null) {
                                 label = label[Object.keys(label)[0]];
                             }
-                            if (label) valueMap[c.list_name + '::' + c.name] = label;
+                            if (label) {
+                                // Clé universelle en minuscules : "nom_de_liste::code_reponse"
+                                let key = String(c.list_name).toLowerCase() + '::' + String(c.name).toLowerCase();
+                                valueMap[key] = label;
+                            }
                         }
                     });
                 }
@@ -229,22 +242,25 @@
 
         // 2. Fonctions de traduction (Code XML -> Label Vrai)
         function getTranslatedHeader(xmlName) {
-            if (headerMap[xmlName]) return headerMap[xmlName];
-            return xmlName.toUpperCase().replace(/_/g, ' '); // Plan B de nettoyage
+            let key = String(xmlName).toLowerCase();
+            if (headerMap[key]) return headerMap[key];
+            return xmlName.toUpperCase().replace(/_/g, ' '); // Plan B
         }
 
         function getTranslatedValue(val, xmlName) {
             if (val === null || val === undefined || val === '') return '';
-            if (Array.isArray(val)) return val; // Ne traduit pas les groupes répétés entiers
+            if (Array.isArray(val)) return val; 
             
-            let listName = questionListMap[xmlName];
+            let xmlNameLower = String(xmlName).toLowerCase();
+            let listName = questionListMap[xmlNameLower];
+            
             if (listName) {
-                // Sépare en cas de choix multiples
-                let parts = String(val).split(' ');
+                let parts = String(val).split(' '); // Kobo sépare les choix multiples par un espace
                 let translatedParts = parts.map(p => {
-                    let t = valueMap[listName + '::' + p];
-                    if (t) return p + ' : ' + t; // Génère le format "A3121 : Former et recruter..."
-                    return p;
+                    let pLower = String(p).toLowerCase();
+                    let t = valueMap[listName + '::' + pLower];
+                    if (t) return p + ' : ' + t; // Formate en "Code : Texte Complet"
+                    return p; // Si aucune traduction n'est trouvée, laisse le code brut
                 });
                 return translatedParts.join(' ; ');
             }
@@ -289,12 +305,12 @@
             $('#table-body').empty();
             $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Audit en cours...</span>');
             
-            // 1. Récupération du Dictionnaire de traduction en premier
-            $('#loading-text').text("1/2: Récupération des libellés (schéma)...");
+            // ÉTAPE 1 : Le dictionnaire des libellés
+            $('#loading-text').text("1/2: Récupération du dictionnaire Kobo...");
             await fetchSchema();
 
-            // 2. Récupération des Données (avec Cache Busting)
-            $('#loading-text').text("2/2: Synchronisation des données avec KoboToolbox...");
+            // ÉTAPE 2 : Les données brutes
+            $('#loading-text').text("2/2: Téléchargement des données de terrain...");
             const timestamp = new Date().getTime();
             const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + timestamp;
             const apiUrl = 'https://corsproxy.io/?' + encodeURIComponent(koboUrl);
@@ -404,14 +420,13 @@
             let extraKeys = Array.from(extraKeysSet);
             extraKeys.forEach(key => {
                 let xmlName = key.split('/').pop();
-                let cleanName = getTranslatedHeader(xmlName); // Traduction de l'en-tête dynamique
+                let cleanName = getTranslatedHeader(xmlName); 
                 theadTr.append(`<th>${cleanName}</th>`);
             });
 
             function formatExtraValue(val, colName, rowData, xmlName) {
                 if (val === null || val === undefined) return '';
 
-                // Traduction immédiate si c'est une liste de choix
                 let translatedVal = getTranslatedValue(val, xmlName);
 
                 let parts = [];
@@ -438,7 +453,7 @@
                     let linkifiedSubParts = subParts.map(subStr => {
                         let att = rowData._attachments.find(a => a.media_file_basename === subStr);
                         if (att && att.download_url) {
-                            return `<a href="${att.download_url}" target="_blank" class="badge bg-primary text-white text-decoration-none py-1 px-2 mx-1 shadow-sm"><i class="fas fa-external-link-alt"></i> ${subStr}</a>`;
+                            return `<a href="${att.download_url}" target="_blank" class="badge bg-primary text-white text-decoration-none py-1 px-2 mx-1 shadow-sm" title="Ouvrir le fichier"><i class="fas fa-external-link-alt"></i> ${subStr}</a>`;
                         }
                         return subStr;
                     });
@@ -473,7 +488,6 @@
                     tr.append($('<td></td>').html(valHtml));
                 });
 
-                // Le filtre de recherche est mis à jour pour englober les textes complets traduits
                 tr.data('search', {
                     dren: String(dren).toLowerCase(),
                     cisco: String(cisco).toLowerCase(),
