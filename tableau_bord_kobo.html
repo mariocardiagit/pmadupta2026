@@ -12,7 +12,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- EXCEL SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- jsPDF et AutoTable (Pour l'export PDF) -->
+    <!-- jsPDF et AutoTable (Pour l'export PDF dynamique) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
@@ -202,7 +202,7 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
-                        <!-- NOUVEAUX BOUTONS D'EXPORT ET PARTAGE -->
+                        <!-- BOUTONS D'EXPORT ET PARTAGE -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -349,6 +349,7 @@
             try {
                 $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire Excel depuis GitHub...</span>');
 
+                // 1. TENTATIVE CHARGEMENT EXCEL (Survey + Choices)
                 const excelUrl = "ath6cv2NrXEUijffeKJqSf(12).xlsx"; 
                 const response = await fetch(excelUrl);
                 if (response.ok) {
@@ -391,6 +392,7 @@
                     }
                 }
 
+                // 2. TENTATIVE CHARGEMENT CSV
                 try {
                     const csvUrl = "zaps.csv"; 
                     const responseCsv = await fetch(csvUrl);
@@ -407,6 +409,7 @@
                                 }
                             }
                         });
+                        console.log("Fichier ZAPs externe (CSV) fusionné au dictionnaire !");
                     }
                 } catch(err) {}
 
@@ -516,12 +519,14 @@
             
             let xmlNameLower = String(xmlName).toLowerCase();
 
+            // RÈGLE D'EXCLUSION : Ne pas traduire les colonnes quantitatives. (On exclut explicitement "budgetiser")
             const noTranslationKeywords = ['realisation', 'nombre', 'montant', 'quantit', 'effectif'];
             if (noTranslationKeywords.some(kw => xmlNameLower.includes(kw)) || 
                (xmlNameLower.includes('budget') && !xmlNameLower.includes('budgetiser'))) {
                 return String(val).trim(); 
             }
 
+            // STRATÉGIE DE LA LISTE BLANCHE (WHITELIST)
             const requiresCodeLabel = ['dren', 'cisco', 'zap', 'activite', 'produit', 'sous', 'vi_'];
             let isCodeLabelColumn = requiresCodeLabel.some(kw => xmlNameLower.includes(kw));
             
@@ -930,7 +935,6 @@
         }
 
         function exportTableToExcel(filename) {
-            // Nettoyage temporaire des liens pour l'export Excel
             let tableClone = document.getElementById('data-table').cloneNode(true);
             let links = tableClone.querySelectorAll('a');
             links.forEach(link => { link.outerHTML = link.href; });
@@ -967,17 +971,45 @@
 
         function exportTableToPDF(filename) {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'pt', 'a4'); // 'l' pour orientation paysage
-            doc.text("Rapport Données KoboToolbox", 40, 30);
+            
+            // Calculer dynamiquement la taille de la page PDF en fonction du nombre de colonnes
+            let table = document.getElementById('data-table');
+            let headerCells = table.querySelectorAll('thead tr:last-child th');
+            let colCount = headerCells.length;
+            
+            // Largeur dynamique : 120 points minimum par colonne. (Permet des tableaux infinis sans écrasement)
+            let dynamicWidth = Math.max(842, colCount * 120); 
+            let dynamicHeight = 595; // Hauteur A4 standard
+            
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'pt',
+                format: [dynamicWidth, dynamicHeight]
+            });
+
+            doc.setFontSize(18);
+            doc.text("Rapport Données KoboToolbox", 40, 35);
             
             doc.autoTable({
                 html: '#data-table',
-                startY: 40,
-                styles: { fontSize: 7, overflow: 'linebreak' },
+                startY: 55,
+                styles: { 
+                    fontSize: 9, 
+                    cellPadding: 5,
+                    overflow: 'linebreak',
+                    valign: 'middle'
+                },
+                headStyles: { 
+                    fillColor: [52, 73, 94], 
+                    textColor: 255,
+                    fontStyle: 'bold',
+                    halign: 'center'
+                },
                 theme: 'grid',
-                headStyles: { fillColor: [52, 73, 94] },
-                columnStyles: { 0: { cellWidth: 50 } }
+                margin: { top: 50, right: 20, bottom: 20, left: 20 },
+                tableWidth: 'auto'
             });
+            
             doc.save(filename);
         }
 
