@@ -199,6 +199,7 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
+                        <!-- BOUTONS D'EXPORT ET PARTAGE -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -216,8 +217,8 @@
                                 <i class="fas fa-share-alt"></i> Partager
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (Texte JSON)</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (Texte JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> Envoyer vers WhatsApp</a></li>
                             </ul>
                         </div>
                     </div>
@@ -893,7 +894,6 @@
 
         function clearFilters() { $('.filter-input').val(''); applyFilters(); }
         
-        // --- NOUVEAU : RECUPERATION DES FILTRES ACTUELS ---
         function getCurrentFilters() {
             return {
                 "DREN": $('#filter-dren').val() || "Tous",
@@ -904,6 +904,18 @@
                 "Sous-activité": $('#filter-sous-activite').val() || "Tous",
                 "Sous-produit": $('#filter-sous-produit').val() || "Tous"
             };
+        }
+
+        // --- GÉNÈRE UN TEXTE LISIBLE DES FILTRES POUR LES E-MAILS/MESSAGES ---
+        function getFiltersPlainText() {
+            let filters = getCurrentFilters();
+            let text = "";
+            for (let key in filters) {
+                if (filters[key] !== "Tous") {
+                    text += `- ${key} : ${filters[key]}\n`;
+                }
+            }
+            return text === "" ? "- Aucun filtre (Toutes les données)" : text;
         }
 
         // --- FONCTIONS D'EXPORTATION ---
@@ -921,7 +933,6 @@
         function exportTableToCSV(filename) {
             let csv = [];
             
-            // --- INJECTION DES FILTRES ---
             let filters = getCurrentFilters();
             csv.push('"--- CRITERES DE RECHERCHE APPLIQUES ---"');
             for (let key in filters) {
@@ -951,7 +962,6 @@
             let wb = XLSX.utils.book_new();
             let wsData = [];
             
-            // --- INJECTION DES FILTRES ---
             let filters = getCurrentFilters();
             wsData.push(["--- CRITERES DE RECHERCHE APPLIQUES ---"]);
             for (let key in filters) {
@@ -984,7 +994,6 @@
         }
 
         function exportTableToHTML(filename) {
-            // --- INJECTION DES FILTRES ---
             let filters = getCurrentFilters();
             let filterHtml = `<div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
                 <h3 style="margin-top: 0; color: #2c3e50;">Critères de recherche appliqués</h3>
@@ -1037,7 +1046,6 @@
                 jsonData.push(rowObj);
             });
             
-            // --- INJECTION DES FILTRES (Structure Objet) ---
             let finalOutput = {
                 "criteres_de_recherche": getCurrentFilters(),
                 "resultats_obtenus": jsonData
@@ -1052,17 +1060,24 @@
             downloadFile(blob, filename);
         }
 
-        // --- FONCTIONS DE PARTAGE (HACK PRESSE-PAPIERS) ---
+        // --- FONCTIONS DE PARTAGE (HACK PRESSE-PAPIERS AVEC FILTRES EN CLAIR) ---
         
         function sendToGmail() {
             let count = $('#record-count').text();
             let jsonString = getTableJSONData();
+            let filtresEnClair = getFiltersPlainText(); // NOUVEAU
             
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON est trop lourd pour être envoyé directement. Il a donc été copié automatiquement dans votre presse-papiers.\n\nDans l'e-mail qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) à l'endroit indiqué.");
                 
                 let subject = encodeURIComponent("Rapport KoboToolbox - " + count + " enregistrements");
-                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le dernier rapport généré depuis le tableau de bord KoboToolbox.\nNombre d'enregistrements validés : ${count}\n\n=== DONNÉES FORMAT JSON ===\n\n[ FAITES CLIC DROIT -> COLLER ICI ]\n\n===========================\n\nCordialement.`;
+                
+                // INJECTION DES FILTRES DANS LE CORPS DE L'E-MAIL
+                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le dernier rapport généré depuis le tableau de bord KoboToolbox.\n\n` + 
+                               `🎯 CRITÈRES DE RECHERCHE APPLIQUÉS :\n${filtresEnClair}\n` +
+                               `📊 Nombre d'enregistrements validés : ${count}\n\n` + 
+                               `=== DONNÉES FORMAT JSON ===\n\n[ FAITES CLIC DROIT -> COLLER ICI ]\n\n===========================\n\nCordialement.`;
+                               
                 let body = encodeURIComponent(bodyText);
                 
                 window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
@@ -1074,11 +1089,16 @@
         function sendToWhatsApp() {
             let count = $('#record-count').text();
             let jsonString = getTableJSONData();
+            let filtresEnClair = getFiltersPlainText(); // NOUVEAU
             
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON a été copié automatiquement dans votre presse-papiers.\n\nDans la fenêtre WhatsApp qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) dans la zone de texte.");
                 
-                let bodyText = `📊 *Rapport KoboToolbox*\n\nLe tableau de bord vient d'être mis à jour.\nNombre d'enregistrements validés : *${count}*.\n\n*DONNÉES FORMAT JSON :*\n\n[ FAITES CLIC DROIT -> COLLER ICI ]`;
+                // INJECTION DES FILTRES DANS LE MESSAGE WHATSAPP
+                let bodyText = `📊 *Rapport KoboToolbox*\n\nLe tableau de bord vient d'être mis à jour.\n\n` +
+                               `🎯 *CRITÈRES APPLIQUÉS :*\n${filtresEnClair}\n` +
+                               `Nombre d'enregistrements validés : *${count}*.\n\n*DONNÉES FORMAT JSON :*\n\n[ FAITES CLIC DROIT -> COLLER ICI ]`;
+                               
                 let text = encodeURIComponent(bodyText);
                 
                 window.open(`https://wa.me/?text=${text}`, '_blank');
