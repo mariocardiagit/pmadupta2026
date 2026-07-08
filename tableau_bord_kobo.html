@@ -199,6 +199,7 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
+                        <!-- BOUTONS D'EXPORT ET PARTAGE -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -216,8 +217,8 @@
                                 <i class="fas fa-share-alt"></i> Partager
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (Texte JSON)</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (Texte JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> Envoyer vers WhatsApp</a></li>
                             </ul>
                         </div>
                     </div>
@@ -977,8 +978,6 @@
             downloadFile(blob, filename);
         }
 
-        // --- NOUVELLE LOGIQUE JSON UNIFIÉE ---
-        
         function getTableJSONData() {
             let headers = [];
             $('#table-sub-header-row th').each(function() {
@@ -996,7 +995,6 @@
                 jsonData.push(rowObj);
             });
             
-            // Format indenté pour faciliter la lecture humaine dans WhatsApp/Gmail
             return JSON.stringify(jsonData, null, 2); 
         }
 
@@ -1006,28 +1004,39 @@
             downloadFile(blob, filename);
         }
 
-        // --- FONCTIONS DE PARTAGE AVEC INJECTION JSON ---
+        // --- FONCTIONS DE PARTAGE (HACK PRESSE-PAPIERS) ---
         
         function sendToGmail() {
             let count = $('#record-count').text();
             let jsonString = getTableJSONData();
             
-            let subject = encodeURIComponent("Rapport KoboToolbox - " + count + " enregistrements");
-            
-            let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le dernier rapport généré depuis le tableau de bord KoboToolbox.\nNombre d'enregistrements validés : ${count}\n\n=== DONNÉES FORMAT JSON ===\n\n${jsonString}\n\n===========================\n\nCordialement.`;
-            
-            let body = encodeURIComponent(bodyText);
-            window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
+            navigator.clipboard.writeText(jsonString).then(function() {
+                alert("✅ SUCCÈS !\n\nLe texte JSON est trop lourd pour être envoyé directement. Il a donc été copié automatiquement dans votre presse-papiers.\n\nDans l'e-mail qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) à l'endroit indiqué.");
+                
+                let subject = encodeURIComponent("Rapport KoboToolbox - " + count + " enregistrements");
+                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le dernier rapport généré depuis le tableau de bord KoboToolbox.\nNombre d'enregistrements validés : ${count}\n\n=== DONNÉES FORMAT JSON ===\n\n[ FAITES CLIC DROIT -> COLLER ICI ]\n\n===========================\n\nCordialement.`;
+                let body = encodeURIComponent(bodyText);
+                
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
+            }).catch(function(err) {
+                alert("❌ Erreur : Impossible d'accéder au presse-papiers. Veuillez exporter le fichier JSON manuellement.");
+            });
         }
 
         function sendToWhatsApp() {
             let count = $('#record-count').text();
             let jsonString = getTableJSONData();
             
-            let bodyText = `📊 *Rapport KoboToolbox*\n\nLe tableau de bord vient d'être mis à jour.\nNombre d'enregistrements validés : *${count}*.\n\n*DONNÉES FORMAT JSON :*\n\`\`\`\n${jsonString}\n\`\`\``;
-            
-            let text = encodeURIComponent(bodyText);
-            window.open(`https://wa.me/?text=${text}`, '_blank');
+            navigator.clipboard.writeText(jsonString).then(function() {
+                alert("✅ SUCCÈS !\n\nLe texte JSON a été copié automatiquement dans votre presse-papiers.\n\nDans la fenêtre WhatsApp qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) dans la zone de texte.");
+                
+                let bodyText = `📊 *Rapport KoboToolbox*\n\nLe tableau de bord vient d'être mis à jour.\nNombre d'enregistrements validés : *${count}*.\n\n*DONNÉES FORMAT JSON :*\n\n[ FAITES CLIC DROIT -> COLLER ICI ]`;
+                let text = encodeURIComponent(bodyText);
+                
+                window.open(`https://wa.me/?text=${text}`, '_blank');
+            }).catch(function(err) {
+                alert("❌ Erreur : Impossible d'accéder au presse-papiers. Veuillez exporter le fichier JSON manuellement.");
+            });
         }
 
         $(document).ready(function() {
