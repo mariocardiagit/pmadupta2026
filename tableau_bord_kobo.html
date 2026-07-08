@@ -199,7 +199,6 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
-                        <!-- BOUTONS D'EXPORT ET PARTAGE -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -208,7 +207,7 @@
                                 <li><a class="dropdown-item" href="#" onclick="exportTableToCSV('donnees_kobo.csv')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="exportTableToExcel('donnees_kobo.xlsx')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="exportTableToHTML('donnees_kobo.html')"><i class="fas fa-file-code text-primary"></i> Enregistrer sous HTML</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportTableToJSON('donnees_kobo.json')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportTableToJSONFile('donnees_kobo.json')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
                             </ul>
                         </div>
 
@@ -217,8 +216,8 @@
                                 <i class="fas fa-share-alt"></i> Partager
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> Envoyer vers WhatsApp</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (Texte JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (Texte JSON)</a></li>
                             </ul>
                         </div>
                     </div>
@@ -404,7 +403,6 @@
                                 }
                             }
                         });
-                        console.log("Fichier ZAPs externe (CSV) fusionné au dictionnaire !");
                     }
                 } catch(err) {}
 
@@ -420,7 +418,6 @@
             }
         }
 
-        // === UTILITAIRES UX ===
         function scrollTableLeft() { document.getElementById('table-scroll-container').scrollBy({ left: -400, behavior: 'smooth' }); }
         function scrollTableRight() { document.getElementById('table-scroll-container').scrollBy({ left: 400, behavior: 'smooth' }); }
         function scrollTableUp() { document.getElementById('table-scroll-container').scrollBy({ top: -400, behavior: 'smooth' }); }
@@ -514,14 +511,12 @@
             
             let xmlNameLower = String(xmlName).toLowerCase();
 
-            // RÈGLE D'EXCLUSION : Ne pas traduire les colonnes quantitatives.
             const noTranslationKeywords = ['realisation', 'nombre', 'montant', 'quantit', 'effectif'];
             if (noTranslationKeywords.some(kw => xmlNameLower.includes(kw)) || 
                (xmlNameLower.includes('budget') && !xmlNameLower.includes('budgetiser'))) {
                 return String(val).trim(); 
             }
 
-            // STRATÉGIE DE LA LISTE BLANCHE (WHITELIST)
             const requiresCodeLabel = ['dren', 'cisco', 'zap', 'activite', 'produit', 'sous', 'vi_'];
             let isCodeLabelColumn = requiresCodeLabel.some(kw => xmlNameLower.includes(kw));
             
@@ -982,8 +977,9 @@
             downloadFile(blob, filename);
         }
 
-        // NOUVELLE FONCTION EXPORT JSON
-        function exportTableToJSON(filename) {
+        // --- NOUVELLE LOGIQUE JSON UNIFIÉE ---
+        
+        function getTableJSONData() {
             let headers = [];
             $('#table-sub-header-row th').each(function() {
                 headers.push($(this).text().trim());
@@ -1000,23 +996,37 @@
                 jsonData.push(rowObj);
             });
             
-            let jsonString = JSON.stringify(jsonData, null, 4);
+            // Format indenté pour faciliter la lecture humaine dans WhatsApp/Gmail
+            return JSON.stringify(jsonData, null, 2); 
+        }
+
+        function exportTableToJSONFile(filename) {
+            let jsonString = getTableJSONData();
             let blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
             downloadFile(blob, filename);
         }
 
-        // --- FONCTIONS DE PARTAGE ---
+        // --- FONCTIONS DE PARTAGE AVEC INJECTION JSON ---
         
         function sendToGmail() {
             let count = $('#record-count').text();
+            let jsonString = getTableJSONData();
+            
             let subject = encodeURIComponent("Rapport KoboToolbox - " + count + " enregistrements");
-            let body = encodeURIComponent(`Bonjour,\n\nVeuillez trouver ci-joint le dernier rapport généré depuis le tableau de bord KoboToolbox.\n\nNombre de lignes traitées : ${count}\n\n[ IMPORTANT : N'oubliez pas d'attacher à cet e-mail le fichier exporté que vous venez de télécharger ! ]\n\nCordialement.`);
+            
+            let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le dernier rapport généré depuis le tableau de bord KoboToolbox.\nNombre d'enregistrements validés : ${count}\n\n=== DONNÉES FORMAT JSON ===\n\n${jsonString}\n\n===========================\n\nCordialement.`;
+            
+            let body = encodeURIComponent(bodyText);
             window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
         }
 
         function sendToWhatsApp() {
             let count = $('#record-count').text();
-            let text = encodeURIComponent(`📊 *Rapport KoboToolbox*\n\nLe tableau de bord vient d'être mis à jour.\nNombre d'enregistrements validés : *${count}*.\n\n(Envoyez le fichier exporté à la suite de ce message).`);
+            let jsonString = getTableJSONData();
+            
+            let bodyText = `📊 *Rapport KoboToolbox*\n\nLe tableau de bord vient d'être mis à jour.\nNombre d'enregistrements validés : *${count}*.\n\n*DONNÉES FORMAT JSON :*\n\`\`\`\n${jsonString}\n\`\`\``;
+            
+            let text = encodeURIComponent(bodyText);
             window.open(`https://wa.me/?text=${text}`, '_blank');
         }
 
