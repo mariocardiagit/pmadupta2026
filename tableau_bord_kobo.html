@@ -199,6 +199,7 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
+                        <!-- BOUTONS D'EXPORT ET PARTAGE -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -451,7 +452,7 @@
             return t.charAt(0).toUpperCase() + t.slice(1);
         }
 
-        // --- NOUVEAU MOTEUR LEVENSHTEIN + LIKE %MOT% ---
+        // --- MOTEUR LEVENSHTEIN + LIKE %MOT% ---
         function levenshtein(a, b) {
             if (a.length === 0) return b.length;
             if (b.length === 0) return a.length;
@@ -480,13 +481,11 @@
             query = query.trim().toLowerCase();
             target = target.toLowerCase();
             
-            // Étape 1 : Vérification d'inclusion stricte (LIKE %mot%)
             if (target.includes(query)) return true;
             
             const targetWords = target.split(/[\s,;.-]+/).filter(Boolean);
             const queryWords = query.split(/[\s,;.-]+/).filter(Boolean);
             
-            // Étape 2 : Vérification de la distance de Levenshtein sur les sous-chaînes
             for (let qw of queryWords) {
                 let wordMatch = false;
                 for (let tw of targetWords) {
@@ -495,14 +494,12 @@
                         break; 
                     }
                     
-                    // On découpe le mot-cible en sous-chaînes de tailles proches du mot recherché
                     let minLen = Math.max(1, qw.length - 1);
                     let maxLen = Math.min(tw.length, qw.length + 1);
                     
                     for (let len = minLen; len <= maxLen; len++) {
                         for (let i = 0; i <= tw.length - len; i++) {
                             let sub = tw.substring(i, i + len);
-                            // Si une sous-chaîne est à 1 erreur près, c'est gagné !
                             if (levenshtein(qw, sub) <= 1) {
                                 wordMatch = true;
                                 break;
@@ -512,7 +509,7 @@
                     }
                     if (wordMatch) break;
                 }
-                if (!wordMatch) return false; // Tous les mots de la recherche doivent matcher
+                if (!wordMatch) return false; 
             }
             return true;
         }
@@ -880,13 +877,11 @@
             populateSummaryTable('zap-summary-table', freqZap, totalRows);
         }
 
-        // --- NOUVEAU : APPLICATION DE LEVENSHTEIN À L'ONGLET 2 ---
         function setupAnalysisTableSearch(inputId, tbodyId) {
             $('#' + inputId).on('keyup', function() {
                 let val = $(this).val();
                 $('#' + tbodyId + ' tr').filter(function() {
                     let rowText = $(this).text(); 
-                    // Utilisation du nouveau moteur fuzzyMatch (LIKE *mot* + Levenshtein)
                     $(this).toggle(fuzzyMatch(val, rowText));
                 });
             });
@@ -947,7 +942,7 @@
             return text === "" ? "- Aucun filtre (Toutes les données)" : text;
         }
 
-        // --- FONCTIONS D'EXPORTATION ---
+        // --- FONCTIONS D'EXPORTATION AVEC CORRECTION DE L'ALIGNEMENT EXCEL/CSV ---
         
         function downloadFile(blob, filename) {
             let downloadLink = document.createElement("a");
@@ -972,7 +967,19 @@
 
             let rows = document.querySelectorAll("#data-table tr");
             for (let i = 0; i < rows.length; i++) {
-                if (rows[i].id === 'table-group-header-row') continue;
+                if (rows[i].id === 'table-group-header-row') {
+                    let row = [], cols = rows[i].querySelectorAll("td, th");
+                    for (let j = 0; j < cols.length; j++) {
+                        let cellData = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""').trim();
+                        row.push('"' + cellData + '"');
+                        if (cols[j].hasAttribute('colspan')) {
+                            let colspan = parseInt(cols[j].getAttribute('colspan'), 10);
+                            for (let k = 1; k < colspan; k++) row.push('""');
+                        }
+                    }
+                    csv.push(row.join(";"));
+                    continue;
+                }
                 if (rows[i].style.display !== 'none') {
                     let row = [], cols = rows[i].querySelectorAll("td, th");
                     for (let j = 0; j < cols.length; j++) {
@@ -999,8 +1006,28 @@
             wsData.push([]);
             wsData.push(["--- RESULTATS ---"]);
 
+            let headerRowIndex = wsData.length;
             let headers1 = [];
-            $('#table-group-header-row th').each(function() { headers1.push($(this).text().trim()); });
+            let merges = [];
+            let currentHeaderCol = 0;
+
+            $('#table-group-header-row th').each(function() {
+                let text = $(this).text().trim();
+                let colspan = parseInt($(this).attr('colspan') || 1, 10);
+
+                headers1.push(text);
+                if (colspan > 1) {
+                    merges.push({
+                        s: { r: headerRowIndex, c: currentHeaderCol },
+                        e: { r: headerRowIndex, c: currentHeaderCol + colspan - 1 }
+                    });
+                    for (let i = 1; i < colspan; i++) {
+                        headers1.push("");
+                    }
+                }
+                currentHeaderCol += colspan;
+            });
+
             if (headers1.length > 0) wsData.push(headers1);
 
             let headers2 = [];
@@ -1018,6 +1045,11 @@
             });
             
             let ws = XLSX.utils.aoa_to_sheet(wsData);
+            
+            if (merges.length > 0) {
+                ws['!merges'] = merges;
+            }
+
             XLSX.utils.book_append_sheet(wb, ws, "Donnees_Kobo");
             XLSX.writeFile(wb, filename);
         }
