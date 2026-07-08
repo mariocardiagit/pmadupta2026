@@ -12,9 +12,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- EXCEL SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- jsPDF et AutoTable (Pour l'export PDF dynamique) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
         body { 
             background-color: #f4f7f6; 
@@ -211,7 +208,7 @@
                                 <li><a class="dropdown-item" href="#" onclick="exportTableToCSV('donnees_kobo.csv')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="exportTableToExcel('donnees_kobo.xlsx')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="exportTableToHTML('donnees_kobo.html')"><i class="fas fa-file-code text-primary"></i> Enregistrer sous HTML</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportTableToPDF('donnees_kobo.pdf')"><i class="fas fa-file-pdf text-danger"></i> Exporter PDF</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportTableToJSON('donnees_kobo.json')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
                             </ul>
                         </div>
 
@@ -407,6 +404,7 @@
                                 }
                             }
                         });
+                        console.log("Fichier ZAPs externe (CSV) fusionné au dictionnaire !");
                     }
                 } catch(err) {}
 
@@ -516,12 +514,14 @@
             
             let xmlNameLower = String(xmlName).toLowerCase();
 
+            // RÈGLE D'EXCLUSION : Ne pas traduire les colonnes quantitatives.
             const noTranslationKeywords = ['realisation', 'nombre', 'montant', 'quantit', 'effectif'];
             if (noTranslationKeywords.some(kw => xmlNameLower.includes(kw)) || 
                (xmlNameLower.includes('budget') && !xmlNameLower.includes('budgetiser'))) {
                 return String(val).trim(); 
             }
 
+            // STRATÉGIE DE LA LISTE BLANCHE (WHITELIST)
             const requiresCodeLabel = ['dren', 'cisco', 'zap', 'activite', 'produit', 'sous', 'vi_'];
             let isCodeLabelColumn = requiresCodeLabel.some(kw => xmlNameLower.includes(kw));
             
@@ -982,64 +982,27 @@
             downloadFile(blob, filename);
         }
 
-        function exportTableToPDF(filename) {
-            try {
-                const { jsPDF } = window.jspdf;
-                
-                let headers = [];
-                $('#table-sub-header-row th').each(function() {
-                    headers.push($(this).text().trim());
+        // NOUVELLE FONCTION EXPORT JSON
+        function exportTableToJSON(filename) {
+            let headers = [];
+            $('#table-sub-header-row th').each(function() {
+                headers.push($(this).text().trim());
+            });
+            
+            let jsonData = [];
+            $('#table-body tr:visible').each(function() {
+                let rowObj = {};
+                $(this).find('td').each(function(index) {
+                    let val = $(this).attr('data-csv');
+                    if (val === undefined || val === null) val = $(this).text();
+                    rowObj[headers[index]] = val;
                 });
-                
-                let bodyData = [];
-                $('#table-body tr:visible').each(function() {
-                    let row = [];
-                    $(this).find('td').each(function() {
-                        let val = $(this).attr('data-csv');
-                        if (val === undefined || val === null) val = $(this).text();
-                        row.push(val);
-                    });
-                    bodyData.push(row);
-                });
-                
-                let colCount = headers.length;
-                let dynamicWidth = Math.max(842, colCount * 120); 
-                let dynamicHeight = 595; 
-                
-                const doc = new jsPDF({
-                    orientation: 'landscape',
-                    unit: 'pt',
-                    format: [dynamicWidth, dynamicHeight]
-                });
-
-                doc.setFontSize(18);
-                doc.text("Rapport Données KoboToolbox", 40, 35);
-                
-                doc.autoTable({
-                    head: [headers],
-                    body: bodyData,
-                    startY: 55,
-                    styles: { 
-                        fontSize: 9, 
-                        cellPadding: 5,
-                        overflow: 'linebreak',
-                        valign: 'middle'
-                    },
-                    headStyles: { 
-                        fillColor: [52, 73, 94], 
-                        textColor: 255,
-                        fontStyle: 'bold',
-                        halign: 'center'
-                    },
-                    theme: 'grid',
-                    margin: { top: 50, right: 20, bottom: 20, left: 20 }
-                });
-                
-                doc.save(filename);
-            } catch (e) {
-                alert("Erreur lors de la génération du PDF : " + e.message);
-                console.error(e);
-            }
+                jsonData.push(rowObj);
+            });
+            
+            let jsonString = JSON.stringify(jsonData, null, 4);
+            let blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
+            downloadFile(blob, filename);
         }
 
         // --- FONCTIONS DE PARTAGE ---
@@ -1047,7 +1010,7 @@
         function sendToGmail() {
             let count = $('#record-count').text();
             let subject = encodeURIComponent("Rapport KoboToolbox - " + count + " enregistrements");
-            let body = encodeURIComponent(`Bonjour,\n\nVeuillez trouver ci-joint le dernier rapport généré depuis le tableau de bord KoboToolbox.\n\nNombre de lignes traitées : ${count}\n\n[ IMPORTANT : N'oubliez pas d'attacher à cet e-mail le fichier Excel, CSV ou PDF que vous venez de télécharger ! ]\n\nCordialement.`);
+            let body = encodeURIComponent(`Bonjour,\n\nVeuillez trouver ci-joint le dernier rapport généré depuis le tableau de bord KoboToolbox.\n\nNombre de lignes traitées : ${count}\n\n[ IMPORTANT : N'oubliez pas d'attacher à cet e-mail le fichier exporté que vous venez de télécharger ! ]\n\nCordialement.`);
             window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
         }
 
