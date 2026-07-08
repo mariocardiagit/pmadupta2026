@@ -293,7 +293,10 @@
     <script>
         // === VARIABLES GLOBALES ===
         let allData = [];
-        let externalDict = {}; 
+        let headerMap = {};
+        let questionListMap = {}; // Indique quelle question utilise quelle liste
+        let valueMap = {};        // Dictionnaire strict : "nom_de_la_liste::code" => "Libellé"
+        let externalDict = {};    // Dictionnaire global de secours
         let currentImageMode = 'url'; 
         let isExcelLoaded = false;
 
@@ -324,6 +327,7 @@
             try {
                 $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire Excel depuis GitHub...</span>');
 
+                // 1. TENTATIVE CHARGEMENT EXCEL (Survey + Choices)
                 const excelUrl = "ath6cv2NrXEUijffeKJqSf(12).xlsx"; 
                 const response = await fetch(excelUrl);
                 if (response.ok) {
@@ -331,18 +335,47 @@
                     const data = new Uint8Array(arrayBuffer);
                     const workbook = XLSX.read(data, {type: 'array'});
                     
+                    // A. LECTURE DE L'ONGLET "SURVEY" (Pour savoir quelle question utilise quelle liste)
+                    if(workbook.SheetNames.includes('survey')) {
+                        const surveySheet = workbook.Sheets['survey'];
+                        const jsonSurvey = XLSX.utils.sheet_to_json(surveySheet);
+                        jsonSurvey.forEach(row => {
+                            if(row.name && row.type) {
+                                let qName = String(row.name).trim().toLowerCase();
+                                let qType = String(row.type).trim();
+                                // Ex: "select_multiple ma_liste" => On garde "ma_liste"
+                                if (qType.includes('select_one') || qType.includes('select_multiple')) {
+                                    let parts = qType.split(/\s+/);
+                                    if (parts.length > 1) {
+                                        questionListMap[qName] = parts[1].toLowerCase();
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // B. LECTURE DE L'ONGLET "CHOICES" (Pour les libellés)
                     if(workbook.SheetNames.includes('choices')) {
                         const sheet = workbook.Sheets['choices'];
                         const jsonChoices = XLSX.utils.sheet_to_json(sheet);
                         jsonChoices.forEach(row => {
                             if(row.name !== undefined && row.label !== undefined) {
-                                externalDict[String(row.name).trim().toLowerCase()] = String(row.label).trim();
+                                let code = String(row.name).trim().toLowerCase();
+                                let label = String(row.label).trim();
+                                
+                                // Dictionnaire strict: "Nom_De_La_Liste::Code" = "Libellé" (Protège les faux positifs comme 1,2,3)
+                                if (row.list_name) {
+                                    valueMap[String(row.list_name).trim().toLowerCase() + '::' + code] = label;
+                                }
+                                // Dictionnaire global (Pour ZAP, CISCO, etc.)
+                                externalDict[code] = label;
                             }
                         });
                         isExcelLoaded = true;
                     }
                 }
 
+                // 2. TENTATIVE CHARGEMENT CSV (Fichiers en cascade optionnels)
                 try {
                     const csvUrl = "zaps.csv"; 
                     const responseCsv = await fetch(csvUrl);
@@ -359,7 +392,6 @@
                                 }
                             }
                         });
-                        console.log("Fichier ZAPs externe (CSV) fusionné au dictionnaire !");
                     }
                 } catch(err) {}
 
@@ -375,6 +407,7 @@
             }
         }
 
+        // === UTILITAIRES UX ===
         function scrollTableLeft() { document.getElementById('table-scroll-container').scrollBy({ left: -400, behavior: 'smooth' }); }
         function scrollTableRight() { document.getElementById('table-scroll-container').scrollBy({ left: 400, behavior: 'smooth' }); }
         function scrollTableUp() { document.getElementById('table-scroll-container').scrollBy({ top: -400, behavior: 'smooth' }); }
@@ -469,29 +502,42 @@
             let xmlNameLower = String(xmlName).toLowerCase();
 
             // 1. RÈGLE D'EXCLUSION STRICTE : Ne pas traduire les colonnes quantitatives
-            // CORRECTION: On exclut le mot "budgetiser" de la règle d'exclusion pour laisser passer "sous_activite_a_budgetiser"
             const noTranslationKeywords = ['realisation', 'nombre', 'montant', 'quantit', 'effectif'];
             if (noTranslationKeywords.some(kw => xmlNameLower.includes(kw)) || 
                (xmlNameLower.includes('budget') && !xmlNameLower.includes('budgetiser'))) {
-                return String(val).trim(); // Retourne le chiffre pur sans chercher à le traduire
+                return String(val).trim(); 
             }
 
-            // 2. STRATÉGIE DE LA LISTE BLANCHE (WHITELIST)
-            const requiresCodeLabel = ['dren', 'cisco', 'zap', 'activite', 'produit', 'sous'];
+            // 2. STRATÉGIE DE LA LISTE BLANCHE (WHITELIST) -> AJOUT DE 'vi_'
+            const requiresCodeLabel = ['dren', 'cisco', 'zap', 'activite', 'produit', 'sous', 'vi_'];
             let isCodeLabelColumn = requiresCodeLabel.some(kw => xmlNameLower.includes(kw));
             
+            // 3. RECHERCHE DU NOM DE LA LISTE (Pour lier la colonne aux choix 1, 2, 3)
+            let listName = questionListMap[xmlNameLower];
+            if (!listName) {
+                let foundKey = Object.keys(questionListMap).find(k => xmlNameLower.includes(k));
+                if (foundKey) listName = questionListMap[foundKey];
+            }
+
             let parts = String(val).split(' ');
             let translatedParts = parts.map(p => {
                 let pClean = String(p).trim();
                 let pLower = pClean.toLowerCase();
                 let t = null;
 
-                if (externalDict[pLower]) {
+                // A. RECHERCHE STRICTE DANS LE DICTIONNAIRE (Par "Nom de Liste::Code")
+                if (listName && valueMap[listName + '::' + pLower]) {
+                    t = valueMap[listName + '::' + pLower];
+                }
+
+                // B. RECHERCHE GLOBALE EN SECOURS (Pour les codes uniques comme SA01, 105, etc.)
+                if (!t && externalDict[pLower]) {
                     if (isCodeLabelColumn || pLower.length > 1 || isNaN(pLower)) {
                         t = externalDict[pLower];
                     }
                 }
 
+                // C. BASE DE SECOURS EN DUR POUR LES DREN
                 if (!t && xmlNameLower.includes('dren')) {
                     const drenFallback = {
                         '11': 'ANALAMANGA', '12': 'VAKINANKARATRA', '13': 'ITASY', '14': 'BONGOLAVA',
@@ -504,6 +550,7 @@
                     t = drenFallback[pClean];
                 }
 
+                // D. ASSEMBLAGE FINAL
                 if (t) {
                     if (isCodeLabelColumn) {
                         return pClean + ' : ' + t;
