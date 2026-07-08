@@ -10,8 +10,11 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- EXCEL SheetJS (Pour lire le dictionnaire hébergé sur GitHub) -->
+    <!-- EXCEL SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- jsPDF et AutoTable (Pour l'export PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
         body { 
             background-color: #f4f7f6; 
@@ -199,9 +202,28 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
-                        <button class="btn btn-success btn-sm" onclick="exportTableToCSV('donnees_kobo_granulaires.csv')">
-                            <i class="fas fa-file-csv"></i> Exporter CSV
-                        </button>
+                        <!-- NOUVEAUX BOUTONS D'EXPORT ET PARTAGE -->
+                        <div class="btn-group shadow-sm">
+                            <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-download"></i> Exporter
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" onclick="exportTableToCSV('donnees_kobo.csv')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportTableToExcel('donnees_kobo.xlsx')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportTableToHTML('donnees_kobo.html')"><i class="fas fa-file-code text-primary"></i> Enregistrer sous HTML</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportTableToPDF('donnees_kobo.pdf')"><i class="fas fa-file-pdf text-danger"></i> Exporter PDF</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="btn-group shadow-sm">
+                            <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-share-alt"></i> Partager
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> Envoyer vers WhatsApp</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
                 
@@ -294,9 +316,9 @@
         // === VARIABLES GLOBALES ===
         let allData = [];
         let headerMap = {};
-        let questionListMap = {}; // Indique quelle question utilise quelle liste
-        let valueMap = {};        // Dictionnaire strict : "nom_de_la_liste::code" => "Libellé"
-        let externalDict = {};    // Dictionnaire global de secours
+        let questionListMap = {}; 
+        let valueMap = {};        
+        let externalDict = {};    
         let currentImageMode = 'url'; 
         let isExcelLoaded = false;
 
@@ -327,7 +349,6 @@
             try {
                 $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire Excel depuis GitHub...</span>');
 
-                // 1. TENTATIVE CHARGEMENT EXCEL (Survey + Choices)
                 const excelUrl = "ath6cv2NrXEUijffeKJqSf(12).xlsx"; 
                 const response = await fetch(excelUrl);
                 if (response.ok) {
@@ -335,7 +356,6 @@
                     const data = new Uint8Array(arrayBuffer);
                     const workbook = XLSX.read(data, {type: 'array'});
                     
-                    // A. LECTURE DE L'ONGLET "SURVEY" (Pour savoir quelle question utilise quelle liste)
                     if(workbook.SheetNames.includes('survey')) {
                         const surveySheet = workbook.Sheets['survey'];
                         const jsonSurvey = XLSX.utils.sheet_to_json(surveySheet);
@@ -343,7 +363,6 @@
                             if(row.name && row.type) {
                                 let qName = String(row.name).trim().toLowerCase();
                                 let qType = String(row.type).trim();
-                                // Ex: "select_multiple ma_liste" => On garde "ma_liste"
                                 if (qType.includes('select_one') || qType.includes('select_multiple')) {
                                     let parts = qType.split(/\s+/);
                                     if (parts.length > 1) {
@@ -354,7 +373,6 @@
                         });
                     }
 
-                    // B. LECTURE DE L'ONGLET "CHOICES" (Pour les libellés)
                     if(workbook.SheetNames.includes('choices')) {
                         const sheet = workbook.Sheets['choices'];
                         const jsonChoices = XLSX.utils.sheet_to_json(sheet);
@@ -363,11 +381,9 @@
                                 let code = String(row.name).trim().toLowerCase();
                                 let label = String(row.label).trim();
                                 
-                                // Dictionnaire strict: "Nom_De_La_Liste::Code" = "Libellé" (Protège les faux positifs comme 1,2,3)
                                 if (row.list_name) {
                                     valueMap[String(row.list_name).trim().toLowerCase() + '::' + code] = label;
                                 }
-                                // Dictionnaire global (Pour ZAP, CISCO, etc.)
                                 externalDict[code] = label;
                             }
                         });
@@ -375,7 +391,6 @@
                     }
                 }
 
-                // 2. TENTATIVE CHARGEMENT CSV (Fichiers en cascade optionnels)
                 try {
                     const csvUrl = "zaps.csv"; 
                     const responseCsv = await fetch(csvUrl);
@@ -501,18 +516,15 @@
             
             let xmlNameLower = String(xmlName).toLowerCase();
 
-            // 1. RÈGLE D'EXCLUSION STRICTE : Ne pas traduire les colonnes quantitatives
             const noTranslationKeywords = ['realisation', 'nombre', 'montant', 'quantit', 'effectif'];
             if (noTranslationKeywords.some(kw => xmlNameLower.includes(kw)) || 
                (xmlNameLower.includes('budget') && !xmlNameLower.includes('budgetiser'))) {
                 return String(val).trim(); 
             }
 
-            // 2. STRATÉGIE DE LA LISTE BLANCHE (WHITELIST) -> AJOUT DE 'vi_'
             const requiresCodeLabel = ['dren', 'cisco', 'zap', 'activite', 'produit', 'sous', 'vi_'];
             let isCodeLabelColumn = requiresCodeLabel.some(kw => xmlNameLower.includes(kw));
             
-            // 3. RECHERCHE DU NOM DE LA LISTE (Pour lier la colonne aux choix 1, 2, 3)
             let listName = questionListMap[xmlNameLower];
             if (!listName) {
                 let foundKey = Object.keys(questionListMap).find(k => xmlNameLower.includes(k));
@@ -525,19 +537,16 @@
                 let pLower = pClean.toLowerCase();
                 let t = null;
 
-                // A. RECHERCHE STRICTE DANS LE DICTIONNAIRE (Par "Nom de Liste::Code")
                 if (listName && valueMap[listName + '::' + pLower]) {
                     t = valueMap[listName + '::' + pLower];
                 }
 
-                // B. RECHERCHE GLOBALE EN SECOURS (Pour les codes uniques comme SA01, 105, etc.)
                 if (!t && externalDict[pLower]) {
                     if (isCodeLabelColumn || pLower.length > 1 || isNaN(pLower)) {
                         t = externalDict[pLower];
                     }
                 }
 
-                // C. BASE DE SECOURS EN DUR POUR LES DREN
                 if (!t && xmlNameLower.includes('dren')) {
                     const drenFallback = {
                         '11': 'ANALAMANGA', '12': 'VAKINANKARATRA', '13': 'ITASY', '14': 'BONGOLAVA',
@@ -550,7 +559,6 @@
                     t = drenFallback[pClean];
                 }
 
-                // D. ASSEMBLAGE FINAL
                 if (t) {
                     if (isCodeLabelColumn) {
                         return pClean + ' : ' + t;
@@ -890,11 +898,16 @@
 
         function clearFilters() { $('.filter-input').val(''); applyFilters(); }
         
-        function downloadCSV(csv, filename) {
-            let csvFile = new Blob(["\uFEFF" + csv], {type: "text/csv;charset=utf-8;"});
-            let downloadLink = document.createElement("a"); downloadLink.download = filename;
-            downloadLink.href = window.URL.createObjectURL(csvFile); downloadLink.style.display = "none";
-            document.body.appendChild(downloadLink); downloadLink.click(); document.body.removeChild(downloadLink);
+        // --- FONCTIONS D'EXPORTATION ---
+        
+        function downloadFile(blob, filename) {
+            let downloadLink = document.createElement("a");
+            downloadLink.href = window.URL.createObjectURL(blob);
+            downloadLink.download = filename;
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
         }
 
         function exportTableToCSV(filename) {
@@ -912,7 +925,75 @@
                     csv.push(row.join(";")); 
                 }
             }
-            downloadCSV(csv.join("\n"), filename);
+            let csvFile = new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"});
+            downloadFile(csvFile, filename);
+        }
+
+        function exportTableToExcel(filename) {
+            // Nettoyage temporaire des liens pour l'export Excel
+            let tableClone = document.getElementById('data-table').cloneNode(true);
+            let links = tableClone.querySelectorAll('a');
+            links.forEach(link => { link.outerHTML = link.href; });
+            
+            let wb = XLSX.utils.table_to_book(tableClone, {sheet: "Donnees_Kobo"});
+            XLSX.writeFile(wb, filename);
+        }
+
+        function exportTableToHTML(filename) {
+            let tableHtml = document.getElementById('data-table').outerHTML;
+            let html = `<!DOCTYPE html>
+            <html lang="fr">
+            <head>
+                <meta charset="utf-8">
+                <title>Export KoboToolbox</title>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+                    h2 { color: #2c3e50; text-align: center; }
+                    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+                    th, td { border: 1px solid #bdc3c7; padding: 10px; text-align: left; }
+                    th { background-color: #34495e; color: white; }
+                    a { color: #2980b9; text-decoration: none; }
+                </style>
+            </head>
+            <body>
+                <h2>Tableau de Bord : Données KoboToolbox</h2>
+                ${tableHtml}
+            </body>
+            </html>`;
+            
+            let blob = new Blob([html], { type: 'text/html' });
+            downloadFile(blob, filename);
+        }
+
+        function exportTableToPDF(filename) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'pt', 'a4'); // 'l' pour orientation paysage
+            doc.text("Rapport Données KoboToolbox", 40, 30);
+            
+            doc.autoTable({
+                html: '#data-table',
+                startY: 40,
+                styles: { fontSize: 7, overflow: 'linebreak' },
+                theme: 'grid',
+                headStyles: { fillColor: [52, 73, 94] },
+                columnStyles: { 0: { cellWidth: 50 } }
+            });
+            doc.save(filename);
+        }
+
+        // --- FONCTIONS DE PARTAGE ---
+        
+        function sendToGmail() {
+            let count = $('#record-count').text();
+            let subject = encodeURIComponent("Rapport KoboToolbox - " + count + " enregistrements");
+            let body = encodeURIComponent(`Bonjour,\n\nVeuillez trouver ci-joint le dernier rapport généré depuis le tableau de bord KoboToolbox.\n\nNombre de lignes traitées : ${count}\n\n[ IMPORTANT : N'oubliez pas d'attacher à cet e-mail le fichier Excel, CSV ou PDF que vous venez de télécharger ! ]\n\nCordialement.`);
+            window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
+        }
+
+        function sendToWhatsApp() {
+            let count = $('#record-count').text();
+            let text = encodeURIComponent(`📊 *Rapport KoboToolbox*\n\nLe tableau de bord vient d'être mis à jour.\nNombre d'enregistrements validés : *${count}*.\n\n(Envoyez le fichier exporté à la suite de ce message).`);
+            window.open(`https://wa.me/?text=${text}`, '_blank');
         }
 
         $(document).ready(function() {
