@@ -142,7 +142,7 @@
             <div class="tab-pane fade show active" id="visualisation" role="tabpanel">
                 
                 <div class="filter-card shadow-sm">
-                    <h5 class="mb-3 text-secondary"><i class="fas fa-filter"></i> Filtres de recherche intelligents (Fuzzy Search)</h5>
+                    <h5 class="mb-3 text-secondary"><i class="fas fa-filter"></i> Filtres de recherche intelligents (Fuzzy Search & Levenshtein)</h5>
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="filter-label" id="lbl-dren">DREN</label>
@@ -199,7 +199,6 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
-                        <!-- BOUTONS D'EXPORT ET PARTAGE -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -217,8 +216,8 @@
                                 <i class="fas fa-share-alt"></i> Partager
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> Envoyer vers WhatsApp</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (Texte JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (Texte JSON)</a></li>
                             </ul>
                         </div>
                     </div>
@@ -452,6 +451,7 @@
             return t.charAt(0).toUpperCase() + t.slice(1);
         }
 
+        // --- NOUVEAU MOTEUR LEVENSHTEIN + LIKE %MOT% ---
         function levenshtein(a, b) {
             if (a.length === 0) return b.length;
             if (b.length === 0) return a.length;
@@ -460,8 +460,15 @@
             for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
             for (let i = 1; i <= b.length; i++) {
                 for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) { matrix[i][j] = matrix[i - 1][j - 1]; } 
-                    else { matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1); }
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) { 
+                        matrix[i][j] = matrix[i - 1][j - 1]; 
+                    } else { 
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1, // substitution
+                            matrix[i][j - 1] + 1,     // insertion
+                            matrix[i - 1][j] + 1      // suppression
+                        ); 
+                    }
                 }
             }
             return matrix[b.length][a.length];
@@ -472,22 +479,42 @@
             if (!target) return false;
             query = query.trim().toLowerCase();
             target = target.toLowerCase();
+            
+            // Étape 1 : Vérification d'inclusion stricte (LIKE %mot%)
             if (target.includes(query)) return true;
             
-            const targetWords = target.split(/[\s,;.-]+/);
-            const queryWords = query.split(/[\s,;.-]+/);
+            const targetWords = target.split(/[\s,;.-]+/).filter(Boolean);
+            const queryWords = query.split(/[\s,;.-]+/).filter(Boolean);
             
-            let allWordsMatch = true;
+            // Étape 2 : Vérification de la distance de Levenshtein sur les sous-chaînes
             for (let qw of queryWords) {
-                if (!qw) continue;
                 let wordMatch = false;
                 for (let tw of targetWords) {
-                    if (!tw) continue;
-                    if (tw.includes(qw) || levenshtein(qw, tw) <= 1) { wordMatch = true; break; }
+                    if (tw.includes(qw)) { 
+                        wordMatch = true; 
+                        break; 
+                    }
+                    
+                    // On découpe le mot-cible en sous-chaînes de tailles proches du mot recherché
+                    let minLen = Math.max(1, qw.length - 1);
+                    let maxLen = Math.min(tw.length, qw.length + 1);
+                    
+                    for (let len = minLen; len <= maxLen; len++) {
+                        for (let i = 0; i <= tw.length - len; i++) {
+                            let sub = tw.substring(i, i + len);
+                            // Si une sous-chaîne est à 1 erreur près, c'est gagné !
+                            if (levenshtein(qw, sub) <= 1) {
+                                wordMatch = true;
+                                break;
+                            }
+                        }
+                        if (wordMatch) break;
+                    }
+                    if (wordMatch) break;
                 }
-                if (!wordMatch) { allWordsMatch = false; break; }
+                if (!wordMatch) return false; // Tous les mots de la recherche doivent matcher
             }
-            return allWordsMatch;
+            return true;
         }
 
         function getTranslatedHeader(xmlName) {
@@ -853,11 +880,14 @@
             populateSummaryTable('zap-summary-table', freqZap, totalRows);
         }
 
+        // --- NOUVEAU : APPLICATION DE LEVENSHTEIN À L'ONGLET 2 ---
         function setupAnalysisTableSearch(inputId, tbodyId) {
             $('#' + inputId).on('keyup', function() {
-                let val = $(this).val().toLowerCase();
+                let val = $(this).val();
                 $('#' + tbodyId + ' tr').filter(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
+                    let rowText = $(this).text(); 
+                    // Utilisation du nouveau moteur fuzzyMatch (LIKE *mot* + Levenshtein)
+                    $(this).toggle(fuzzyMatch(val, rowText));
                 });
             });
         }
@@ -906,7 +936,6 @@
             };
         }
 
-        // --- GÉNÈRE UN TEXTE LISIBLE DES FILTRES POUR LES E-MAILS/MESSAGES ---
         function getFiltersPlainText() {
             let filters = getCurrentFilters();
             let text = "";
@@ -1060,19 +1089,18 @@
             downloadFile(blob, filename);
         }
 
-        // --- FONCTIONS DE PARTAGE (HACK PRESSE-PAPIERS AVEC FILTRES EN CLAIR) ---
+        // --- FONCTIONS DE PARTAGE ---
         
         function sendToGmail() {
             let count = $('#record-count').text();
             let jsonString = getTableJSONData();
-            let filtresEnClair = getFiltersPlainText(); // NOUVEAU
+            let filtresEnClair = getFiltersPlainText(); 
             
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON est trop lourd pour être envoyé directement. Il a donc été copié automatiquement dans votre presse-papiers.\n\nDans l'e-mail qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) à l'endroit indiqué.");
                 
                 let subject = encodeURIComponent("Rapport KoboToolbox - " + count + " enregistrements");
                 
-                // INJECTION DES FILTRES DANS LE CORPS DE L'E-MAIL
                 let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le dernier rapport généré depuis le tableau de bord KoboToolbox.\n\n` + 
                                `🎯 CRITÈRES DE RECHERCHE APPLIQUÉS :\n${filtresEnClair}\n` +
                                `📊 Nombre d'enregistrements validés : ${count}\n\n` + 
@@ -1089,12 +1117,11 @@
         function sendToWhatsApp() {
             let count = $('#record-count').text();
             let jsonString = getTableJSONData();
-            let filtresEnClair = getFiltersPlainText(); // NOUVEAU
+            let filtresEnClair = getFiltersPlainText(); 
             
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON a été copié automatiquement dans votre presse-papiers.\n\nDans la fenêtre WhatsApp qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) dans la zone de texte.");
                 
-                // INJECTION DES FILTRES DANS LE MESSAGE WHATSAPP
                 let bodyText = `📊 *Rapport KoboToolbox*\n\nLe tableau de bord vient d'être mis à jour.\n\n` +
                                `🎯 *CRITÈRES APPLIQUÉS :*\n${filtresEnClair}\n` +
                                `Nombre d'enregistrements validés : *${count}*.\n\n*DONNÉES FORMAT JSON :*\n\n[ FAITES CLIC DROIT -> COLLER ICI ]`;
