@@ -199,7 +199,6 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
-                        <!-- BOUTONS D'EXPORT ET PARTAGE -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -217,8 +216,8 @@
                                 <i class="fas fa-share-alt"></i> Partager
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> Envoyer vers WhatsApp</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (Texte JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (Texte JSON)</a></li>
                             </ul>
                         </div>
                     </div>
@@ -894,6 +893,19 @@
 
         function clearFilters() { $('.filter-input').val(''); applyFilters(); }
         
+        // --- NOUVEAU : RECUPERATION DES FILTRES ACTUELS ---
+        function getCurrentFilters() {
+            return {
+                "DREN": $('#filter-dren').val() || "Tous",
+                "CISCO": $('#filter-cisco').val() || "Tous",
+                "ZAP": $('#filter-zap').val() || "Tous",
+                "Activité": $('#filter-activite').val() || "Tous",
+                "Produit": $('#filter-produit').val() || "Tous",
+                "Sous-activité": $('#filter-sous-activite').val() || "Tous",
+                "Sous-produit": $('#filter-sous-produit').val() || "Tous"
+            };
+        }
+
         // --- FONCTIONS D'EXPORTATION ---
         
         function downloadFile(blob, filename) {
@@ -908,6 +920,16 @@
 
         function exportTableToCSV(filename) {
             let csv = [];
+            
+            // --- INJECTION DES FILTRES ---
+            let filters = getCurrentFilters();
+            csv.push('"--- CRITERES DE RECHERCHE APPLIQUES ---"');
+            for (let key in filters) {
+                csv.push('"' + key + '";"' + filters[key] + '"');
+            }
+            csv.push("");
+            csv.push('"--- RESULTATS ---"');
+
             let rows = document.querySelectorAll("#data-table tr");
             for (let i = 0; i < rows.length; i++) {
                 if (rows[i].id === 'table-group-header-row') continue;
@@ -929,6 +951,15 @@
             let wb = XLSX.utils.book_new();
             let wsData = [];
             
+            // --- INJECTION DES FILTRES ---
+            let filters = getCurrentFilters();
+            wsData.push(["--- CRITERES DE RECHERCHE APPLIQUES ---"]);
+            for (let key in filters) {
+                wsData.push([key, filters[key]]);
+            }
+            wsData.push([]);
+            wsData.push(["--- RESULTATS ---"]);
+
             let headers1 = [];
             $('#table-group-header-row th').each(function() { headers1.push($(this).text().trim()); });
             if (headers1.length > 0) wsData.push(headers1);
@@ -953,6 +984,16 @@
         }
 
         function exportTableToHTML(filename) {
+            // --- INJECTION DES FILTRES ---
+            let filters = getCurrentFilters();
+            let filterHtml = `<div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <h3 style="margin-top: 0; color: #2c3e50;">Critères de recherche appliqués</h3>
+                <ul style="list-style-type: none; padding-left: 0;">`;
+            for (let key in filters) {
+                filterHtml += `<li style="margin-bottom: 5px;"><strong>${key}</strong> : ${filters[key]}</li>`;
+            }
+            filterHtml += `</ul></div><hr style="border:1px solid #bdc3c7; margin-bottom:20px;">`;
+
             let tableHtml = document.getElementById('data-table').outerHTML;
             let html = `<!DOCTYPE html>
             <html lang="fr">
@@ -970,6 +1011,7 @@
             </head>
             <body>
                 <h2>Tableau de Bord : Données KoboToolbox</h2>
+                ${filterHtml}
                 ${tableHtml}
             </body>
             </html>`;
@@ -995,7 +1037,13 @@
                 jsonData.push(rowObj);
             });
             
-            return JSON.stringify(jsonData, null, 2); 
+            // --- INJECTION DES FILTRES (Structure Objet) ---
+            let finalOutput = {
+                "criteres_de_recherche": getCurrentFilters(),
+                "resultats_obtenus": jsonData
+            };
+            
+            return JSON.stringify(finalOutput, null, 2); 
         }
 
         function exportTableToJSONFile(filename) {
