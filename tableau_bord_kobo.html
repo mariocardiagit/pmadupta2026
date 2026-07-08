@@ -349,7 +349,6 @@
             try {
                 $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire Excel depuis GitHub...</span>');
 
-                // 1. TENTATIVE CHARGEMENT EXCEL (Survey + Choices)
                 const excelUrl = "ath6cv2NrXEUijffeKJqSf(12).xlsx"; 
                 const response = await fetch(excelUrl);
                 if (response.ok) {
@@ -392,7 +391,6 @@
                     }
                 }
 
-                // 2. TENTATIVE CHARGEMENT CSV
                 try {
                     const csvUrl = "zaps.csv"; 
                     const responseCsv = await fetch(csvUrl);
@@ -409,7 +407,6 @@
                                 }
                             }
                         });
-                        console.log("Fichier ZAPs externe (CSV) fusionné au dictionnaire !");
                     }
                 } catch(err) {}
 
@@ -519,14 +516,12 @@
             
             let xmlNameLower = String(xmlName).toLowerCase();
 
-            // RÈGLE D'EXCLUSION : Ne pas traduire les colonnes quantitatives. (On exclut explicitement "budgetiser")
             const noTranslationKeywords = ['realisation', 'nombre', 'montant', 'quantit', 'effectif'];
             if (noTranslationKeywords.some(kw => xmlNameLower.includes(kw)) || 
                (xmlNameLower.includes('budget') && !xmlNameLower.includes('budgetiser'))) {
                 return String(val).trim(); 
             }
 
-            // STRATÉGIE DE LA LISTE BLANCHE (WHITELIST)
             const requiresCodeLabel = ['dren', 'cisco', 'zap', 'activite', 'produit', 'sous', 'vi_'];
             let isCodeLabelColumn = requiresCodeLabel.some(kw => xmlNameLower.includes(kw));
             
@@ -935,11 +930,29 @@
         }
 
         function exportTableToExcel(filename) {
-            let tableClone = document.getElementById('data-table').cloneNode(true);
-            let links = tableClone.querySelectorAll('a');
-            links.forEach(link => { link.outerHTML = link.href; });
+            let wb = XLSX.utils.book_new();
+            let wsData = [];
             
-            let wb = XLSX.utils.table_to_book(tableClone, {sheet: "Donnees_Kobo"});
+            let headers1 = [];
+            $('#table-group-header-row th').each(function() { headers1.push($(this).text().trim()); });
+            if (headers1.length > 0) wsData.push(headers1);
+
+            let headers2 = [];
+            $('#table-sub-header-row th').each(function() { headers2.push($(this).text().trim()); });
+            wsData.push(headers2);
+            
+            $('#table-body tr:visible').each(function() {
+                let row = [];
+                $(this).find('td').each(function() {
+                    let val = $(this).attr('data-csv');
+                    if (val === undefined || val === null) val = $(this).text();
+                    row.push(val);
+                });
+                wsData.push(row);
+            });
+            
+            let ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, "Donnees_Kobo");
             XLSX.writeFile(wb, filename);
         }
 
@@ -970,47 +983,63 @@
         }
 
         function exportTableToPDF(filename) {
-            const { jsPDF } = window.jspdf;
-            
-            // Calculer dynamiquement la taille de la page PDF en fonction du nombre de colonnes
-            let table = document.getElementById('data-table');
-            let headerCells = table.querySelectorAll('thead tr:last-child th');
-            let colCount = headerCells.length;
-            
-            // Largeur dynamique : 120 points minimum par colonne. (Permet des tableaux infinis sans écrasement)
-            let dynamicWidth = Math.max(842, colCount * 120); 
-            let dynamicHeight = 595; // Hauteur A4 standard
-            
-            const doc = new jsPDF({
-                orientation: 'landscape',
-                unit: 'pt',
-                format: [dynamicWidth, dynamicHeight]
-            });
+            try {
+                const { jsPDF } = window.jspdf;
+                
+                let headers = [];
+                $('#table-sub-header-row th').each(function() {
+                    headers.push($(this).text().trim());
+                });
+                
+                let bodyData = [];
+                $('#table-body tr:visible').each(function() {
+                    let row = [];
+                    $(this).find('td').each(function() {
+                        let val = $(this).attr('data-csv');
+                        if (val === undefined || val === null) val = $(this).text();
+                        row.push(val);
+                    });
+                    bodyData.push(row);
+                });
+                
+                let colCount = headers.length;
+                let dynamicWidth = Math.max(842, colCount * 120); 
+                let dynamicHeight = 595; 
+                
+                const doc = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'pt',
+                    format: [dynamicWidth, dynamicHeight]
+                });
 
-            doc.setFontSize(18);
-            doc.text("Rapport Données KoboToolbox", 40, 35);
-            
-            doc.autoTable({
-                html: '#data-table',
-                startY: 55,
-                styles: { 
-                    fontSize: 9, 
-                    cellPadding: 5,
-                    overflow: 'linebreak',
-                    valign: 'middle'
-                },
-                headStyles: { 
-                    fillColor: [52, 73, 94], 
-                    textColor: 255,
-                    fontStyle: 'bold',
-                    halign: 'center'
-                },
-                theme: 'grid',
-                margin: { top: 50, right: 20, bottom: 20, left: 20 },
-                tableWidth: 'auto'
-            });
-            
-            doc.save(filename);
+                doc.setFontSize(18);
+                doc.text("Rapport Données KoboToolbox", 40, 35);
+                
+                doc.autoTable({
+                    head: [headers],
+                    body: bodyData,
+                    startY: 55,
+                    styles: { 
+                        fontSize: 9, 
+                        cellPadding: 5,
+                        overflow: 'linebreak',
+                        valign: 'middle'
+                    },
+                    headStyles: { 
+                        fillColor: [52, 73, 94], 
+                        textColor: 255,
+                        fontStyle: 'bold',
+                        halign: 'center'
+                    },
+                    theme: 'grid',
+                    margin: { top: 50, right: 20, bottom: 20, left: 20 }
+                });
+                
+                doc.save(filename);
+            } catch (e) {
+                alert("Erreur lors de la génération du PDF : " + e.message);
+                console.error(e);
+            }
         }
 
         // --- FONCTIONS DE PARTAGE ---
