@@ -214,6 +214,7 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
+                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 1 -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -258,6 +259,7 @@
                     <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
                     
                     <div class="d-flex align-items-center flex-wrap gap-3">
+                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 2 -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter l'Analyse
@@ -374,19 +376,19 @@
 
                 <div class="tab-content" id="clustering-pills-tabContent">
                     <div class="tab-pane fade show active" id="pills-dren" role="tabpanel">
-                        <div class="analysis-card shadow-sm" style="position: relative; height: 60vh;">
+                        <div class="analysis-card shadow-sm" style="position: relative; height: 70vh;">
                             <canvas id="clusterChartDREN"></canvas>
                         </div>
                         <div id="clusterListsDREN" class="mt-4"></div>
                     </div>
                     <div class="tab-pane fade" id="pills-cisco" role="tabpanel">
-                        <div class="analysis-card shadow-sm" style="position: relative; height: 60vh;">
+                        <div class="analysis-card shadow-sm" style="position: relative; height: 70vh;">
                             <canvas id="clusterChartCISCO"></canvas>
                         </div>
                         <div id="clusterListsCISCO" class="mt-4"></div>
                     </div>
                     <div class="tab-pane fade" id="pills-zap" role="tabpanel">
-                        <div class="analysis-card shadow-sm" style="position: relative; height: 60vh;">
+                        <div class="analysis-card shadow-sm" style="position: relative; height: 70vh;">
                             <canvas id="clusterChartZAP"></canvas>
                         </div>
                         <div id="clusterListsZAP" class="mt-4"></div>
@@ -990,7 +992,7 @@
                 return;
             }
             
-            entries.sort((a,b) => a[1] - b[1]); // Tri croissant pour un beau graphique
+            entries.sort((a,b) => a[1] - b[1]); 
             let counts = entries.map(e => e[1]);
             let labels = entries.map(e => e[0]);
             let clusters = perform1DKMeans(counts, 3);
@@ -1017,8 +1019,8 @@
                     maintainAspectRatio: false,
                     layout: {
                         padding: {
-                            bottom: 80, // <-- Ajout de marge pour les longs libellés (CISCO, ZAP)
-                            right: 30   // <-- Évite que le dernier libellé soit coupé à droite
+                            bottom: 180, // Marge géante pour les très longs textes inclinés
+                            right: 50
                         }
                     },
                     plugins: {
@@ -1039,7 +1041,7 @@
                             ticks: { 
                                 maxRotation: 45, 
                                 minRotation: 45,
-                                autoSkip: false // Pour forcer l'affichage de tous les noms
+                                autoSkip: false
                             } 
                         }
                     }
@@ -1047,7 +1049,7 @@
             });
             setChartRef(newChart);
 
-            // --- Construction des listes de clusters triées par ordre décroissant ---
+            // --- Construction des listes ---
             let clusterGroups = { 0: [], 1: [], 2: [] };
             
             for (let i = 0; i < entries.length; i++) {
@@ -1061,7 +1063,6 @@
 
             let htmlLists = `<div class="row mt-4">`;
             
-            // Cluster Vert (Forte Activité)
             htmlLists += `
                 <div class="col-md-4">
                     <div class="card border-success mb-3 shadow-sm">
@@ -1074,7 +1075,6 @@
             if(clusterGroups[2].length === 0) htmlLists += `<li class="list-group-item text-muted">Aucune entité dans ce groupe</li>`;
             htmlLists += `</ul></div></div>`;
             
-            // Cluster Orange (Activité Moyenne)
             htmlLists += `
                 <div class="col-md-4">
                     <div class="card border-warning mb-3 shadow-sm">
@@ -1087,7 +1087,6 @@
             if(clusterGroups[1].length === 0) htmlLists += `<li class="list-group-item text-muted">Aucune entité dans ce groupe</li>`;
             htmlLists += `</ul></div></div>`;
 
-            // Cluster Bleu (Activité Faible)
             htmlLists += `
                 <div class="col-md-4">
                     <div class="card border-primary mb-3 shadow-sm">
@@ -1170,7 +1169,6 @@
             populateSummaryTable('cisco-summary-table', freqCisco, totalRows);
             populateSummaryTable('zap-summary-table', freqZap, totalRows);
 
-            // APPEL DE L'IA CLUSTERING ET LISTES
             renderClustering(freqDren, freqCisco, freqZap);
         }
 
@@ -1409,7 +1407,7 @@
             <html lang="fr">
             <head>
                 <meta charset="utf-8">
-                <title>Export - Plateforme de Suivi du PMA 2026</title>
+                <title>Export KoboToolbox</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
                     h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; line-height: 1.4; }
@@ -1645,7 +1643,7 @@
             <html lang="fr">
             <head>
                 <meta charset="utf-8">
-                <title>Export Analyse - Plateforme de Suivi du PMA 2026</title>
+                <title>Export Analyse KoboToolbox</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
                     h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; line-height: 1.4;}
