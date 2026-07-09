@@ -214,7 +214,6 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
-                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 1 -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -259,7 +258,6 @@
                     <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
                     
                     <div class="d-flex align-items-center flex-wrap gap-3">
-                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 2 -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter l'Analyse
@@ -376,19 +374,19 @@
 
                 <div class="tab-content" id="clustering-pills-tabContent">
                     <div class="tab-pane fade show active" id="pills-dren" role="tabpanel">
-                        <div class="analysis-card shadow-sm" style="position: relative; height: 55vh;">
+                        <div class="analysis-card shadow-sm" style="position: relative; height: 60vh;">
                             <canvas id="clusterChartDREN"></canvas>
                         </div>
                         <div id="clusterListsDREN" class="mt-4"></div>
                     </div>
                     <div class="tab-pane fade" id="pills-cisco" role="tabpanel">
-                        <div class="analysis-card shadow-sm" style="position: relative; height: 55vh;">
+                        <div class="analysis-card shadow-sm" style="position: relative; height: 60vh;">
                             <canvas id="clusterChartCISCO"></canvas>
                         </div>
                         <div id="clusterListsCISCO" class="mt-4"></div>
                     </div>
                     <div class="tab-pane fade" id="pills-zap" role="tabpanel">
-                        <div class="analysis-card shadow-sm" style="position: relative; height: 55vh;">
+                        <div class="analysis-card shadow-sm" style="position: relative; height: 60vh;">
                             <canvas id="clusterChartZAP"></canvas>
                         </div>
                         <div id="clusterListsZAP" class="mt-4"></div>
@@ -620,6 +618,67 @@
             t = t.replace(/\b(d|l|qu|s|m|t|n)_/g, "$1'");
             t = t.replace(/_/g, ' ');
             return t.charAt(0).toUpperCase() + t.slice(1);
+        }
+
+        function levenshtein(a, b) {
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
+            for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) { 
+                        matrix[i][j] = matrix[i - 1][j - 1]; 
+                    } else { 
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1, 
+                            matrix[i][j - 1] + 1,     
+                            matrix[i - 1][j] + 1      
+                        ); 
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        function fuzzyMatch(query, target) {
+            if (!query) return true;
+            if (!target) return false;
+            query = cleanSpaces(query).toLowerCase();
+            target = cleanSpaces(target).toLowerCase();
+            
+            if (target.includes(query)) return true;
+            
+            const targetWords = query.split(/[\s,;.-]+/).filter(Boolean);
+            const sourceWords = target.split(/[\s,;.-]+/).filter(Boolean);
+            
+            for (let qw of targetWords) {
+                let wordMatch = false;
+                for (let tw of sourceWords) {
+                    if (tw.includes(qw)) { 
+                        wordMatch = true; 
+                        break; 
+                    }
+                    
+                    let minLen = Math.max(1, qw.length - 1);
+                    let maxLen = Math.min(tw.length, qw.length + 1);
+                    
+                    for (let len = minLen; len <= maxLen; len++) {
+                        for (let i = 0; i <= tw.length - len; i++) {
+                            let sub = tw.substring(i, i + len);
+                            if (levenshtein(qw, sub) <= 1) {
+                                wordMatch = true;
+                                break;
+                            }
+                        }
+                        if (wordMatch) break;
+                    }
+                    if (wordMatch) break;
+                }
+                if (!wordMatch) return false; 
+            }
+            return true;
         }
 
         function getTranslatedHeader(xmlName) {
@@ -921,7 +980,7 @@
             $('#ai-report-content').html(html);
         }
 
-        // --- NOUVEAU : GENERATION DU GRAPHIQUE ET DES LISTES DE CLUSTERING ---
+        // --- GENERATION DU GRAPHIQUE ET DES LISTES DE CLUSTERING ---
         function renderClusterChart(canvasId, listContainerId, freqData, label, existingChart, setChartRef) {
             if (existingChart) existingChart.destroy();
             
@@ -956,6 +1015,12 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            bottom: 80, // <-- Ajout de marge pour les longs libellés (CISCO, ZAP)
+                            right: 30   // <-- Évite que le dernier libellé soit coupé à droite
+                        }
+                    },
                     plugins: {
                         tooltip: {
                             callbacks: {
@@ -969,7 +1034,14 @@
                     },
                     scales: {
                         y: { beginAtZero: true, title: { display: true, text: 'Nombre de soumissions' } },
-                        x: { display: true, ticks: { maxRotation: 45, minRotation: 45 } }
+                        x: { 
+                            display: true, 
+                            ticks: { 
+                                maxRotation: 45, 
+                                minRotation: 45,
+                                autoSkip: false // Pour forcer l'affichage de tous les noms
+                            } 
+                        }
                     }
                 }
             });
@@ -978,18 +1050,15 @@
             // --- Construction des listes de clusters triées par ordre décroissant ---
             let clusterGroups = { 0: [], 1: [], 2: [] };
             
-            // Regroupement des entités par cluster
             for (let i = 0; i < entries.length; i++) {
                 let cl = clusters[i];
                 clusterGroups[cl].push({ name: labels[i], count: counts[i] });
             }
             
-            // Tri décroissant de chaque liste (du plus grand nombre au plus petit)
             clusterGroups[0].sort((a, b) => b.count - a.count);
             clusterGroups[1].sort((a, b) => b.count - a.count);
             clusterGroups[2].sort((a, b) => b.count - a.count);
 
-            // Génération du HTML pour les 3 listes
             let htmlLists = `<div class="row mt-4">`;
             
             // Cluster Vert (Forte Activité)
@@ -1151,7 +1220,6 @@
 
         function clearFilters() { $('.filter-input').val(''); applyFilters(); }
 
-        // --- GESTION STRICTE DES FILTRES ONGLET 1 ---
         function getCurrentFilters() {
             return {
                 "DREN": cleanSpaces($('#filter-dren').val()) || "Tous",
@@ -1175,7 +1243,6 @@
             return text === "" ? "- Aucun filtre (Toutes les données)" : text;
         }
 
-        // --- GESTION DÉDIÉE DES FILTRES ONGLET 2 ---
         function getAnalysisFilters() {
             return {
                 "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune",
@@ -1195,7 +1262,6 @@
             return text === "" ? "- Aucun filtre local appliqué" : text;
         }
 
-        // --- FONCTIONS D'EXPORTATION ONGLET 1 ---
         function downloadFile(blob, filename) {
             let downloadLink = document.createElement("a");
             downloadLink.href = window.URL.createObjectURL(blob);
@@ -1343,7 +1409,7 @@
             <html lang="fr">
             <head>
                 <meta charset="utf-8">
-                <title>Export KoboToolbox</title>
+                <title>Export - Plateforme de Suivi du PMA 2026</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
                     h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; line-height: 1.4; }
