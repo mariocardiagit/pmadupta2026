@@ -139,6 +139,7 @@
 
         <div class="tab-content" id="dashboardTabsContent">
             
+            <!-- ONGLET 1 : VISUALISATION -->
             <div class="tab-pane fade show active" id="visualisation" role="tabpanel">
                 
                 <div class="filter-card shadow-sm">
@@ -199,7 +200,6 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
-                        <!-- BOUTONS D'EXPORT ET PARTAGE -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -237,7 +237,26 @@
                 </div>
             </div>
 
+            <!-- ONGLET 2 : ANALYSE & IA -->
             <div class="tab-pane fade" id="analyse" role="tabpanel">
+                
+                <!-- EN-TÊTE ONGLET 2 AVEC EXPORT -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
+                    
+                    <div class="btn-group shadow-sm">
+                        <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-download"></i> Exporter l'Analyse
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="exportAnalysisToCSV('analyse_kobo.csv')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="exportAnalysisToExcel('analyse_kobo.xlsx')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="exportAnalysisToHTML('analyse_kobo.html')"><i class="fas fa-file-code text-primary"></i> Enregistrer sous HTML</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="exportAnalysisToJSONFile('analyse_kobo.json')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
+                        </ul>
+                    </div>
+                </div>
+
                 <div class="ai-insights shadow-sm" id="ai-report-container">
                     <h5><i class="fas fa-robot text-primary"></i> Rapport d'Analyse Intelligente (Généré automatiquement)</h5>
                     <div id="ai-report-content"></div>
@@ -249,7 +268,7 @@
                             <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par DREN</h5>
                             <input type="text" id="search-dren-table" class="form-control form-control-sm mb-3" placeholder="Filtrer une DREN..." autocomplete="off">
                             <div class="table-responsive" style="max-height: 350px;">
-                                <table class="table table-sm table-bordered table-hover text-center align-middle">
+                                <table class="table table-sm table-bordered table-hover text-center align-middle" id="dren-summary-table-container">
                                     <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
                                         <tr>
                                             <th>Nom de la DREN</th>
@@ -267,7 +286,7 @@
                             <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par CISCO</h5>
                             <input type="text" id="search-cisco-table" class="form-control form-control-sm mb-3" placeholder="Filtrer une CISCO..." autocomplete="off">
                             <div class="table-responsive" style="max-height: 350px;">
-                                <table class="table table-sm table-bordered table-hover text-center align-middle">
+                                <table class="table table-sm table-bordered table-hover text-center align-middle" id="cisco-summary-table-container">
                                     <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
                                         <tr>
                                             <th>Nom de la CISCO</th>
@@ -288,7 +307,7 @@
                             <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par ZAP</h5>
                             <input type="text" id="search-zap-table" class="form-control form-control-sm mb-3" placeholder="Filtrer une ZAP..." autocomplete="off">
                             <div class="table-responsive" style="max-height: 350px;">
-                                <table class="table table-sm table-bordered table-hover text-center align-middle">
+                                <table class="table table-sm table-bordered table-hover text-center align-middle" id="zap-summary-table-container">
                                     <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
                                         <tr>
                                             <th>Nom de la ZAP</th>
@@ -942,7 +961,7 @@
             return text === "" ? "- Aucun filtre (Toutes les données)" : text;
         }
 
-        // --- FONCTIONS D'EXPORTATION AVEC CORRECTION DE L'ALIGNEMENT EXCEL/CSV ---
+        // --- FONCTIONS D'EXPORTATION ONGLET 1 ---
         
         function downloadFile(blob, filename) {
             let downloadLink = document.createElement("a");
@@ -1121,7 +1140,158 @@
             downloadFile(blob, filename);
         }
 
-        // --- FONCTIONS DE PARTAGE ---
+        // --- NOUVELLES FONCTIONS D'EXPORTATION ONGLET 2 (ANALYSE) ---
+        
+        function getAnalysisJSONData() {
+            let finalOutput = {
+                "criteres_de_recherche": getCurrentFilters(),
+                "analyse_dren": [],
+                "analyse_cisco": [],
+                "analyse_zap": []
+            };
+
+            const tables = [
+                { key: "analyse_dren", id: "dren-summary-table", head: ["Nom de la DREN", "Soumissions", "Part (%)"] },
+                { key: "analyse_cisco", id: "cisco-summary-table", head: ["Nom de la CISCO", "Soumissions", "Part (%)"] },
+                { key: "analyse_zap", id: "zap-summary-table", head: ["Nom de la ZAP", "Soumissions", "Part (%)"] }
+            ];
+
+            tables.forEach(t => {
+                $('#' + t.id + ' tr:visible').each(function() {
+                    let rowObj = {};
+                    let hasData = false;
+                    $(this).find('td').each(function(index) {
+                        let val = (index === 2) ? $(this).find('span').text().trim() : $(this).text().trim();
+                        if(val !== "Aucune donnée trouvée") {
+                            rowObj[t.head[index]] = val;
+                            hasData = true;
+                        }
+                    });
+                    if (hasData) finalOutput[t.key].push(rowObj);
+                });
+            });
+
+            return JSON.stringify(finalOutput, null, 2);
+        }
+
+        function exportAnalysisToJSONFile(filename) {
+            let jsonString = getAnalysisJSONData();
+            let blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
+            downloadFile(blob, filename);
+        }
+
+        function exportAnalysisToCSV(filename) {
+            let csv = [];
+            let filters = getCurrentFilters();
+            
+            csv.push('"--- CRITERES DE RECHERCHE APPLIQUES ---"');
+            for (let key in filters) { csv.push('"' + key + '";"' + filters[key] + '"'); }
+            csv.push("");
+
+            const tables = [
+                { title: "DETAIL DES SOUMISSIONS PAR DREN", id: "dren-summary-table" },
+                { title: "DETAIL DES SOUMISSIONS PAR CISCO", id: "cisco-summary-table" },
+                { title: "DETAIL DES SOUMISSIONS PAR ZAP", id: "zap-summary-table" }
+            ];
+
+            tables.forEach(t => {
+                csv.push('"' + t.title + '"');
+                csv.push('"Nom";"Soumissions";"Part (%)"');
+                $('#' + t.id + ' tr:visible').each(function() {
+                    let row = [];
+                    $(this).find('td').each(function(idx) {
+                        if(idx === 2) row.push('"' + $(this).find('span').text().trim() + '"');
+                        else row.push('"' + $(this).text().trim() + '"');
+                    });
+                    if(row.length > 0 && row[0] !== '"Aucune donnée trouvée"') csv.push(row.join(";"));
+                });
+                csv.push("");
+            });
+
+            let csvFile = new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"});
+            downloadFile(csvFile, filename);
+        }
+
+        function exportAnalysisToExcel(filename) {
+            let wb = XLSX.utils.book_new();
+            let wsData = [];
+
+            let filters = getCurrentFilters();
+            wsData.push(["--- CRITERES DE RECHERCHE APPLIQUES ---"]);
+            for (let key in filters) { wsData.push([key, filters[key]]); }
+            wsData.push([]);
+
+            const tables = [
+                { title: "DETAIL DES SOUMISSIONS PAR DREN", id: "dren-summary-table", head: ["Nom de la DREN", "Soumissions", "Part (%)"] },
+                { title: "DETAIL DES SOUMISSIONS PAR CISCO", id: "cisco-summary-table", head: ["Nom de la CISCO", "Soumissions", "Part (%)"] },
+                { title: "DETAIL DES SOUMISSIONS PAR ZAP", id: "zap-summary-table", head: ["Nom de la ZAP", "Soumissions", "Part (%)"] }
+            ];
+
+            tables.forEach(t => {
+                wsData.push([t.title]);
+                wsData.push(t.head);
+                $('#' + t.id + ' tr:visible').each(function() {
+                    let row = [];
+                    $(this).find('td').each(function(idx) {
+                        if(idx === 2) row.push($(this).find('span').text().trim());
+                        else row.push($(this).text().trim());
+                    });
+                    if(row.length > 0 && row[0] !== "Aucune donnée trouvée") wsData.push(row);
+                });
+                wsData.push([]);
+            });
+
+            let ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, "Analyse");
+            XLSX.writeFile(wb, filename);
+        }
+
+        function exportAnalysisToHTML(filename) {
+            let filters = getCurrentFilters();
+            let filterHtml = `<div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <h3 style="margin-top: 0; color: #2c3e50;">Critères de recherche appliqués</h3>
+                <ul style="list-style-type: none; padding-left: 0;">`;
+            for (let key in filters) {
+                filterHtml += `<li style="margin-bottom: 5px;"><strong>${key}</strong> : ${filters[key]}</li>`;
+            }
+            filterHtml += `</ul></div><hr style="border:1px solid #bdc3c7; margin-bottom:20px;">`;
+
+            // On clone l'onglet d'analyse pour le nettoyer avant export
+            let clone = document.getElementById('analyse').cloneNode(true);
+            
+            // Nettoyage visuel : suppression des barres de recherche internes et des boutons d'export
+            $(clone).find('input').remove();
+            $(clone).find('.btn-group').remove();
+            
+            let analysisHtml = clone.innerHTML;
+            
+            let html = `<!DOCTYPE html>
+            <html lang="fr">
+            <head>
+                <meta charset="utf-8">
+                <title>Export Analyse KoboToolbox</title>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+                    h2, h4, h5 { color: #2c3e50; }
+                    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                    th, td { border: 1px solid #bdc3c7; padding: 10px; text-align: left; }
+                    th { background-color: #34495e; color: white; }
+                    .ai-insights { background: #e0f7fa; padding: 20px; border-left: 5px solid #2980b9; margin-bottom: 20px;}
+                    .progress { display: none; } /* Masquer les barres de progression brutes en HTML statique */
+                </style>
+            </head>
+            <body>
+                <h2>Rapport d'Analyse KoboToolbox</h2>
+                ${filterHtml}
+                ${analysisHtml}
+            </body>
+            </html>`;
+
+            let blob = new Blob([html], { type: 'text/html' });
+            downloadFile(blob, filename);
+        }
+
+        // --- FONCTIONS DE PARTAGE (HACK PRESSE-PAPIERS) ---
         
         function sendToGmail() {
             let count = $('#record-count').text();
