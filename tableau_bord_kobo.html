@@ -12,6 +12,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- EXCEL SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Chart.js (Visualisation IA) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { 
             background-color: #f4f7f6; 
@@ -119,7 +121,7 @@
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
                 <span class="visually-hidden">Chargement...</span>
             </div>
-            <h5 class="mt-3 text-secondary" id="loading-text">Synchronisation et construction de la matrice...</h5>
+            <h5 class="mt-3 text-secondary" id="loading-text">Synchronisation et modélisation des données...</h5>
         </div>
 
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -134,12 +136,17 @@
         <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="visualisation-tab" data-bs-toggle="tab" data-bs-target="#visualisation" type="button" role="tab">
-                    <i class="fas fa-table"></i> Onglet 1 : Visualisation des Données
+                    <i class="fas fa-table"></i> Onglet 1 : Visualisation
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="analyse-tab" data-bs-toggle="tab" data-bs-target="#analyse" type="button" role="tab">
-                    <i class="fas fa-chart-pie"></i> Onglet 2 : Analyse & IA
+                    <i class="fas fa-chart-pie"></i> Onglet 2 : Analyse
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-primary fw-bold" id="clustering-tab" data-bs-toggle="tab" data-bs-target="#clustering" type="button" role="tab">
+                    <i class="fas fa-project-diagram"></i> Onglet 3 : Clustering IA
                 </button>
             </li>
         </ul>
@@ -342,6 +349,56 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ONGLET 3 : CLUSTERING & IA -->
+            <div class="tab-pane fade" id="clustering" role="tabpanel">
+                
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                    <h4 class="text-secondary m-0"><i class="fas fa-brain"></i> Machine Learning : Algorithme de Clustering 2D</h4>
+                </div>
+
+                <div class="ai-insights shadow-sm mb-4">
+                    <h5><i class="fas fa-lightbulb text-warning"></i> Fonctionnement de l'Intelligence Artificielle (K-Means)</h5>
+                    <p>Cet algorithme analyse les données mathématiques en temps réel et regroupe (clusterise) les entités ayant un comportement similaire. L'IA a déterminé automatiquement 3 groupes distincts :</p>
+                    <ul>
+                        <li><span class="badge" style="background-color: rgba(52, 152, 219, 1)">Cluster Bleu</span> : Activité Faible</li>
+                        <li><span class="badge" style="background-color: rgba(243, 156, 18, 1)">Cluster Orange</span> : Activité Moyenne</li>
+                        <li><span class="badge" style="background-color: rgba(39, 174, 96, 1)">Cluster Vert</span> : Forte Activité</li>
+                    </ul>
+                </div>
+
+                <ul class="nav nav-pills mb-4 justify-content-center" id="clustering-pills-tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold" id="pills-dren-tab" data-bs-toggle="pill" data-bs-target="#pills-dren" type="button" role="tab">Clustering DREN</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" id="pills-cisco-tab" data-bs-toggle="pill" data-bs-target="#pills-cisco" type="button" role="tab">Clustering CISCO</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" id="pills-zap-tab" data-bs-toggle="pill" data-bs-target="#pills-zap" type="button" role="tab">Clustering ZAP</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="clustering-pills-tabContent">
+                    <div class="tab-pane fade show active" id="pills-dren" role="tabpanel">
+                        <div class="analysis-card shadow-sm" style="position: relative; height: 55vh;">
+                            <canvas id="clusterChartDREN"></canvas>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="pills-cisco" role="tabpanel">
+                        <div class="analysis-card shadow-sm" style="position: relative; height: 55vh;">
+                            <canvas id="clusterChartCISCO"></canvas>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="pills-zap" role="tabpanel">
+                        <div class="analysis-card shadow-sm" style="position: relative; height: 55vh;">
+                            <canvas id="clusterChartZAP"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
     </div>
 
@@ -361,6 +418,10 @@
         let externalDict = {};    
         let currentImageMode = 'url'; 
         let isExcelLoaded = false;
+        
+        let chartDREN = null;
+        let chartCISCO = null;
+        let chartZAP = null;
 
         const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
@@ -388,7 +449,6 @@
         // --- FONCTION DE NETTOYAGE DES ESPACES (DATA CLEANSING) ---
         function cleanSpaces(str) {
             if (str === null || str === undefined) return '';
-            // Remplace les multiples espaces internes par un seul et supprime les espaces aux extrémités
             return String(str).replace(/\s+/g, ' ').trim();
         }
 
@@ -416,9 +476,54 @@
             return `${prefix}_${timestamp}_kobo.${extension}`;
         }
 
+        // --- ALGORITHME K-MEANS (CLUSTERING) 1D ---
+        function perform1DKMeans(data, k) {
+            if (data.length === 0) return [];
+            let uniqueData = [...new Set(data)].sort((a,b)=>a-b);
+            let actualK = Math.min(k, uniqueData.length);
+            if (actualK <= 1) return data.map(() => 0);
+
+            // Initialisation des centroïdes
+            let centroids = [];
+            for (let i = 0; i < actualK; i++) {
+                centroids.push(uniqueData[Math.floor(i * uniqueData.length / actualK)]);
+            }
+
+            let assignments = new Array(data.length).fill(-1);
+            let changed = true;
+            let iter = 0;
+            while (changed && iter < 100) {
+                changed = false;
+                let sums = new Array(actualK).fill(0);
+                let counts = new Array(actualK).fill(0);
+
+                for (let i = 0; i < data.length; i++) {
+                    let minD = Infinity;
+                    let cIdx = 0;
+                    for (let c = 0; c < actualK; c++) {
+                        let d = Math.abs(data[i] - centroids[c]);
+                        if (d < minD) { minD = d; cIdx = c; }
+                    }
+                    if (assignments[i] !== cIdx) { assignments[i] = cIdx; changed = true; }
+                    sums[cIdx] += data[i];
+                    counts[cIdx]++;
+                }
+                for (let c = 0; c < actualK; c++) {
+                    if (counts[c] > 0) centroids[c] = sums[c] / counts[c];
+                }
+                iter++;
+            }
+
+            // Trier les centroïdes pour assurer un ordre logique des couleurs (Faible = 0, Moyen = 1, Élevé = 2)
+            let sortedCentroids = centroids.map((val, idx) => ({val, idx})).sort((a,b) => a.val - b.val);
+            let rankMap = {};
+            sortedCentroids.forEach((c, rank) => { rankMap[c.idx] = rank; });
+            return assignments.map(a => rankMap[a]);
+        }
+
         async function loadDictionaryAutomatically() {
             try {
-                $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire Excel depuis GitHub...</span>');
+                $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire Excel...</span>');
 
                 const excelUrl = "ath6cv2NrXEUijffeKJqSf(12).xlsx"; 
                 const response = await fetch(excelUrl);
@@ -451,10 +556,7 @@
                             if(row.name !== undefined && row.label !== undefined) {
                                 let code = String(row.name).trim().toLowerCase();
                                 let label = String(row.label).trim();
-                                
-                                if (row.list_name) {
-                                    valueMap[String(row.list_name).trim().toLowerCase() + '::' + code] = label;
-                                }
+                                if (row.list_name) { valueMap[String(row.list_name).trim().toLowerCase() + '::' + code] = label; }
                                 externalDict[code] = label;
                             }
                         });
@@ -473,23 +575,21 @@
                             if(cols.length >= 2) {
                                 const code = String(cols[0]).replace(/["'\r]/g, '').trim().toLowerCase();
                                 const label = String(cols[1]).replace(/["'\r]/g, '').trim();
-                                if(code && label && code !== 'name') {
-                                    externalDict[code] = label;
-                                }
+                                if(code && label && code !== 'name') { externalDict[code] = label; }
                             }
                         });
                     }
                 } catch(err) {}
 
                 if (isExcelLoaded) {
-                    $('#dict-status').replaceWith('<span class="badge bg-success ms-2" title="Codes parfaitement traduits depuis Excel"><i class="fas fa-check-circle"></i> Base Excel Synchronisée</span>');
+                    $('#dict-status').replaceWith('<span class="badge bg-success ms-2" title="Codes parfaitement traduits"><i class="fas fa-check-circle"></i> Base Excel Synchronisée</span>');
                 } else {
                     throw new Error("Fichier Excel introuvable");
                 }
 
             } catch (e) {
                 isExcelLoaded = false;
-                $('#dict-status').replaceWith('<span class="badge bg-danger ms-2" title="Assurez-vous que le fichier Excel est dans le même dossier sur GitHub"><i class="fas fa-exclamation-triangle"></i> Fichier Excel Introuvable</span>');
+                $('#dict-status').replaceWith('<span class="badge bg-danger ms-2"><i class="fas fa-exclamation-triangle"></i> Fichier Excel Introuvable</span>');
             }
         }
 
@@ -524,68 +624,6 @@
             t = t.replace(/\b(d|l|qu|s|m|t|n)_/g, "$1'");
             t = t.replace(/_/g, ' ');
             return t.charAt(0).toUpperCase() + t.slice(1);
-        }
-
-        // --- MOTEUR LEVENSHTEIN + LIKE %MOT% ---
-        function levenshtein(a, b) {
-            if (a.length === 0) return b.length;
-            if (b.length === 0) return a.length;
-            const matrix = [];
-            for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
-            for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
-            for (let i = 1; i <= b.length; i++) {
-                for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) { 
-                        matrix[i][j] = matrix[i - 1][j - 1]; 
-                    } else { 
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1, 
-                            matrix[i][j - 1] + 1,     
-                            matrix[i - 1][j] + 1      
-                        ); 
-                    }
-                }
-            }
-            return matrix[b.length][a.length];
-        }
-
-        function fuzzyMatch(query, target) {
-            if (!query) return true;
-            if (!target) return false;
-            query = cleanSpaces(query).toLowerCase();
-            target = cleanSpaces(target).toLowerCase();
-            
-            if (target.includes(query)) return true;
-            
-            const targetWords = query.split(/[\s,;.-]+/).filter(Boolean);
-            const sourceWords = target.split(/[\s,;.-]+/).filter(Boolean);
-            
-            for (let qw of targetWords) {
-                let wordMatch = false;
-                for (let tw of sourceWords) {
-                    if (tw.includes(qw)) { 
-                        wordMatch = true; 
-                        break; 
-                    }
-                    
-                    let minLen = Math.max(1, qw.length - 1);
-                    let maxLen = Math.min(tw.length, qw.length + 1);
-                    
-                    for (let len = minLen; len <= maxLen; len++) {
-                        for (let i = 0; i <= tw.length - len; i++) {
-                            let sub = tw.substring(i, i + len);
-                            if (levenshtein(qw, sub) <= 1) {
-                                wordMatch = true;
-                                break;
-                            }
-                        }
-                        if (wordMatch) break;
-                    }
-                    if (wordMatch) break;
-                }
-                if (!wordMatch) return false; 
-            }
-            return true;
         }
 
         function getTranslatedHeader(xmlName) {
@@ -629,14 +667,9 @@
                 let pLower = pClean.toLowerCase();
                 let t = null;
 
-                if (listName && valueMap[listName + '::' + pLower]) {
-                    t = valueMap[listName + '::' + pLower];
-                }
-
+                if (listName && valueMap[listName + '::' + pLower]) { t = valueMap[listName + '::' + pLower]; }
                 if (!t && externalDict[pLower]) {
-                    if (isCodeLabelColumn || pLower.length > 1 || isNaN(pLower)) {
-                        t = externalDict[pLower];
-                    }
+                    if (isCodeLabelColumn || pLower.length > 1 || isNaN(pLower)) { t = externalDict[pLower]; }
                 }
 
                 if (!t && xmlNameLower.includes('dren')) {
@@ -652,13 +685,9 @@
                 }
 
                 if (t) {
-                    if (isCodeLabelColumn) {
-                        return pClean + ' : ' + t;
-                    } else {
-                        return t;
-                    }
+                    if (isCodeLabelColumn) { return pClean + ' : ' + t; } 
+                    else { return t; }
                 }
-                
                 return pClean;
             });
             return cleanSpaces(translatedParts.join(' ; '));
@@ -896,7 +925,64 @@
             $('#ai-report-content').html(html);
         }
 
-        // --- EXTRACTION DE L'ANALYSE INTELLIGENTE ---
+        // --- NOUVEAU : GENERATION DU GRAPHIQUE DE CLUSTERING ---
+        function renderClusterChart(canvasId, freqData, label, existingChart, setChartRef) {
+            if (existingChart) existingChart.destroy();
+            
+            let entries = Object.entries(freqData).filter(([k,v]) => k !== "Non renseigné");
+            if (entries.length === 0) return;
+            
+            entries.sort((a,b) => a[1] - b[1]); // Tri croissant pour un beau graphique
+            let counts = entries.map(e => e[1]);
+            let labels = entries.map(e => e[0]);
+            let clusters = perform1DKMeans(counts, 3);
+            
+            let colors = ['rgba(52, 152, 219, 0.7)', 'rgba(243, 156, 18, 0.7)', 'rgba(39, 174, 96, 0.7)'];
+            let borderColors = ['rgba(41, 128, 185, 1)', 'rgba(211, 84, 0, 1)', 'rgba(46, 204, 113, 1)'];
+            
+            let ctx = document.getElementById(canvasId).getContext('2d');
+            let newChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Soumissions (Colorisé par Cluster IA)',
+                        data: counts,
+                        backgroundColor: clusters.map(c => colors[c]),
+                        borderColor: clusters.map(c => borderColors[c]),
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    let cl = clusters[context.dataIndex];
+                                    let clName = cl === 0 ? "Activité Faible" : cl === 1 ? "Activité Moyenne" : "Forte Activité";
+                                    return `Catégorie IA : ${clName}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Nombre de soumissions' } },
+                        x: { display: true, ticks: { maxRotation: 45, minRotation: 45 } }
+                    }
+                }
+            });
+            setChartRef(newChart);
+        }
+
+        function renderClustering(freqDren, freqCisco, freqZap) {
+            renderClusterChart('clusterChartDREN', freqDren, 'DREN', chartDREN, (c) => chartDREN = c);
+            renderClusterChart('clusterChartCISCO', freqCisco, 'CISCO', chartCISCO, (c) => chartCISCO = c);
+            renderClusterChart('clusterChartZAP', freqZap, 'ZAP', chartZAP, (c) => chartZAP = c);
+        }
+
         function getAiInsightsArray() {
             let insights = [];
             $('#ai-report-content p').each(function() {
@@ -955,6 +1041,9 @@
             populateSummaryTable('dren-summary-table', freqDren, totalRows);
             populateSummaryTable('cisco-summary-table', freqCisco, totalRows);
             populateSummaryTable('zap-summary-table', freqZap, totalRows);
+
+            // APPEL DE L'IA CLUSTERING
+            renderClustering(freqDren, freqCisco, freqZap);
         }
 
         function setupAnalysisTableSearch(inputId, tbodyId) {
@@ -1003,7 +1092,6 @@
 
         function clearFilters() { $('.filter-input').val(''); applyFilters(); }
 
-        // --- GESTION STRICTE DES FILTRES ONGLET 1 (AVEC NETTOYAGE) ---
         function getCurrentFilters() {
             return {
                 "DREN": cleanSpaces($('#filter-dren').val()) || "Tous",
@@ -1020,14 +1108,11 @@
             let filters = getCurrentFilters();
             let text = "";
             for (let key in filters) {
-                if (filters[key] !== "Tous") {
-                    text += `- ${key} : ${filters[key]}\n`;
-                }
+                if (filters[key] !== "Tous") { text += `- ${key} : ${filters[key]}\n`; }
             }
             return text === "" ? "- Aucun filtre (Toutes les données)" : text;
         }
 
-        // --- GESTION DÉDIÉE DES FILTRES ONGLET 2 (UNIQUEMENT LOCAUX - AVEC NETTOYAGE) ---
         function getAnalysisFilters() {
             return {
                 "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune",
@@ -1040,15 +1125,11 @@
             let filters = getAnalysisFilters();
             let text = "";
             for (let key in filters) {
-                if (filters[key] !== "Aucune") {
-                    text += `- ${key} : ${filters[key]}\n`;
-                }
+                if (filters[key] !== "Aucune") { text += `- ${key} : ${filters[key]}\n`; }
             }
             return text === "" ? "- Aucun filtre local appliqué" : text;
         }
 
-        // --- FONCTIONS D'EXPORTATION ONGLET 1 ---
-        
         function downloadFile(blob, filename) {
             let downloadLink = document.createElement("a");
             downloadLink.href = window.URL.createObjectURL(blob);
@@ -1073,9 +1154,7 @@
             
             let filters = getCurrentFilters();
             csv.push('"--- CRITERES DE RECHERCHE APPLIQUES ---"');
-            for (let key in filters) {
-                csv.push('"' + key + '";"' + filters[key] + '"');
-            }
+            for (let key in filters) { csv.push('"' + key + '";"' + filters[key] + '"'); }
             csv.push("");
             csv.push('"--- RESULTATS ---"');
 
@@ -1123,9 +1202,7 @@
             
             let filters = getCurrentFilters();
             wsData.push(["--- CRITERES DE RECHERCHE APPLIQUES ---"]);
-            for (let key in filters) {
-                wsData.push([key, filters[key]]);
-            }
+            for (let key in filters) { wsData.push([key, filters[key]]); }
             wsData.push([]);
             wsData.push(["--- RESULTATS ---"]);
 
@@ -1147,9 +1224,7 @@
                         s: { r: headerRowIndex, c: currentHeaderCol },
                         e: { r: headerRowIndex, c: currentHeaderCol + colspan - 1 }
                     });
-                    for (let i = 1; i < colspan; i++) {
-                        headers1.push("");
-                    }
+                    for (let i = 1; i < colspan; i++) { headers1.push(""); }
                 }
                 currentHeaderCol += colspan;
             });
@@ -1222,9 +1297,7 @@
         function getTableJSONData() {
             let exportDate = getFormattedDateTime();
             let headers = [];
-            $('#table-sub-header-row th').each(function() {
-                headers.push(cleanSpaces($(this).text()));
-            });
+            $('#table-sub-header-row th').each(function() { headers.push(cleanSpaces($(this).text())); });
             
             let jsonData = [];
             $('#table-body tr:visible').each(function() {
@@ -1256,7 +1329,6 @@
         }
 
         // --- FONCTIONS D'EXPORTATION ONGLET 2 (ANALYSE) ---
-        
         function getAnalysisJSONData() {
             let exportDate = getFormattedDateTime();
             let finalOutput = {
@@ -1433,7 +1505,7 @@
             <html lang="fr">
             <head>
                 <meta charset="utf-8">
-                <title>Export Analyse KoboToolbox</title>
+                <title>Export Analyse - Plateforme de Suivi du PMA 2026</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
                     h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; line-height: 1.4;}
@@ -1459,7 +1531,6 @@
         }
 
         // --- FONCTIONS DE PARTAGE (HACK PRESSE-PAPIERS) ---
-        
         function sendToGmail() {
             let count = $('#record-count').text();
             let jsonString = getTableJSONData();
