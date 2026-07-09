@@ -200,15 +200,16 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
+                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 1 -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="exportTableToCSV('donnees_kobo.csv')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportTableToExcel('donnees_kobo.xlsx')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportTableToHTML('donnees_kobo.html')"><i class="fas fa-file-code text-primary"></i> Enregistrer sous HTML</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportTableToJSONFile('donnees_kobo.json')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportTableToCSV('donnees_suivi_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportTableToExcel('donnees_suivi_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportTableToHTML('donnees_suivi_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer sous HTML</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportTableToJSONFile('donnees_suivi_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
                             </ul>
                         </div>
 
@@ -244,15 +245,16 @@
                     <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
                     
                     <div class="d-flex align-items-center flex-wrap gap-3">
+                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 2 -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter l'Analyse
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToCSV('analyse_kobo.csv')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToExcel('analyse_kobo.xlsx')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToHTML('analyse_kobo.html')"><i class="fas fa-file-code text-primary"></i> Enregistrer sous HTML</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToJSONFile('analyse_kobo.json')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToCSV('analyse_suivi_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToExcel('analyse_suivi_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToHTML('analyse_suivi_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer sous HTML</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToJSONFile('analyse_suivi_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
                             </ul>
                         </div>
 
@@ -495,9 +497,9 @@
                         matrix[i][j] = matrix[i - 1][j - 1]; 
                     } else { 
                         matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1, // substitution
-                            matrix[i][j - 1] + 1,     // insertion
-                            matrix[i - 1][j] + 1      // suppression
+                            matrix[i - 1][j - 1] + 1, 
+                            matrix[i][j - 1] + 1,     
+                            matrix[i - 1][j] + 1      
                         ); 
                     }
                 }
@@ -949,6 +951,19 @@
 
         function clearFilters() { $('.filter-input').val(''); applyFilters(); }
         
+        // --- GÉNÉRATEUR DE NOMS DE FICHIERS DYNAMIQUES (HORODATAGE) ---
+        function generateFilename(prefix, extension) {
+            const d = new Date();
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const hh = String(d.getHours()).padStart(2, '0');
+            const min = String(d.getMinutes()).padStart(2, '0');
+            const ss = String(d.getSeconds()).padStart(2, '0');
+            const timestamp = `${yyyy}${mm}${dd}_${hh}${min}${ss}`;
+            return `${prefix}_${timestamp}_kobo.${extension}`;
+        }
+
         // --- GESTION STRICTE DES FILTRES ONGLET 1 ---
         function getCurrentFilters() {
             return {
@@ -1005,7 +1020,8 @@
             document.body.removeChild(downloadLink);
         }
 
-        function exportTableToCSV(filename) {
+        function exportTableToCSV(prefix) {
+            let filename = generateFilename(prefix, 'csv');
             let csv = [];
             
             let filters = getCurrentFilters();
@@ -1045,7 +1061,8 @@
             downloadFile(csvFile, filename);
         }
 
-        function exportTableToExcel(filename) {
+        function exportTableToExcel(prefix) {
+            let filename = generateFilename(prefix, 'xlsx');
             let wb = XLSX.utils.book_new();
             let wsData = [];
             
@@ -1102,7 +1119,8 @@
             XLSX.writeFile(wb, filename);
         }
 
-        function exportTableToHTML(filename) {
+        function exportTableToHTML(prefix) {
+            let filename = generateFilename(prefix, 'html');
             let filters = getCurrentFilters();
             let filterHtml = `<div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
                 <h3 style="margin-top: 0; color: #2c3e50;">Critères de recherche appliqués</h3>
@@ -1163,7 +1181,8 @@
             return JSON.stringify(finalOutput, null, 2); 
         }
 
-        function exportTableToJSONFile(filename) {
+        function exportTableToJSONFile(prefix) {
+            let filename = generateFilename(prefix, 'json');
             let jsonString = getTableJSONData();
             let blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
             downloadFile(blob, filename);
@@ -1203,13 +1222,15 @@
             return JSON.stringify(finalOutput, null, 2);
         }
 
-        function exportAnalysisToJSONFile(filename) {
+        function exportAnalysisToJSONFile(prefix) {
+            let filename = generateFilename(prefix, 'json');
             let jsonString = getAnalysisJSONData();
             let blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
             downloadFile(blob, filename);
         }
 
-        function exportAnalysisToCSV(filename) {
+        function exportAnalysisToCSV(prefix) {
+            let filename = generateFilename(prefix, 'csv');
             let csv = [];
             let filters = getAnalysisFilters();
             
@@ -1241,7 +1262,8 @@
             downloadFile(csvFile, filename);
         }
 
-        function exportAnalysisToExcel(filename) {
+        function exportAnalysisToExcel(prefix) {
+            let filename = generateFilename(prefix, 'xlsx');
             let wb = XLSX.utils.book_new();
             let wsData = [];
 
@@ -1275,7 +1297,8 @@
             XLSX.writeFile(wb, filename);
         }
 
-        function exportAnalysisToHTML(filename) {
+        function exportAnalysisToHTML(prefix) {
+            let filename = generateFilename(prefix, 'html');
             let filters = getAnalysisFilters();
             let filterHtml = `<div style="background-color: #e8f4f8; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
                 <h3 style="margin-top: 0; color: #2c3e50;">Critères de recherche locaux appliqués</h3>
