@@ -21,8 +21,13 @@
         .header-title {
             color: #2c3e50;
             font-weight: 700;
-            margin-bottom: 25px;
+            margin-bottom: 5px;
             line-height: 1.4;
+        }
+        .header-subtitle {
+            color: #7f8c8d;
+            font-weight: 500;
+            margin-bottom: 25px;
         }
         .nav-tabs .nav-link {
             font-weight: 600;
@@ -107,6 +112,7 @@
 <body>
     <div class="container-fluid">
         <h3 class="text-center header-title"><i class="fas fa-chart-line text-primary"></i> Plateforme de Suivi du Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel (PTA) de l'Année 2026 des Services Techniques Déconcentrés (STD)</h3>
+        <h5 class="text-center header-subtitle">Tableau de Bord : Données & Analytics KoboToolbox</h5>
 
         <div class="error-message" id="error-box"></div>
         <div class="spinner-container" id="loading-box">
@@ -201,6 +207,7 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
+                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 1 -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -245,6 +252,7 @@
                     <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
                     
                     <div class="d-flex align-items-center flex-wrap gap-3">
+                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 2 -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter l'Analyse
@@ -341,8 +349,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // === TITRE OFFICIEL DE LA PLATEFORME ===
+        // === TITRES DE LA PLATEFORME ===
         const TITRE_PLATEFORME = "Plateforme de Suivi du Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel (PTA) de l'Année 2026 des Services Techniques Déconcentrés (STD)";
+        const SOUS_TITRE_PLATEFORME = "Tableau de Bord : Données & Analytics KoboToolbox";
 
         // === VARIABLES GLOBALES ===
         let allData = [];
@@ -510,6 +519,7 @@
             return t.charAt(0).toUpperCase() + t.slice(1);
         }
 
+        // --- MOTEUR LEVENSHTEIN + LIKE %MOT% ---
         function levenshtein(a, b) {
             if (a.length === 0) return b.length;
             if (b.length === 0) return a.length;
@@ -573,6 +583,7 @@
 
         function getTranslatedHeader(xmlName) {
             let key = String(xmlName).toLowerCase();
+            
             const exactMatches = {
                 'vi_r_f_rentiel_standard_des_pr': "VI. Référentiel standard des preuves par type d'activité",
                 'date_enq': "Date de suivi",
@@ -582,6 +593,7 @@
                 'liste_d_margement': "Liste d'émargement"
             };
             if (exactMatches[key]) return exactMatches[key];
+
             return smartKoboAutoCorrect(xmlName);
         }
 
@@ -677,10 +689,12 @@
         function isBaseColumn(key) {
             let parts = key.split('/');
             let variableName = parts[parts.length - 1].toLowerCase();
+            
             for (let col of baseColsInfo) {
                 let hasEx = col.ex && col.ex.some(e => variableName.includes(e));
                 let hasMust = col.mustMatch && col.mustMatch.length > 0 ? col.mustMatch.every(m => variableName.includes(m)) : true;
                 let hasMatch = col.matches.some(m => variableName.includes(m));
+                
                 if (!hasEx && hasMust && hasMatch) return true;
             }
             return false;
@@ -1034,6 +1048,7 @@
             let exportDate = getFormattedDateTime();
             
             csv.push('"' + TITRE_PLATEFORME + '"');
+            csv.push('"' + SOUS_TITRE_PLATEFORME + '"');
             csv.push("");
             csv.push('"--- METADONNEES D\'EXPORT ---"');
             csv.push('"Date d\'exportation";"' + exportDate + '"');
@@ -1083,6 +1098,7 @@
             let exportDate = getFormattedDateTime();
             
             wsData.push([TITRE_PLATEFORME]);
+            wsData.push([SOUS_TITRE_PLATEFORME]);
             wsData.push([]);
             wsData.push(["--- METADONNEES D'EXPORT ---"]);
             wsData.push(["Date d'exportation", exportDate]);
@@ -1099,7 +1115,8 @@
             let headerRowIndex = wsData.length;
             let headers1 = [];
             let merges = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } } // Fusionner le titre principal sur plusieurs colonnes
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+                { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } }
             ];
             let currentHeaderCol = 0;
 
@@ -1165,7 +1182,8 @@
                 <title>Export - Plateforme de Suivi du PMA 2026</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
-                    h2 { color: #2c3e50; text-align: center; margin-bottom: 30px; line-height: 1.4; }
+                    h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; line-height: 1.4; }
+                    h4 { text-align: center; color: #7f8c8d; font-weight: 500; margin-bottom: 30px; margin-top: 5px; }
                     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
                     th, td { border: 1px solid #bdc3c7; padding: 10px; text-align: left; }
                     th { background-color: #34495e; color: white; }
@@ -1174,6 +1192,7 @@
             </head>
             <body>
                 <h2>${TITRE_PLATEFORME}</h2>
+                <h4>${SOUS_TITRE_PLATEFORME}</h4>
                 ${filterHtml}
                 ${tableHtml}
             </body>
@@ -1203,6 +1222,7 @@
             
             let finalOutput = {
                 "titre_plateforme": TITRE_PLATEFORME,
+                "sous_titre": SOUS_TITRE_PLATEFORME,
                 "date_exportation": exportDate,
                 "criteres_de_recherche": getCurrentFilters(),
                 "resultats_obtenus": jsonData
@@ -1224,6 +1244,7 @@
             let exportDate = getFormattedDateTime();
             let finalOutput = {
                 "titre_plateforme": TITRE_PLATEFORME,
+                "sous_titre": SOUS_TITRE_PLATEFORME,
                 "date_exportation": exportDate,
                 "criteres_de_recherche_locaux": getAnalysisFilters(),
                 "analyse_dren": [],
@@ -1269,6 +1290,7 @@
             let filters = getAnalysisFilters();
             
             csv.push('"' + TITRE_PLATEFORME + '"');
+            csv.push('"' + SOUS_TITRE_PLATEFORME + '"');
             csv.push("");
             csv.push('"--- METADONNEES D\'EXPORT ---"');
             csv.push('"Date d\'exportation";"' + exportDate + '"');
@@ -1309,6 +1331,7 @@
             let exportDate = getFormattedDateTime();
 
             wsData.push([TITRE_PLATEFORME]);
+            wsData.push([SOUS_TITRE_PLATEFORME]);
             wsData.push([]);
             wsData.push(["--- METADONNEES D'EXPORT ---"]);
             wsData.push(["Date d'exportation", exportDate]);
@@ -1342,7 +1365,8 @@
             let ws = XLSX.utils.aoa_to_sheet(wsData);
             
             let merges = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+                { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }
             ];
             ws['!merges'] = merges;
 
@@ -1377,8 +1401,9 @@
                 <title>Export Analyse - Plateforme de Suivi du PMA 2026</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
-                    h2 { color: #2c3e50; text-align: center; margin-bottom: 30px; line-height: 1.4;}
-                    h4, h5 { color: #2c3e50; }
+                    h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; line-height: 1.4;}
+                    h4 { text-align: center; color: #7f8c8d; font-weight: 500; margin-bottom: 30px; margin-top: 5px; }
+                    h5 { color: #2c3e50; }
                     table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
                     th, td { border: 1px solid #bdc3c7; padding: 10px; text-align: left; }
                     th { background-color: #34495e; color: white; }
@@ -1388,6 +1413,7 @@
             </head>
             <body>
                 <h2>${TITRE_PLATEFORME}</h2>
+                <h4>${SOUS_TITRE_PLATEFORME}</h4>
                 ${filterHtml}
                 ${analysisHtml}
             </body>
@@ -1410,7 +1436,7 @@
                 
                 let subject = encodeURIComponent("Rapport - Plateforme de Suivi du PMA (PTA 2026 des STD) envoyé le " + exportDate);
                 
-                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le dernier rapport généré depuis la ${TITRE_PLATEFORME}.\n\n` + 
+                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le dernier rapport généré depuis la ${TITRE_PLATEFORME} (${SOUS_TITRE_PLATEFORME}).\n\n` + 
                                `🕒 Date d'exportation : ${exportDate}\n\n` +
                                `🎯 CRITÈRES DE RECHERCHE APPLIQUÉS :\n${filtresEnClair}\n` +
                                `📊 Nombre d'enregistrements validés : ${count}\n\n` + 
@@ -1455,7 +1481,7 @@
                 
                 let subject = encodeURIComponent("Rapport Synthétique d'Analyse - Plateforme de Suivi du PMA envoyé le " + exportDate);
                 
-                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le rapport d'analyse synthétique généré depuis la ${TITRE_PLATEFORME}.\n\n` + 
+                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le rapport d'analyse synthétique généré depuis la ${TITRE_PLATEFORME} (${SOUS_TITRE_PLATEFORME}).\n\n` + 
                                `🕒 Date d'exportation : ${exportDate}\n\n` +
                                `🎯 CRITÈRES D'ANALYSE (LOCAUX) :\n${filtresEnClair}\n\n` +
                                `=== DONNÉES SYNTHÉTIQUES FORMAT JSON ===\n\n[ FAITES CLIC DROIT -> COLLER ICI ]\n\n===========================\n\nCordialement.`;
