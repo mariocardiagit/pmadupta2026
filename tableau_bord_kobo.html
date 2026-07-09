@@ -35,6 +35,7 @@
             font-weight: 600;
             color: #7f8c8d;
             border-radius: 10px 10px 0 0;
+            font-size: 0.95rem;
         }
         .nav-tabs .nav-link.active {
             color: #2980b9;
@@ -133,20 +134,30 @@
             </div>
         </div>
 
-        <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+        <ul class="nav nav-tabs d-flex justify-content-center" id="dashboardTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="visualisation-tab" data-bs-toggle="tab" data-bs-target="#visualisation" type="button" role="tab">
-                    <i class="fas fa-table"></i> Onglet 1 : Visualisation
+                    <i class="fas fa-table"></i> 1 : Visualisation
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="analyse-tab" data-bs-toggle="tab" data-bs-target="#analyse" type="button" role="tab">
-                    <i class="fas fa-chart-pie"></i> Onglet 2 : Analyse
+                    <i class="fas fa-chart-pie"></i> 2 : Analyse
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link text-primary fw-bold" id="clustering-tab" data-bs-toggle="tab" data-bs-target="#clustering" type="button" role="tab">
-                    <i class="fas fa-project-diagram"></i> Onglet 3 : Clustering IA
+                    <i class="fas fa-project-diagram"></i> 3 : K-Means
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-success fw-bold" id="jenks-tab" data-bs-toggle="tab" data-bs-target="#jenks" type="button" role="tab">
+                    <i class="fas fa-layer-group"></i> 4 : Algorithme Jenks
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-danger fw-bold" id="dbscan-tab" data-bs-toggle="tab" data-bs-target="#dbscan" type="button" role="tab">
+                    <i class="fas fa-satellite-dish"></i> 5 : DBSCAN
                 </button>
             </li>
         </ul>
@@ -155,7 +166,6 @@
             
             <!-- ONGLET 1 : VISUALISATION -->
             <div class="tab-pane fade show active" id="visualisation" role="tabpanel">
-                
                 <div class="filter-card shadow-sm">
                     <h5 class="mb-3 text-secondary"><i class="fas fa-filter"></i> Filtres de recherche intelligents (Fuzzy Search & Levenshtein)</h5>
                     <div class="row g-3">
@@ -206,19 +216,14 @@
                             <input type="radio" class="btn-check" name="imageDisplayMode" id="mode-img" value="image" autocomplete="off" onchange="toggleImageMode()">
                             <label class="btn btn-outline-secondary btn-sm" for="mode-img"><i class="fas fa-image"></i> Véritables Images</label>
                         </div>
-
                         <div class="btn-group" role="group">
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableLeft()" title="Défiler vers la gauche"><i class="fas fa-arrow-left"></i></button>
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableRight()" title="Défiler vers la droite"><i class="fas fa-arrow-right"></i></button>
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableUp()" title="Défiler vers le haut"><i class="fas fa-arrow-up"></i></button>
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
-                        
-                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 1 -->
                         <div class="btn-group shadow-sm">
-                            <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-download"></i> Exporter
-                            </button>
+                            <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter</button>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="#" onclick="exportTableToCSV('donnees_suivi_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="exportTableToExcel('donnees_suivi_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
@@ -226,11 +231,8 @@
                                 <li><a class="dropdown-item" href="#" onclick="exportTableToJSONFile('donnees_suivi_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
                             </ul>
                         </div>
-
                         <div class="btn-group shadow-sm">
-                            <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-share-alt"></i> Partager
-                            </button>
+                            <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-share-alt"></i> Partager</button>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (JSON)</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (JSON)</a></li>
@@ -245,25 +247,18 @@
                             <tr id="table-group-header-row"></tr>
                             <tr id="table-sub-header-row"></tr>
                         </thead>
-                        <tbody id="table-body">
-                            <!-- JS Injection -->
-                        </tbody>
+                        <tbody id="table-body"></tbody>
                     </table>
                 </div>
             </div>
 
             <!-- ONGLET 2 : ANALYSE & IA -->
             <div class="tab-pane fade" id="analyse" role="tabpanel">
-                
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                     <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
-                    
                     <div class="d-flex align-items-center flex-wrap gap-3">
-                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 2 -->
                         <div class="btn-group shadow-sm">
-                            <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-download"></i> Exporter l'Analyse
-                            </button>
+                            <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter l'Analyse</button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="#" onclick="exportAnalysisToCSV('analyse_suivi_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="exportAnalysisToExcel('analyse_suivi_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
@@ -271,11 +266,8 @@
                                 <li><a class="dropdown-item" href="#" onclick="exportAnalysisToJSONFile('analyse_suivi_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
                             </ul>
                         </div>
-
                         <div class="btn-group shadow-sm">
-                            <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-share-alt"></i> Partager l'Analyse
-                            </button>
+                            <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-share-alt"></i> Partager l'Analyse</button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="#" onclick="sendAnalysisToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (JSON)</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="sendAnalysisToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (JSON)</a></li>
@@ -293,15 +285,11 @@
                     <div class="col-md-6 mb-4">
                         <div class="analysis-card shadow-sm h-100">
                             <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par DREN</h5>
-                            <input type="text" id="search-dren-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale DREN (Inclusion + Levenshtein)..." autocomplete="off">
+                            <input type="text" id="search-dren-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale DREN..." autocomplete="off">
                             <div class="table-responsive" style="max-height: 350px;">
                                 <table class="table table-sm table-bordered table-hover text-center align-middle" id="dren-summary-table-container">
                                     <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
-                                        <tr>
-                                            <th>Nom de la DREN</th>
-                                            <th>Soumissions</th>
-                                            <th>Part (%)</th>
-                                        </tr>
+                                        <tr><th>Nom de la DREN</th><th>Soumissions</th><th>Part (%)</th></tr>
                                     </thead>
                                     <tbody id="dren-summary-table"></tbody>
                                 </table>
@@ -311,15 +299,11 @@
                     <div class="col-md-6 mb-4">
                         <div class="analysis-card shadow-sm h-100">
                             <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par CISCO</h5>
-                            <input type="text" id="search-cisco-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale CISCO (Inclusion + Levenshtein)..." autocomplete="off">
+                            <input type="text" id="search-cisco-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale CISCO..." autocomplete="off">
                             <div class="table-responsive" style="max-height: 350px;">
                                 <table class="table table-sm table-bordered table-hover text-center align-middle" id="cisco-summary-table-container">
                                     <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
-                                        <tr>
-                                            <th>Nom de la CISCO</th>
-                                            <th>Soumissions</th>
-                                            <th>Part (%)</th>
-                                        </tr>
+                                        <tr><th>Nom de la CISCO</th><th>Soumissions</th><th>Part (%)</th></tr>
                                     </thead>
                                     <tbody id="cisco-summary-table"></tbody>
                                 </table>
@@ -327,20 +311,15 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="row">
                     <div class="col-12">
                         <div class="analysis-card shadow-sm">
                             <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par ZAP</h5>
-                            <input type="text" id="search-zap-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale ZAP (Inclusion + Levenshtein)..." autocomplete="off">
+                            <input type="text" id="search-zap-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale ZAP..." autocomplete="off">
                             <div class="table-responsive" style="max-height: 350px;">
                                 <table class="table table-sm table-bordered table-hover text-center align-middle" id="zap-summary-table-container">
                                     <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
-                                        <tr>
-                                            <th>Nom de la ZAP</th>
-                                            <th>Soumissions</th>
-                                            <th>Part (%)</th>
-                                        </tr>
+                                        <tr><th>Nom de la ZAP</th><th>Soumissions</th><th>Part (%)</th></tr>
                                     </thead>
                                     <tbody id="zap-summary-table"></tbody>
                                 </table>
@@ -350,51 +329,67 @@
                 </div>
             </div>
 
-            <!-- ONGLET 3 : CLUSTERING & IA -->
+            <!-- ONGLET 3 : K-MEANS -->
             <div class="tab-pane fade" id="clustering" role="tabpanel">
-                
-                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                    <h4 class="text-secondary m-0"><i class="fas fa-brain"></i> Machine Learning : Algorithme de Clustering K-Means</h4>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="text-primary m-0"><i class="fas fa-project-diagram"></i> Algorithme 1 : K-Means (Centre de Gravité)</h4>
                 </div>
-
                 <div class="ai-insights shadow-sm mb-4">
-                    <h5><i class="fas fa-lightbulb text-warning"></i> Fonctionnement de l'Intelligence Artificielle</h5>
-                    <p>Cet algorithme analyse les données mathématiques en temps réel et regroupe (clusterise) les entités ayant un comportement similaire. Les listes ci-dessous sont générées automatiquement et triées par <strong>ordre décroissant</strong> de performance.</p>
+                    <h5><i class="fas fa-lightbulb text-warning"></i> Fonctionnement : K-Means</h5>
+                    <p>Le K-Means est un algorithme géométrique rapide. Il regroupe obligatoirement les entités en <strong>3 groupes stricts</strong> en calculant la distance mathématique entre leur nombre de soumissions et le centre moyen de chaque groupe.</p>
                 </div>
-
-                <ul class="nav nav-pills mb-4 justify-content-center" id="clustering-pills-tab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active fw-bold" id="pills-dren-tab" data-bs-toggle="pill" data-bs-target="#pills-dren" type="button" role="tab">Clustering DREN</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold" id="pills-cisco-tab" data-bs-toggle="pill" data-bs-target="#pills-cisco" type="button" role="tab">Clustering CISCO</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold" id="pills-zap-tab" data-bs-toggle="pill" data-bs-target="#pills-zap" type="button" role="tab">Clustering ZAP</button>
-                    </li>
+                <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
+                    <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#kmeans-dren" type="button">Clustering DREN</button></li>
+                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#kmeans-cisco" type="button">Clustering CISCO</button></li>
+                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#kmeans-zap" type="button">Clustering ZAP</button></li>
                 </ul>
-
-                <div class="tab-content" id="clustering-pills-tabContent">
-                    <div class="tab-pane fade show active" id="pills-dren" role="tabpanel">
-                        <div class="analysis-card shadow-sm" style="position: relative; height: 65vh;">
-                            <canvas id="clusterChartDREN"></canvas>
-                        </div>
-                        <div id="clusterListsDREN" class="mt-4"></div>
-                    </div>
-                    <div class="tab-pane fade" id="pills-cisco" role="tabpanel">
-                        <div class="analysis-card shadow-sm" style="position: relative; height: 65vh;">
-                            <canvas id="clusterChartCISCO"></canvas>
-                        </div>
-                        <div id="clusterListsCISCO" class="mt-4"></div>
-                    </div>
-                    <div class="tab-pane fade" id="pills-zap" role="tabpanel">
-                        <div class="analysis-card shadow-sm" style="position: relative; height: 65vh;">
-                            <canvas id="clusterChartZAP"></canvas>
-                        </div>
-                        <div id="clusterListsZAP" class="mt-4"></div>
-                    </div>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="kmeans-dren"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="kmeansChartDREN"></canvas></div><div id="kmeansListsDREN"></div></div>
+                    <div class="tab-pane fade" id="kmeans-cisco"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="kmeansChartCISCO"></canvas></div><div id="kmeansListsCISCO"></div></div>
+                    <div class="tab-pane fade" id="kmeans-zap"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="kmeansChartZAP"></canvas></div><div id="kmeansListsZAP"></div></div>
                 </div>
+            </div>
 
+            <!-- ONGLET 4 : JENKS -->
+            <div class="tab-pane fade" id="jenks" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="text-success m-0"><i class="fas fa-layer-group"></i> Algorithme 2 : Jenks (Natural Breaks)</h4>
+                </div>
+                <div class="ai-insights shadow-sm mb-4 border-success">
+                    <h5><i class="fas fa-bullseye text-success"></i> Fonctionnement : Algorithme de Jenks</h5>
+                    <p>L'algorithme de Jenks est le plus précis en 1D (statistiques pures). Il ne se contente pas de chercher le centre, il calcule les "ruptures naturelles" pour <strong>minimiser la variance à l'intérieur d'un groupe et maximiser l'écart entre les groupes</strong>.</p>
+                </div>
+                <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
+                    <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#jenks-dren" type="button">Clustering DREN</button></li>
+                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#jenks-cisco" type="button">Clustering CISCO</button></li>
+                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#jenks-zap" type="button">Clustering ZAP</button></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="jenks-dren"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="jenksChartDREN"></canvas></div><div id="jenksListsDREN"></div></div>
+                    <div class="tab-pane fade" id="jenks-cisco"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="jenksChartCISCO"></canvas></div><div id="jenksListsCISCO"></div></div>
+                    <div class="tab-pane fade" id="jenks-zap"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="jenksChartZAP"></canvas></div><div id="jenksListsZAP"></div></div>
+                </div>
+            </div>
+
+            <!-- ONGLET 5 : DBSCAN -->
+            <div class="tab-pane fade" id="dbscan" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="text-danger m-0"><i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Densité et Bruit)</h4>
+                </div>
+                <div class="ai-insights shadow-sm mb-4 border-danger">
+                    <h5><i class="fas fa-search-location text-danger"></i> Fonctionnement : DBSCAN</h5>
+                    <p>DBSCAN ne fixe pas de nombre de groupes à l'avance. Il scanne la densité des données et trouve lui-même les regroupements pertinents. Surtout, il <strong>détecte et isole en rouge le Bruit (Anomalies)</strong> : les entités qui ont un volume de soumissions totalement atypique !</p>
+                </div>
+                <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
+                    <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#dbscan-dren" type="button">Clustering DREN</button></li>
+                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#dbscan-cisco" type="button">Clustering CISCO</button></li>
+                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#dbscan-zap" type="button">Clustering ZAP</button></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="dbscan-dren"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="dbscanChartDREN"></canvas></div><div id="dbscanListsDREN"></div></div>
+                    <div class="tab-pane fade" id="dbscan-cisco"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="dbscanChartCISCO"></canvas></div><div id="dbscanListsCISCO"></div></div>
+                    <div class="tab-pane fade" id="dbscan-zap"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="dbscanChartZAP"></canvas></div><div id="dbscanListsZAP"></div></div>
+                </div>
             </div>
 
         </div>
@@ -404,22 +399,17 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // === TITRES DE LA PLATEFORME ===
         const TITRE_PLATEFORME = "Plateforme de Suivi du Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel (PTA) de l'Année 2026 des Services Techniques Déconcentrés (STD)";
         const SOUS_TITRE_PLATEFORME = "Tableau de Bord : Données & Analytics KoboToolbox";
 
-        // === VARIABLES GLOBALES ===
-        let allData = [];
-        let headerMap = {};
-        let questionListMap = {}; 
-        let valueMap = {};        
-        let externalDict = {};    
-        let currentImageMode = 'url'; 
-        let isExcelLoaded = false;
+        let allData = [], headerMap = {}, questionListMap = {}, valueMap = {}, externalDict = {};    
+        let currentImageMode = 'url', isExcelLoaded = false;
         
-        let chartDREN = null;
-        let chartCISCO = null;
-        let chartZAP = null;
+        let chartsRefs = {
+            kmeans: { DREN: null, CISCO: null, ZAP: null },
+            jenks: { DREN: null, CISCO: null, ZAP: null },
+            dbscan: { DREN: null, CISCO: null, ZAP: null }
+        };
 
         const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
@@ -427,71 +417,46 @@
             { key: 'dren', matches: ['dren'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'DREN', xmlName: '' },
             { key: 'cisco', matches: ['cisco'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'CISCO', xmlName: '' },
             { key: 'zap', matches: ['zap'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'ZAP', xmlName: '' },
-
             { key: 'activiteDren', matches: ['activite', 'activité'], mustMatch: ['dren'], ex: ['sous_activite', 'sous-activite'], label: 'I.1. Activité de la DREN', xmlName: '' },
             { key: 'produitDren', matches: ['produit'], mustMatch: ['dren'], ex: ['sous_produit', 'sous-produit'], label: 'I.4. Produit de la DREN', xmlName: '' },
             { key: 'sousActiviteDren', matches: ['sous_activite', 'sous-activite'], mustMatch: ['dren'], ex: [], label: 'Sous-activité de la DREN', xmlName: '' },
             { key: 'sousProduitDren', matches: ['sous_produit', 'sous-produit'], mustMatch: ['dren'], ex: [], label: 'Sous-produit de la DREN', xmlName: '' },
-
             { key: 'activiteCisco', matches: ['activite', 'activité'], mustMatch: ['cisco'], ex: ['sous_activite', 'sous-activite'], label: 'I.2. Activité de la CISCO', xmlName: '' },
             { key: 'produitCisco', matches: ['produit'], mustMatch: ['cisco'], ex: ['sous_produit', 'sous-produit'], label: 'I.5. Produit de la CISCO', xmlName: '' },
             { key: 'sousActiviteCisco', matches: ['sous_activite', 'sous-activite'], mustMatch: ['cisco'], ex: [], label: 'Sous-activité de la CISCO', xmlName: '' },
             { key: 'sousProduitCisco', matches: ['sous_produit', 'sous-produit'], mustMatch: ['cisco'], ex: [], label: 'Sous-produit de la CISCO', xmlName: '' },
-
             { key: 'activiteZap', matches: ['activite', 'activité'], mustMatch: ['zap'], ex: ['sous_activite', 'sous-activite'], label: 'I.3. Activité de la ZAP', xmlName: '' },
             { key: 'produitZap', matches: ['produit'], mustMatch: ['zap'], ex: ['sous_produit', 'sous-produit'], label: 'I.6. Produit de la ZAP', xmlName: '' },
             { key: 'sousActiviteZap', matches: ['sous_activite', 'sous-activite'], mustMatch: ['zap'], ex: [], label: 'Sous-activité de la ZAP', xmlName: '' },
             { key: 'sousProduitZap', matches: ['sous_produit', 'sous-produit'], mustMatch: ['zap'], ex: [], label: 'Sous-produit de la ZAP', xmlName: '' }
         ];
 
-        // --- FONCTION DE NETTOYAGE DES ESPACES (DATA CLEANSING) ---
-        function cleanSpaces(str) {
-            if (str === null || str === undefined) return '';
-            return String(str).replace(/\s+/g, ' ').trim();
-        }
+        function cleanSpaces(str) { return str === null || str === undefined ? '' : String(str).replace(/\s+/g, ' ').trim(); }
         
-        // --- FONCTION DE RETOUR A LA LIGNE (WORD WRAP POUR GRAPHIQUE) ---
         function wrapLabel(text, maxChars) {
-            let words = text.split(' ');
-            let lines = [];
-            let line = '';
+            let words = text.split(' '), lines = [], line = '';
             for (let i = 0; i < words.length; i++) {
                 if (line.length + words[i].length > maxChars) {
                     if (line.trim() !== '') lines.push(line.trim());
                     line = words[i] + ' ';
-                } else {
-                    line += words[i] + ' ';
-                }
+                } else { line += words[i] + ' '; }
             }
             if (line.trim() !== '') lines.push(line.trim());
             return lines;
         }
 
-        // --- GÉNÉRATEUR HORODATAGE ---
         function getFormattedDateTime() {
             const d = new Date();
-            const yyyy = d.getFullYear();
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const dd = String(d.getDate()).padStart(2, '0');
-            const hh = String(d.getHours()).padStart(2, '0');
-            const min = String(d.getMinutes()).padStart(2, '0');
-            const ss = String(d.getSeconds()).padStart(2, '0');
-            return `${dd}/${mm}/${yyyy} à ${hh}:${min}:${ss}`;
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} à ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
         }
 
         function generateFilename(prefix, extension) {
             const d = new Date();
-            const yyyy = d.getFullYear();
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const dd = String(d.getDate()).padStart(2, '0');
-            const hh = String(d.getHours()).padStart(2, '0');
-            const min = String(d.getMinutes()).padStart(2, '0');
-            const ss = String(d.getSeconds()).padStart(2, '0');
-            const timestamp = `${yyyy}${mm}${dd}_${hh}${min}${ss}`;
-            return `${prefix}_${timestamp}_kobo.${extension}`;
+            const ts = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}_${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}${String(d.getSeconds()).padStart(2, '0')}`;
+            return `${prefix}_${ts}_kobo.${extension}`;
         }
 
-        // --- ALGORITHME K-MEANS (CLUSTERING) 1D ---
+        // ================= IA : K-MEANS =================
         function perform1DKMeans(data, k) {
             if (data.length === 0) return [];
             let uniqueData = [...new Set(data)].sort((a,b)=>a-b);
@@ -499,45 +464,134 @@
             if (actualK <= 1) return data.map(() => 0);
 
             let centroids = [];
-            for (let i = 0; i < actualK; i++) {
-                centroids.push(uniqueData[Math.floor(i * uniqueData.length / actualK)]);
-            }
+            for (let i = 0; i < actualK; i++) centroids.push(uniqueData[Math.floor(i * uniqueData.length / actualK)]);
 
             let assignments = new Array(data.length).fill(-1);
-            let changed = true;
-            let iter = 0;
+            let changed = true, iter = 0;
             while (changed && iter < 100) {
                 changed = false;
-                let sums = new Array(actualK).fill(0);
-                let counts = new Array(actualK).fill(0);
-
+                let sums = new Array(actualK).fill(0), counts = new Array(actualK).fill(0);
                 for (let i = 0; i < data.length; i++) {
-                    let minD = Infinity;
-                    let cIdx = 0;
+                    let minD = Infinity, cIdx = 0;
                     for (let c = 0; c < actualK; c++) {
                         let d = Math.abs(data[i] - centroids[c]);
                         if (d < minD) { minD = d; cIdx = c; }
                     }
                     if (assignments[i] !== cIdx) { assignments[i] = cIdx; changed = true; }
-                    sums[cIdx] += data[i];
-                    counts[cIdx]++;
+                    sums[cIdx] += data[i]; counts[cIdx]++;
                 }
-                for (let c = 0; c < actualK; c++) {
-                    if (counts[c] > 0) centroids[c] = sums[c] / counts[c];
-                }
+                for (let c = 0; c < actualK; c++) { if (counts[c] > 0) centroids[c] = sums[c] / counts[c]; }
                 iter++;
             }
-
             let sortedCentroids = centroids.map((val, idx) => ({val, idx})).sort((a,b) => a.val - b.val);
             let rankMap = {};
             sortedCentroids.forEach((c, rank) => { rankMap[c.idx] = rank; });
             return assignments.map(a => rankMap[a]);
         }
 
+        // ================= IA : JENKS (NATURAL BREAKS) =================
+        function getJenksBreaks(data, numclass) {
+            data = data.slice().sort((a, b) => a - b);
+            if (data.length <= numclass) return data;
+            let mat1 = [], mat2 = [];
+            for (let i = 0; i <= data.length; i++) {
+                mat1[i] = Array(numclass + 1).fill(0);
+                mat2[i] = Array(numclass + 1).fill(0);
+            }
+            for (let i = 1; i <= numclass; i++) {
+                mat1[1][i] = 1; mat2[1][i] = 0;
+                for (let j = 2; j <= data.length; j++) mat2[j][i] = Infinity;
+            }
+            for (let l = 2; l <= data.length; l++) {
+                let s1 = 0, s2 = 0, w = 0;
+                for (let m = 1; m <= l; m++) {
+                    let i3 = l - m + 1; let val = data[i3 - 1];
+                    s2 += val * val; s1 += val; w++;
+                    let v = s2 - (s1 * s1) / w;
+                    let i4 = i3 - 1;
+                    if (i4 !== 0) {
+                        for (let j = 2; j <= numclass; j++) {
+                            if (mat2[l][j] >= (v + mat2[i4][j - 1])) {
+                                mat1[l][j] = i3; mat2[l][j] = v + mat2[i4][j - 1];
+                            }
+                        }
+                    }
+                }
+                mat1[l][1] = 1; mat2[l][1] = v;
+            }
+            let k = data.length, kclass = [];
+            kclass[numclass] = data[data.length - 1]; kclass[0] = data[0];
+            for (let countNum = numclass; countNum >= 2; countNum--) {
+                let id = parseInt((mat1[k][countNum]) - 2);
+                kclass[countNum - 1] = data[id];
+                k = parseInt((mat1[k][countNum] - 1));
+            }
+            return kclass;
+        }
+
+        function performJenks(data, k) {
+            if(data.length === 0) return [];
+            let uniqueData = [...new Set(data)].sort((a,b)=>a-b);
+            if (uniqueData.length <= k) return data.map(v => uniqueData.indexOf(v));
+            
+            let breaks = getJenksBreaks(data, k);
+            return data.map(val => {
+                for(let i=1; i<breaks.length; i++) { if(val <= breaks[i]) return i-1; }
+                return k-1;
+            });
+        }
+
+        // ================= IA : DBSCAN 1D =================
+        function performDBSCAN(data) {
+            if (data.length === 0) return { assignments: [], numClusters: 0 };
+            let max = Math.max(...data), min = Math.min(...data);
+            
+            // Calcul dynamique du seuil d'epsilon (tolérance spatiale)
+            let eps = Math.max(1, (max - min) * 0.15); 
+            let minPts = 2; // Au moins 2 entités pour faire un groupe
+            
+            let labels = new Array(data.length).fill(undefined);
+            let clusterId = 0;
+            
+            for (let i = 0; i < data.length; i++) {
+                if (labels[i] !== undefined) continue;
+                let neighbors = [];
+                for (let j = 0; j < data.length; j++) {
+                    if (Math.abs(data[i] - data[j]) <= eps) neighbors.push(j);
+                }
+                
+                if (neighbors.length < minPts) {
+                    labels[i] = -1; // -1 = BRUIT / ANOMALIE
+                } else {
+                    labels[i] = clusterId;
+                    let seedSet = neighbors.filter(n => n !== i);
+                    
+                    while (seedSet.length > 0) {
+                        let q = seedSet.pop();
+                        if (labels[q] === -1) labels[q] = clusterId; // Repêchage du bruit aux frontières
+                        if (labels[q] !== undefined) continue;
+                        labels[q] = clusterId;
+                        
+                        let qNeighbors = [];
+                        for (let j = 0; j < data.length; j++) {
+                            if (Math.abs(data[q] - data[j]) <= eps) qNeighbors.push(j);
+                        }
+                        if (qNeighbors.length >= minPts) {
+                            for(let n of qNeighbors) {
+                                if(labels[n] === undefined && !seedSet.includes(n)) seedSet.push(n);
+                            }
+                        }
+                    }
+                    clusterId++;
+                }
+            }
+            return { assignments: labels, numClusters: clusterId };
+        }
+
+        // ================= LOGIQUE GENERALE =================
         async function loadDictionaryAutomatically() {
             try {
-                $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire Excel...</span>');
-
+                $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire...</span>');
                 const excelUrl = "ath6cv2NrXEUijffeKJqSf(12).xlsx"; 
                 const response = await fetch(excelUrl);
                 if (response.ok) {
@@ -546,109 +600,97 @@
                     const workbook = XLSX.read(data, {type: 'array'});
                     
                     if(workbook.SheetNames.includes('survey')) {
-                        const surveySheet = workbook.Sheets['survey'];
-                        const jsonSurvey = XLSX.utils.sheet_to_json(surveySheet);
-                        jsonSurvey.forEach(row => {
-                            if(row.name && row.type) {
-                                let qName = String(row.name).trim().toLowerCase();
-                                let qType = String(row.type).trim();
-                                if (qType.includes('select_one') || qType.includes('select_multiple')) {
-                                    let parts = qType.split(/\s+/);
-                                    if (parts.length > 1) {
-                                        questionListMap[qName] = parts[1].toLowerCase();
-                                    }
-                                }
+                        XLSX.utils.sheet_to_json(workbook.Sheets['survey']).forEach(row => {
+                            if(row.name && row.type && (String(row.type).includes('select_one') || String(row.type).includes('select_multiple'))) {
+                                let parts = String(row.type).trim().split(/\s+/);
+                                if (parts.length > 1) questionListMap[String(row.name).trim().toLowerCase()] = parts[1].toLowerCase();
                             }
                         });
                     }
-
                     if(workbook.SheetNames.includes('choices')) {
-                        const sheet = workbook.Sheets['choices'];
-                        const jsonChoices = XLSX.utils.sheet_to_json(sheet);
-                        jsonChoices.forEach(row => {
+                        XLSX.utils.sheet_to_json(workbook.Sheets['choices']).forEach(row => {
                             if(row.name !== undefined && row.label !== undefined) {
-                                let code = String(row.name).trim().toLowerCase();
-                                let label = String(row.label).trim();
-                                if (row.list_name) { valueMap[String(row.list_name).trim().toLowerCase() + '::' + code] = label; }
+                                let code = String(row.name).trim().toLowerCase(), label = String(row.label).trim();
+                                if (row.list_name) valueMap[String(row.list_name).trim().toLowerCase() + '::' + code] = label;
                                 externalDict[code] = label;
                             }
                         });
                         isExcelLoaded = true;
                     }
                 }
-
                 try {
-                    const csvUrl = "zaps.csv"; 
-                    const responseCsv = await fetch(csvUrl);
+                    const responseCsv = await fetch("zaps.csv");
                     if (responseCsv.ok) {
-                        const csvText = await responseCsv.text();
-                        const lines = csvText.split('\n');
-                        lines.forEach(line => {
+                        (await responseCsv.text()).split('\n').forEach(line => {
                             const cols = line.split(/[,;]/);
                             if(cols.length >= 2) {
                                 const code = String(cols[0]).replace(/["'\r]/g, '').trim().toLowerCase();
                                 const label = String(cols[1]).replace(/["'\r]/g, '').trim();
-                                if(code && label && code !== 'name') { externalDict[code] = label; }
+                                if(code && label && code !== 'name') externalDict[code] = label;
                             }
                         });
                     }
                 } catch(err) {}
 
-                if (isExcelLoaded) {
-                    $('#dict-status').replaceWith('<span class="badge bg-success ms-2" title="Codes parfaitement traduits"><i class="fas fa-check-circle"></i> Base Excel Synchronisée</span>');
-                } else {
-                    throw new Error("Fichier Excel introuvable");
-                }
-
+                if (isExcelLoaded) $('#dict-status').replaceWith('<span class="badge bg-success ms-2"><i class="fas fa-check-circle"></i> Base Excel Synchronisée</span>');
+                else throw new Error("Fichier Excel introuvable");
             } catch (e) {
                 isExcelLoaded = false;
-                $('#dict-status').replaceWith('<span class="badge bg-danger ms-2"><i class="fas fa-exclamation-triangle"></i> Fichier Excel Introuvable</span>');
+                $('#dict-status').replaceWith('<span class="badge bg-danger ms-2"><i class="fas fa-exclamation-triangle"></i> Dictionnaire Introuvable</span>');
             }
         }
 
-        function scrollTableLeft() { document.getElementById('table-scroll-container').scrollBy({ left: -400, behavior: 'smooth' }); }
-        function scrollTableRight() { document.getElementById('table-scroll-container').scrollBy({ left: 400, behavior: 'smooth' }); }
-        function scrollTableUp() { document.getElementById('table-scroll-container').scrollBy({ top: -400, behavior: 'smooth' }); }
-        function scrollTableDown() { document.getElementById('table-scroll-container').scrollBy({ top: 400, behavior: 'smooth' }); }
-
-        function toggleImageMode() {
-            currentImageMode = $('input[name="imageDisplayMode"]:checked').val();
-            renderTable(allData); 
-            applyFilters();
-        }
+        function toggleImageMode() { currentImageMode = $('input[name="imageDisplayMode"]:checked').val(); renderTable(allData); applyFilters(); }
 
         function smartKoboAutoCorrect(text) {
             if (!text) return '';
             let t = cleanSpaces(text).toLowerCase();
-
-            const corrections = {
-                'b_n_ficiaire': 'bénéficiaire', 'r_f_rentiel': 'référentiel', 'd_margement': "d'émargement",
-                'activit_': 'activité', 'num_ro': 'numéro', 'p_dagogique': 'pédagogique', 'g_n_ral': 'général',
-                'pr_sence': 'présence', 'dipl_me': 'diplôme', 't_l_phone': 'téléphone', 'cr_ation': 'création',
-                'r_union': 'réunion', 'd_tail': 'détail', 'fr_quence': 'fréquence', 'p_riode': 'période',
-                'd_but': 'début', 'cl_ture': 'clôture', 'mat_riel': 'matériel', 'r_ponse': 'réponse',
-                'identit_': 'identité', 'r_gion': 'région', 'd_partement': 'département', '_tablissement': 'établissement',
-                '_cole': 'école', '_l_ve': 'élève', 's_curit_': 'sécurité'
-            };
-
-            for (const [bad, good] of Object.entries(corrections)) { 
-                t = t.replace(new RegExp(bad, 'g'), good); 
-            }
-            t = t.replace(/\b(d|l|qu|s|m|t|n)_/g, "$1'");
-            t = t.replace(/_/g, ' ');
+            const corrections = { 'b_n_ficiaire': 'bénéficiaire', 'r_f_rentiel': 'référentiel', 'd_margement': "d'émargement", 'activit_': 'activité', 'num_ro': 'numéro', 'p_dagogique': 'pédagogique', 'g_n_ral': 'général', 'pr_sence': 'présence', 'dipl_me': 'diplôme', 't_l_phone': 'téléphone', 'cr_ation': 'création', 'r_union': 'réunion', 'd_tail': 'détail', 'fr_quence': 'fréquence', 'p_riode': 'période', 'd_but': 'début', 'cl_ture': 'clôture', 'mat_riel': 'matériel', 'r_ponse': 'réponse', 'identit_': 'identité', 'r_gion': 'région', 'd_partement': 'département', '_tablissement': 'établissement', '_cole': 'école', '_l_ve': 'élève', 's_curit_': 'sécurité' };
+            for (const [bad, good] of Object.entries(corrections)) t = t.replace(new RegExp(bad, 'g'), good); 
+            t = t.replace(/\b(d|l|qu|s|m|t|n)_/g, "$1'").replace(/_/g, ' ');
             return t.charAt(0).toUpperCase() + t.slice(1);
+        }
+
+        function levenshtein(a, b) {
+            if (a.length === 0) return b.length; if (b.length === 0) return a.length;
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1]; 
+                    else matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1); 
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        function fuzzyMatch(query, target) {
+            if (!query) return true; if (!target) return false;
+            query = cleanSpaces(query).toLowerCase(); target = cleanSpaces(target).toLowerCase();
+            if (target.includes(query)) return true;
+            const qwList = query.split(/[\s,;.-]+/).filter(Boolean), twList = target.split(/[\s,;.-]+/).filter(Boolean);
+            for (let qw of qwList) {
+                let wordMatch = false;
+                for (let tw of twList) {
+                    if (tw.includes(qw)) { wordMatch = true; break; }
+                    let minLen = Math.max(1, qw.length - 1), maxLen = Math.min(tw.length, qw.length + 1);
+                    for (let len = minLen; len <= maxLen; len++) {
+                        for (let i = 0; i <= tw.length - len; i++) {
+                            if (levenshtein(qw, tw.substring(i, i + len)) <= 1) { wordMatch = true; break; }
+                        }
+                        if (wordMatch) break;
+                    }
+                    if (wordMatch) break;
+                }
+                if (!wordMatch) return false; 
+            }
+            return true;
         }
 
         function getTranslatedHeader(xmlName) {
             let key = String(xmlName).toLowerCase();
-            const exactMatches = {
-                'vi_r_f_rentiel_standard_des_pr': "VI. Référentiel standard des preuves par type d'activité",
-                'date_enq': "Date de suivi",
-                'nombre_personnes': "Combien de personnes souhaitez-vous enregistrer ?",
-                'personnes': "Personne (Nom et Prénom puis ORDRE DE MISSION)",
-                'liste_b_n_ficiaires': "Liste des bénéficiaires",
-                'liste_d_margement': "Liste d'émargement"
-            };
+            const exactMatches = { 'vi_r_f_rentiel_standard_des_pr': "VI. Référentiel standard des preuves par type d'activité", 'date_enq': "Date de suivi", 'nombre_personnes': "Combien de personnes souhaitez-vous enregistrer ?", 'personnes': "Personne (Nom et Prénom puis ORDRE DE MISSION)", 'liste_b_n_ficiaires': "Liste des bénéficiaires", 'liste_d_margement': "Liste d'émargement" };
             if (exactMatches[key]) return exactMatches[key];
             return smartKoboAutoCorrect(xmlName);
         }
@@ -656,91 +698,47 @@
         function getTranslatedValue(val, xmlName) {
             if (val === null || val === undefined || val === '') return '';
             if (Array.isArray(val)) return val; 
-            
             let xmlNameLower = String(xmlName).toLowerCase();
+            if (['realisation', 'nombre', 'montant', 'quantit', 'effectif'].some(kw => xmlNameLower.includes(kw)) || (xmlNameLower.includes('budget') && !xmlNameLower.includes('budgetiser'))) return cleanSpaces(val); 
 
-            const noTranslationKeywords = ['realisation', 'nombre', 'montant', 'quantit', 'effectif'];
-            if (noTranslationKeywords.some(kw => xmlNameLower.includes(kw)) || 
-               (xmlNameLower.includes('budget') && !xmlNameLower.includes('budgetiser'))) {
-                return cleanSpaces(val); 
-            }
+            let isCodeLabelColumn = ['dren', 'cisco', 'zap', 'activite', 'produit', 'sous', 'vi_'].some(kw => xmlNameLower.includes(kw));
+            let listName = questionListMap[xmlNameLower] || questionListMap[Object.keys(questionListMap).find(k => xmlNameLower.includes(k))];
 
-            const requiresCodeLabel = ['dren', 'cisco', 'zap', 'activite', 'produit', 'sous', 'vi_'];
-            let isCodeLabelColumn = requiresCodeLabel.some(kw => xmlNameLower.includes(kw));
-            
-            let listName = questionListMap[xmlNameLower];
-            if (!listName) {
-                let foundKey = Object.keys(questionListMap).find(k => xmlNameLower.includes(k));
-                if (foundKey) listName = questionListMap[foundKey];
-            }
-
-            let parts = String(val).split(' ');
-            let translatedParts = parts.map(p => {
-                let pClean = cleanSpaces(p);
-                let pLower = pClean.toLowerCase();
-                let t = null;
-
-                if (listName && valueMap[listName + '::' + pLower]) { t = valueMap[listName + '::' + pLower]; }
-                if (!t && externalDict[pLower]) {
-                    if (isCodeLabelColumn || pLower.length > 1 || isNaN(pLower)) { t = externalDict[pLower]; }
-                }
-
+            let translatedParts = String(val).split(' ').map(p => {
+                let pClean = cleanSpaces(p), pLower = pClean.toLowerCase(), t = null;
+                if (listName && valueMap[listName + '::' + pLower]) t = valueMap[listName + '::' + pLower];
+                if (!t && externalDict[pLower] && (isCodeLabelColumn || pLower.length > 1 || isNaN(pLower))) t = externalDict[pLower];
                 if (!t && xmlNameLower.includes('dren')) {
-                    const drenFallback = {
-                        '11': 'ANALAMANGA', '12': 'VAKINANKARATRA', '13': 'ITASY', '14': 'BONGOLAVA',
-                        '21': 'HAUTE MATSIATRA', '22': "AMORON'I MANIA", '23': 'VATOVAVY', '24': 'FITOVINANY',
-                        '25': 'ATSIMO ATSINANANA', '26': 'IHOROMBE', '31': 'ALAOTRA MANGORO', '32': 'ATSINANANA',
-                        '33': 'ANALANJIROFO', '41': 'BOENY', '42': 'SOFIA', '43': 'BETSIBOKA', '44': 'MELAKY',
-                        '51': 'ATSIMO ANDREFANA', '52': 'ANDROY', '53': 'ANOSY', '54': 'MENABE',
-                        '71': 'DIANA', '72': 'SAVA'
-                    };
-                    t = drenFallback[pClean];
+                    const df = {'11':'ANALAMANGA', '12':'VAKINANKARATRA', '13':'ITASY', '14':'BONGOLAVA', '21':'HAUTE MATSIATRA', '22':"AMORON'I MANIA", '23':'VATOVAVY', '24':'FITOVINANY', '25':'ATSIMO ATSINANANA', '26':'IHOROMBE', '31':'ALAOTRA MANGORO', '32':'ATSINANANA', '33':'ANALANJIROFO', '41':'BOENY', '42':'SOFIA', '43':'BETSIBOKA', '44':'MELAKY', '51':'ATSIMO ANDREFANA', '52':'ANDROY', '53':'ANOSY', '54':'MENABE', '71':'DIANA', '72':'SAVA'};
+                    t = df[pClean];
                 }
-
-                if (t) {
-                    if (isCodeLabelColumn) { return pClean + ' : ' + t; } 
-                    else { return t; }
-                }
-                return pClean;
+                return t ? (isCodeLabelColumn ? pClean + ' : ' + t : t) : pClean;
             });
             return cleanSpaces(translatedParts.join(' ; '));
         }
 
-        function findXmlName(row, possibleKeys, excludeKeys, mustMatchKeys) {
+        function findXmlName(row, pk, ex, mk) {
             for (let key of Object.keys(row)) {
-                let parts = key.split('/');
-                let variableName = parts[parts.length - 1].toLowerCase();
-                
-                if (excludeKeys && excludeKeys.some(ex => variableName.includes(ex))) continue;
-                if (mustMatchKeys && mustMatchKeys.length > 0 && !mustMatchKeys.every(req => variableName.includes(req))) continue;
-
-                for (let pk of possibleKeys) {
-                    if (variableName.includes(pk)) return parts[parts.length - 1];
-                }
+                let parts = key.split('/'), vName = parts[parts.length - 1].toLowerCase();
+                if (ex && ex.some(e => vName.includes(e))) continue;
+                if (mk && mk.length > 0 && !mk.every(req => vName.includes(req))) continue;
+                for (let p of pk) if (vName.includes(p)) return parts[parts.length - 1];
             }
             return null;
         }
 
-        function getKoboValue(row, possibleKeys, excludeKeys = [], mustMatchKeys = []) {
-            let originalXmlName = findXmlName(row, possibleKeys, excludeKeys, mustMatchKeys);
-            if (originalXmlName) {
-                for (let key of Object.keys(row)) {
-                    if (key.endsWith('/' + originalXmlName) || key === originalXmlName) {
-                        return getTranslatedValue(row[key], originalXmlName);
-                    }
-                }
+        function getKoboValue(row, pk, ex = [], mk = []) {
+            let ox = findXmlName(row, pk, ex, mk);
+            if (ox) {
+                for (let key of Object.keys(row)) if (key.endsWith('/' + ox) || key === ox) return getTranslatedValue(row[key], ox);
             }
             return '';
         }
 
         function isBaseColumn(key) {
-            let parts = key.split('/');
-            let variableName = parts[parts.length - 1].toLowerCase();
+            let vName = key.split('/').pop().toLowerCase();
             for (let col of baseColsInfo) {
-                let hasEx = col.ex && col.ex.some(e => variableName.includes(e));
-                let hasMust = col.mustMatch && col.mustMatch.length > 0 ? col.mustMatch.every(m => variableName.includes(m)) : true;
-                let hasMatch = col.matches.some(m => variableName.includes(m));
-                if (!hasEx && hasMust && hasMatch) return true;
+                if (!(col.ex && col.ex.some(e => vName.includes(e))) && (col.mustMatch.length === 0 || col.mustMatch.every(m => vName.includes(m))) && col.matches.some(m => vName.includes(m))) return true;
             }
             return false;
         }
@@ -748,997 +746,410 @@
         async function fetchData() {
             $('#loading-box').show(); $('#error-box').hide();
             $('#table-body').empty(); $('#table-group-header-row').empty(); $('#table-sub-header-row').empty();
-            $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Audit en cours...</span>');
+            $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Collecte en cours...</span>');
             
             await loadDictionaryAutomatically();
 
-            const timestamp = new Date().getTime();
-            const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + timestamp;
-            const apiUrl = 'https://corsproxy.io/?' + encodeURIComponent(koboUrl);
-
             try {
-                const response = await fetch(apiUrl, { 
-                    cache: 'no-store',
-                    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-                });
-                if (!response.ok) throw new Error('Erreur réseau : Code ' + response.status);
+                const response = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime()), { cache: 'no-store' });
+                if (!response.ok) throw new Error('Erreur réseau');
                 
-                const json = await response.json();
-                allData = json.results || [];
-                
+                allData = (await response.json()).results || [];
                 renderTable(allData);
-                
-                let tableCount = allData.length > 0 ? $('#table-body tr').length : 0;
-                let badgeExcel = isExcelLoaded ? 
-                    '<span class="badge bg-success ms-2" title="Le dictionnaire Excel a été appliqué sur vos données !"><i class="fas fa-check-circle"></i> Traduction Réussie</span>' : 
-                    '<span class="badge bg-warning text-dark ms-2" title="Le dictionnaire est introuvable sur GitHub."><i class="fas fa-info-circle"></i> Affichage Brut</span>';
-                
-                if (allData.length === tableCount) {
-                    $('#sync-status').html(`<span class="badge bg-success sync-badge"><i class="fas fa-check-double"></i> Intégrité Validée : ${allData.length} Lignes</span>`).append(badgeExcel);
-                } else {
-                    $('#sync-status').html(`<span class="badge bg-danger sync-badge"><i class="fas fa-exclamation-triangle"></i> Alerte Intégrité : JSON (${allData.length}) ≠ HTML (${tableCount})</span>`).append(badgeExcel);
-                }
-
                 renderAnalysis(allData);
+                
+                let bEx = isExcelLoaded ? '<span class="badge bg-success ms-2"><i class="fas fa-check-circle"></i> Traduit</span>' : '<span class="badge bg-warning text-dark ms-2"><i class="fas fa-info-circle"></i> Brut</span>';
+                $('#sync-status').html(`<span class="badge bg-success sync-badge"><i class="fas fa-check-double"></i> Ok : ${allData.length} Lignes</span>`).append(bEx);
 
             } catch (error) {
                 $('#error-box').html('<strong>Erreur :</strong> ' + error.message).show();
-                $('#sync-status').html('<span class="badge bg-danger sync-badge">Échec du téléchargement Kobo</span>');
-            } finally {
-                $('#loading-box').hide();
-            }
+                $('#sync-status').html('<span class="badge bg-danger sync-badge">Échec Kobo</span>');
+            } finally { $('#loading-box').hide(); }
         }
 
         function renderTable(data) {
-            const tbody = $('#table-body');
-            const groupHeaderTr = $('#table-group-header-row');
-            const subHeaderTr = $('#table-sub-header-row');
-            
-            tbody.empty();
-            groupHeaderTr.empty();
-            subHeaderTr.empty();
-
+            const tbody = $('#table-body'), gHeaderTr = $('#table-group-header-row'), sHeaderTr = $('#table-sub-header-row');
             if (data.length === 0) {
-                groupHeaderTr.append('<th class="group-header-survey">Données</th>');
-                subHeaderTr.append('<th class="sub-header-survey">Aucune donnée</th>');
-                tbody.append('<tr><td class="text-center py-4 text-muted">Base de données vide.</td></tr>');
-                $('#record-count').text(0);
-                return;
+                gHeaderTr.append('<th class="group-header-survey">Données</th>'); sHeaderTr.append('<th class="sub-header-survey">Vide</th>');
+                tbody.append('<tr><td class="text-center py-4 text-muted">Base de données vide.</td></tr>'); $('#record-count').text(0); return;
             }
 
-            for(let r of data) {
-                baseColsInfo.forEach(col => {
-                    if (!col.xmlName) {
-                        let found = findXmlName(r, col.matches, col.ex, col.mustMatch);
-                        if (found) col.xmlName = found; 
-                    }
-                });
-            }
+            for(let r of data) baseColsInfo.forEach(col => { if (!col.xmlName) { let f = findXmlName(r, col.matches, col.ex, col.mustMatch); if (f) col.xmlName = f; }});
 
-            let extraSurveyKeysSet = new Set();
-            let metadataKeysSet = new Set();
-
+            let exSet = new Set(), mtSet = new Set();
             data.forEach(row => {
                 Object.keys(row).forEach(key => {
-                    if (key === '_attachments' || key === '_validation_status') return; 
-                    if (isBaseColumn(key)) return; 
-
-                    let parts = key.split('/');
-                    let xmlNameLower = parts[parts.length - 1].toLowerCase();
-                    let isMeta = metaKeywords.some(kw => xmlNameLower.includes(kw.replace(/_/g, ''))) || parts[parts.length - 1].startsWith('_');
-                    
-                    if (isMeta) metadataKeysSet.add(key); else extraSurveyKeysSet.add(key);
+                    if (key === '_attachments' || key === '_validation_status' || isBaseColumn(key)) return; 
+                    let vName = key.split('/').pop().toLowerCase();
+                    if (metaKeywords.some(kw => vName.includes(kw.replace(/_/g, ''))) || vName.startsWith('_')) mtSet.add(key); else exSet.add(key);
                 });
             });
 
-            let extraSurveyKeys = Array.from(extraSurveyKeysSet);
-            let metadataKeys = Array.from(metadataKeysSet);
+            let exKeys = Array.from(exSet), mtKeys = Array.from(mtSet);
 
-            if (baseColsInfo.length + extraSurveyKeys.length > 0) {
-                groupHeaderTr.append(`<th colspan="${baseColsInfo.length + extraSurveyKeys.length}" class="group-header-survey"><i class="fas fa-edit"></i> Réponses aux Questionnaires (Matrice Complète)</th>`);
-            }
-            if (metadataKeys.length > 0) {
-                groupHeaderTr.append(`<th colspan="${metadataKeys.length}" class="group-header-meta"><i class="fas fa-cogs"></i> Métadonnées (Système)</th>`);
-            }
+            if (baseColsInfo.length + exKeys.length > 0) gHeaderTr.append(`<th colspan="${baseColsInfo.length + exKeys.length}" class="group-header-survey"><i class="fas fa-edit"></i> Matrice Complète</th>`);
+            if (mtKeys.length > 0) gHeaderTr.append(`<th colspan="${mtKeys.length}" class="group-header-meta"><i class="fas fa-cogs"></i> Métadonnées</th>`);
 
-            baseColsInfo.forEach(col => { subHeaderTr.append(`<th class="sub-header-survey">${col.label}</th>`); });
-            extraSurveyKeys.forEach(key => { subHeaderTr.append(`<th class="sub-header-survey">${getTranslatedHeader(key.split('/').pop())}</th>`); });
-            metadataKeys.forEach(key => { subHeaderTr.append(`<th class="sub-header-meta">${getTranslatedHeader(key.split('/').pop())}</th>`); });
+            baseColsInfo.forEach(col => sHeaderTr.append(`<th class="sub-header-survey">${col.label}</th>`));
+            exKeys.forEach(key => sHeaderTr.append(`<th class="sub-header-survey">${getTranslatedHeader(key.split('/').pop())}</th>`));
+            mtKeys.forEach(key => sHeaderTr.append(`<th class="sub-header-meta">${getTranslatedHeader(key.split('/').pop())}</th>`));
 
-            function formatExtraValue(val, colName, rowData, xmlName, outputType = 'html') {
+            function formatExtra(val, rowData, xmlName, isRaw) {
                 if (val === null || val === undefined) return '';
-                
-                let translatedVal = getTranslatedValue(val, xmlName);
-                let parts = Array.isArray(translatedVal) ? translatedVal.map(item => typeof item === 'object' ? Object.values(item).join(' | ') : String(item)) : [String(translatedVal)];
+                let tVal = getTranslatedValue(val, xmlName);
+                let parts = Array.isArray(tVal) ? tVal.map(i => typeof i === 'object' ? Object.values(i).join(' | ') : String(i)) : [String(tVal)];
+                if(xmlName.includes('ENTITE') || xmlName.includes('OBSERVATIONS')) parts = [...new Set(parts.flatMap(p => p.split(/\s*;\s*/)).filter(Boolean))];
 
-                if (colName && colName.includes('ENTITE')) parts = [...new Set(parts.flatMap(p => p.split(/\s*;\s*/)).filter(Boolean))];
-                else if (colName && colName.includes('OBSERVATIONS')) parts = parts.flatMap(p => p.split(/\s*;\s*/)).filter(Boolean);
-
-                const linkify = (str) => {
-                    if (!rowData || !rowData._attachments) return str;
-                    let subParts = str.split(' | ');
-                    let processed = subParts.map(subStr => {
+                return cleanSpaces(parts.map(p => {
+                    if (!rowData || !rowData._attachments) return p;
+                    let processed = p.split(' | ').map(subStr => {
                         let att = rowData._attachments.find(a => a.media_file_basename === subStr);
                         if (att && att.download_url) {
-                            if (outputType === 'raw') return att.download_url;
-
-                            if (currentImageMode === 'image') {
-                                let isImg = (att.mimetype && att.mimetype.startsWith('image/')) || (att.filename && att.filename.match(/\.(jpeg|jpg|gif|png|webp)$/i));
-                                if (isImg) {
-                                    return `<a href="${att.download_url}" target="_blank" title="Cliquez pour agrandir">
-                                                <img src="${att.download_url}" class="table-img" alt="${subStr}">
-                                            </a>`;
-                                }
+                            if (isRaw) return att.download_url;
+                            if (currentImageMode === 'image' && ((att.mimetype && att.mimetype.startsWith('image/')) || (att.filename && att.filename.match(/\.(jpeg|jpg|png)$/i)))) {
+                                return `<a href="${att.download_url}" target="_blank"><img src="${att.download_url}" class="table-img"></a>`;
                             }
-                            return `<a href="${att.download_url}" target="_blank" class="text-primary text-decoration-underline" style="word-break: break-all;" title="Ouvrir"><i class="fas fa-link"></i> ${att.download_url}</a>`;
+                            return `<a href="${att.download_url}" target="_blank" class="text-primary text-decoration-underline"><i class="fas fa-link"></i> Lien</a>`;
                         }
                         return subStr;
                     });
                     return processed.join(' | ');
-                };
-
-                return cleanSpaces(parts.map(p => linkify(p)).join(' ; '));
+                }).join(' ; '));
             }
 
             data.forEach(row => {
-                const tr = $('<tr></tr>');
-                let rowSearchData = {};
-                
+                const tr = $('<tr></tr>'); let sData = {};
                 baseColsInfo.forEach(col => {
                     let val = getKoboValue(row, col.matches, col.ex, col.mustMatch);
-                    tr.append($('<td></td>').attr('data-csv', val).text(val));
-                    rowSearchData[col.key] = cleanSpaces(String(val)).toLowerCase();
+                    tr.append($('<td></td>').attr('data-csv', val).text(val)); sData[col.key] = cleanSpaces(String(val)).toLowerCase();
                 });
-                
-                extraSurveyKeys.forEach(key => {
+                exKeys.concat(mtKeys).forEach(key => {
                     let xmlName = key.split('/').pop();
-                    let valHtml = formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName, 'html');
-                    let valRaw = formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName, 'raw');
-                    tr.append($('<td></td>').attr('data-csv', valRaw).html(valHtml));
+                    tr.append($('<td></td>').attr('data-csv', formatExtra(row[key], row, xmlName, true)).html(formatExtra(row[key], row, xmlName, false)));
                 });
-
-                metadataKeys.forEach(key => {
-                    let xmlName = key.split('/').pop();
-                    let valHtml = formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName, 'html');
-                    let valRaw = formatExtraValue(row[key], xmlName.toUpperCase(), row, xmlName, 'raw');
-                    tr.append($('<td></td>').attr('data-csv', valRaw).html(valHtml));
-                });
-
-                tr.data('search', rowSearchData);
-                tbody.append(tr);
+                tr.data('search', sData); tbody.append(tr);
             });
             $('#record-count').text(data.length);
         }
 
-        function getFrequencies(arr) {
-            return arr.reduce((acc, val) => {
-                let key = val ? cleanSpaces(String(val)) : "Non renseigné";
-                acc[key] = (acc[key] || 0) + 1;
-                return acc;
-            }, {});
-        }
-
-        function generateSmartInsights(drens, ciscos, zaps, totalRows) {
-            if (totalRows === 0) {
-                $('#ai-report-content').html("<p>Aucune donnée à analyser pour le moment.</p>");
-                return;
-            }
-
-            let drenCount = Object.keys(drens).filter(k => k !== "Non renseigné").length;
-            let maxDren = Object.entries(drens).filter(([k,v]) => k !== "Non renseigné").sort((a,b) => b[1] - a[1])[0];
-            let ciscoCount = Object.keys(ciscos).filter(k => k !== "Non renseigné").length;
-            
-            let html = `<p>L'analyse intelligente révèle que <span class="highlight-val">${totalRows}</span> formulaires ont été soumis avec succès.</p>`;
-            html += `<p>La couverture géographique actuelle s'étend sur <span class="highlight-val">${drenCount}</span> DREN(s) et <span class="highlight-val">${ciscoCount}</span> CISCO(s) différentes.</p>`;
-            
-            if (maxDren) {
-                let percent = Math.round((maxDren[1] / totalRows) * 100);
-                html += `<p>La zone la plus active est la DREN <span class="highlight-val">${maxDren[0]}</span>, représentant <span class="highlight-val">${percent}%</span> du volume total des remontées terrain.</p>`;
-            }
-            $('#ai-report-content').html(html);
-        }
-
-        // --- GENERATION DU GRAPHIQUE ET DES LISTES DE CLUSTERING ---
-        function renderClusterChart(canvasId, listContainerId, freqData, label, existingChart, setChartRef) {
+        // ================= GESTION DES GRAPHIQUES ET DES LISTES DE CLUSTERING (MOTEUR UNIQUE) =================
+        function renderAlgorithmChart(algo, canvasId, listContainerId, freqData, existingChart, setChartRef) {
             if (existingChart) existingChart.destroy();
             
             let entries = Object.entries(freqData).filter(([k,v]) => k !== "Non renseigné");
-            if (entries.length === 0) {
-                document.getElementById(listContainerId).innerHTML = '';
-                return;
-            }
+            if (entries.length === 0) { document.getElementById(listContainerId).innerHTML = ''; return; }
             
             entries.sort((a,b) => a[1] - b[1]); 
             let counts = entries.map(e => e[1]);
             let labels = entries.map(e => e[0]);
-            
-            // LA SOLUTION MAGIQUE : On découpe les longs textes en tableaux de lignes (Word-Wrap)
             let formattedLabels = labels.map(l => wrapLabel(l, 25)); 
             
-            let clusters = perform1DKMeans(counts, 3);
-            
-            let colors = ['rgba(52, 152, 219, 0.7)', 'rgba(243, 156, 18, 0.7)', 'rgba(39, 174, 96, 0.7)'];
-            let borderColors = ['rgba(41, 128, 185, 1)', 'rgba(211, 84, 0, 1)', 'rgba(46, 204, 113, 1)'];
+            let assignments = [], clusterDefs = {};
+
+            if (algo === 'kmeans' || algo === 'jenks') {
+                assignments = algo === 'kmeans' ? perform1DKMeans(counts, 3) : performJenks(counts, 3);
+                clusterDefs = {
+                    0: { title: "Activité Faible", bg: 'rgba(52, 152, 219, 0.7)', border: 'rgba(41, 128, 185, 1)', cardBg: 'bg-primary text-white', badge: 'bg-primary' },
+                    1: { title: "Activité Moyenne", bg: 'rgba(243, 156, 18, 0.7)', border: 'rgba(211, 84, 0, 1)', cardBg: 'bg-warning text-dark', badge: 'bg-warning text-dark' },
+                    2: { title: "Forte Activité", bg: 'rgba(39, 174, 96, 0.7)', border: 'rgba(46, 204, 113, 1)', cardBg: 'bg-success text-white', badge: 'bg-success' }
+                };
+            } else if (algo === 'dbscan') {
+                let res = performDBSCAN(counts);
+                assignments = res.assignments;
+                
+                const cp = [
+                    {bg: 'rgba(52, 152, 219, 0.7)', b:'rgba(41, 128, 185, 1)', c:'bg-primary text-white', lb:'bg-primary'},
+                    {bg: 'rgba(39, 174, 96, 0.7)', b:'rgba(46, 204, 113, 1)', c:'bg-success text-white', lb:'bg-success'},
+                    {bg: 'rgba(243, 156, 18, 0.7)', b:'rgba(211, 84, 0, 1)', c:'bg-warning text-dark', lb:'bg-warning text-dark'},
+                    {bg: 'rgba(155, 89, 182, 0.7)', b:'rgba(142, 68, 173, 1)', c:'bg-secondary text-white', lb:'bg-secondary'},
+                    {bg: 'rgba(52, 73, 94, 0.7)', b:'rgba(44, 62, 80, 1)', c:'bg-dark text-white', lb:'bg-dark'}
+                ];
+                
+                clusterDefs[-1] = { title: "Bruit / Anomalies", bg: 'rgba(231, 76, 60, 0.7)', border: 'rgba(192, 57, 43, 1)', cardBg: 'bg-danger text-white', badge: 'bg-danger' };
+                for(let i=0; i<res.numClusters; i++) {
+                    let p = cp[i % cp.length];
+                    clusterDefs[i] = { title: "Groupe " + (i+1), bg: p.bg, border: p.b, cardBg: p.c, badge: p.lb };
+                }
+            }
+
+            let bgColors = assignments.map(a => clusterDefs[a].bg);
+            let bdColors = assignments.map(a => clusterDefs[a].border);
             
             let ctx = document.getElementById(canvasId).getContext('2d');
             let newChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: formattedLabels, // Chart.js gère nativement les tableaux comme des textes multilignes !
+                    labels: formattedLabels,
                     datasets: [{
-                        label: 'Soumissions (Colorisé par Cluster IA)',
+                        label: 'Soumissions (' + algo.toUpperCase() + ')',
                         data: counts,
-                        backgroundColor: clusters.map(c => colors[c]),
-                        borderColor: clusters.map(c => borderColors[c]),
-                        borderWidth: 1,
-                        borderRadius: 5
+                        backgroundColor: bgColors, borderColor: bdColors, borderWidth: 1, borderRadius: 5
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            left: 30,    // Marge de sécurité à gauche
-                            bottom: 30,  // Grâce au multiligne, plus besoin d'une marge géante !
-                            right: 30,
-                            top: 20
-                        }
-                    },
+                    responsive: true, maintainAspectRatio: false,
+                    layout: { padding: { left: 30, bottom: 30, right: 30, top: 20 } },
                     plugins: {
                         tooltip: {
                             callbacks: {
-                                title: function(context) {
-                                    // Au survol, on affiche la phrase originale entière sur une seule ligne
-                                    return labels[context[0].dataIndex];
-                                },
-                                afterLabel: function(context) {
-                                    let cl = clusters[context.dataIndex];
-                                    let clName = cl === 0 ? "Activité Faible" : cl === 1 ? "Activité Moyenne" : "Forte Activité";
-                                    return `Catégorie IA : ${clName}`;
-                                }
+                                title: function(context) { return labels[context[0].dataIndex]; },
+                                afterLabel: function(context) { return `Catégorie : ${clusterDefs[assignments[context.dataIndex]].title}`; }
                             }
                         }
                     },
                     scales: {
-                        y: { beginAtZero: true, title: { display: true, text: 'Nombre de soumissions' } },
-                        x: { 
-                            display: true, 
-                            ticks: { 
-                                maxRotation: 45, 
-                                minRotation: 45,
-                                autoSkip: false, // Force l'affichage de TOUS les labels
-                                font: { size: 11 }
-                            } 
-                        }
+                        y: { beginAtZero: true, title: { display: true, text: 'Soumissions' } },
+                        x: { display: true, ticks: { maxRotation: 45, minRotation: 45, autoSkip: false, font: { size: 11 } } }
                     }
                 }
             });
             setChartRef(newChart);
 
-            // --- Construction des listes ---
-            let clusterGroups = { 0: [], 1: [], 2: [] };
-            
-            for (let i = 0; i < entries.length; i++) {
-                let cl = clusters[i];
-                clusterGroups[cl].push({ name: labels[i], count: counts[i] });
-            }
-            
-            clusterGroups[0].sort((a, b) => b.count - a.count);
-            clusterGroups[1].sort((a, b) => b.count - a.count);
-            clusterGroups[2].sort((a, b) => b.count - a.count);
+            let clusterGroups = {};
+            for(let key in clusterDefs) clusterGroups[key] = [];
+            for (let i = 0; i < entries.length; i++) clusterGroups[assignments[i]].push({ name: labels[i], count: counts[i] });
 
             let htmlLists = `<div class="row mt-4">`;
+            let keys = Object.keys(clusterDefs).map(Number);
             
-            htmlLists += `
-                <div class="col-md-4">
-                    <div class="card border-success mb-3 shadow-sm">
-                        <div class="card-header bg-success text-white fw-bold"><i class="fas fa-arrow-up"></i> Groupe : Forte Activité</div>
-                        <ul class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
-            `;
-            clusterGroups[2].forEach(item => {
-                htmlLists += `<li class="list-group-item d-flex justify-content-between align-items-center">${item.name} <span class="badge bg-success rounded-pill fs-6">${item.count}</span></li>`;
-            });
-            if(clusterGroups[2].length === 0) htmlLists += `<li class="list-group-item text-muted">Aucune entité dans ce groupe</li>`;
-            htmlLists += `</ul></div></div>`;
-            
-            htmlLists += `
-                <div class="col-md-4">
-                    <div class="card border-warning mb-3 shadow-sm">
-                        <div class="card-header bg-warning text-dark fw-bold"><i class="fas fa-minus"></i> Groupe : Activité Moyenne</div>
-                        <ul class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
-            `;
-            clusterGroups[1].forEach(item => {
-                htmlLists += `<li class="list-group-item d-flex justify-content-between align-items-center">${item.name} <span class="badge bg-warning text-dark rounded-pill fs-6">${item.count}</span></li>`;
-            });
-            if(clusterGroups[1].length === 0) htmlLists += `<li class="list-group-item text-muted">Aucune entité dans ce groupe</li>`;
-            htmlLists += `</ul></div></div>`;
-
-            htmlLists += `
-                <div class="col-md-4">
-                    <div class="card border-primary mb-3 shadow-sm">
-                        <div class="card-header bg-primary text-white fw-bold"><i class="fas fa-arrow-down"></i> Groupe : Activité Faible</div>
-                        <ul class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
-            `;
-            clusterGroups[0].forEach(item => {
-                htmlLists += `<li class="list-group-item d-flex justify-content-between align-items-center">${item.name} <span class="badge bg-primary rounded-pill fs-6">${item.count}</span></li>`;
-            });
-            if(clusterGroups[0].length === 0) htmlLists += `<li class="list-group-item text-muted">Aucune entité dans ce groupe</li>`;
-            htmlLists += `</ul></div></div>`;
-
-            htmlLists += `</div>`;
-            
-            document.getElementById(listContainerId).innerHTML = htmlLists;
-        }
-
-        function renderClustering(freqDren, freqCisco, freqZap) {
-            renderClusterChart('clusterChartDREN', 'clusterListsDREN', freqDren, 'DREN', chartDREN, (c) => chartDREN = c);
-            renderClusterChart('clusterChartCISCO', 'clusterListsCISCO', freqCisco, 'CISCO', chartCISCO, (c) => chartCISCO = c);
-            renderClusterChart('clusterChartZAP', 'clusterListsZAP', freqZap, 'ZAP', chartZAP, (c) => chartZAP = c);
-        }
-
-        function getAiInsightsArray() {
-            let insights = [];
-            $('#ai-report-content p').each(function() {
-                let text = cleanSpaces($(this).text());
-                if(text) insights.push(text);
-            });
-            return insights.length > 0 ? insights : ["Aucune donnée à analyser pour le moment."];
-        }
-
-        function populateSummaryTable(tbodyId, freqData, totalRows) {
-            const tbody = $('#' + tbodyId);
-            tbody.empty();
-            let sorted = Object.entries(freqData).sort((a, b) => b[1] - a[1]);
-            
-            if(sorted.length === 0) {
-                tbody.append('<tr><td colspan="3" class="text-muted">Aucune donnée trouvée</td></tr>');
-            } else {
-                sorted.forEach(([name, count]) => {
-                    let pctRaw = totalRows > 0 ? (count / totalRows) * 100 : 0;
-                    let pctText = pctRaw.toFixed(1) + '%';
-                    
-                    let tr = $('<tr></tr>');
-                    tr.append(`<td><strong>${name}</strong></td>`);
-                    tr.append(`<td><span class="badge bg-primary fs-6">${count}</span></td>`);
-                    tr.append(`
-                        <td class="align-middle">
-                            <div class="d-flex align-items-center justify-content-center">
-                                <span class="me-2" style="width: 45px; text-align: right; font-size: 0.85rem; font-weight: bold;">${pctText}</span>
-                                <div class="progress" style="width: 80px; height: 10px; border-radius: 5px;">
-                                    <div class="progress-bar bg-info" role="progressbar" style="width: ${pctText};" aria-valuenow="${pctRaw}" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                            </div>
-                        </td>
-                    `);
-                    tbody.append(tr);
-                });
+            // Tri pour l'affichage : Haut vers Bas pour K-Means/Jenks.
+            if(algo === 'kmeans' || algo === 'jenks') keys.sort((a,b)=>b-a);
+            else { 
+                // DBSCAN : Groupes normaux d'abord, puis le Bruit à la fin
+                keys.sort((a,b)=>b-a);
+                let nIdx = keys.indexOf(-1);
+                if(nIdx > -1) { keys.splice(nIdx, 1); keys.push(-1); }
             }
+
+            keys.forEach(k => {
+                clusterGroups[k].sort((a, b) => b.count - a.count);
+                if(algo === 'dbscan' && k === -1 && clusterGroups[k].length === 0) return; // Cacher le Bruit s'il n'y en a pas
+                
+                let def = clusterDefs[k];
+                let icon = k === -1 ? 'fa-exclamation-triangle' : (k === 2 ? 'fa-arrow-up' : (k === 0 ? 'fa-arrow-down' : 'fa-check'));
+                
+                htmlLists += `
+                    <div class="col-md-4">
+                        <div class="card mb-3 shadow-sm border" style="border-color: ${def.border}; border-width: 2px;">
+                            <div class="card-header ${def.cardBg} fw-bold"><i class="fas ${icon}"></i> ${def.title}</div>
+                            <ul class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                `;
+                clusterGroups[k].forEach(item => {
+                    htmlLists += `<li class="list-group-item d-flex justify-content-between align-items-center">${item.name} <span class="badge ${def.badge} rounded-pill fs-6">${item.count}</span></li>`;
+                });
+                if(clusterGroups[k].length === 0) htmlLists += `<li class="list-group-item text-muted">Aucune entité</li>`;
+                htmlLists += `</ul></div></div>`;
+            });
+            
+            htmlLists += `</div>`;
+            document.getElementById(listContainerId).innerHTML = htmlLists;
         }
 
         function renderAnalysis(data) {
             let totalRows = data.length;
-            let drens = [], ciscos = [], zaps = [];
+            let freqDren = data.reduce((acc, row) => { let v = cleanSpaces(getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous'])); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
+            let freqCisco = data.reduce((acc, row) => { let v = cleanSpaces(getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous'])); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
+            let freqZap = data.reduce((acc, row) => { let v = cleanSpaces(getKoboValue(row, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous'])); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
 
-            data.forEach(row => {
-                drens.push(getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous'], []));
-                ciscos.push(getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous'], []));
-                zaps.push(getKoboValue(row, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous'], []));
-            });
+            // Onglet 2
+            if (totalRows === 0) $('#ai-report-content').html("<p>Aucune donnée.</p>");
+            else {
+                let maxDren = Object.entries(freqDren).filter(([k,v]) => k !== "Non renseigné").sort((a,b) => b[1] - a[1])[0];
+                $('#ai-report-content').html(`<p>L'analyse intelligente révèle que <span class="highlight-val">${totalRows}</span> formulaires ont été soumis. La couverture s'étend sur <span class="highlight-val">${Object.keys(freqDren).length-1}</span> DREN(s) et <span class="highlight-val">${Object.keys(freqCisco).length-1}</span> CISCO(s). ${maxDren ? `La zone dominante est la DREN <span class="highlight-val">${maxDren[0]}</span> (${Math.round((maxDren[1]/totalRows)*100)}%).` : ''}</p>`);
+            }
 
-            let freqDren = getFrequencies(drens);
-            let freqCisco = getFrequencies(ciscos);
-            let freqZap = getFrequencies(zaps);
+            const popTab = (id, fd) => {
+                let tb = $('#'+id).empty(), s = Object.entries(fd).sort((a,b)=>b[1]-a[1]);
+                if(s.length===0) tb.append('<tr><td colspan="3" class="text-muted">Vide</td></tr>');
+                else s.forEach(([n,c]) => { let p=(c/totalRows*100).toFixed(1)+'%'; tb.append(`<tr><td><strong>${n}</strong></td><td><span class="badge bg-primary fs-6">${c}</span></td><td class="align-middle"><div class="d-flex align-items-center justify-content-center"><span class="me-2" style="width: 45px; font-weight: bold;">${p}</span><div class="progress" style="width: 80px; height: 10px;"><div class="progress-bar bg-info" style="width: ${p};"></div></div></div></td></tr>`); });
+            };
+            popTab('dren-summary-table', freqDren); popTab('cisco-summary-table', freqCisco); popTab('zap-summary-table', freqZap);
 
-            generateSmartInsights(freqDren, freqCisco, freqZap, totalRows);
+            // Onglet 3 : KMeans
+            renderAlgorithmChart('kmeans', 'kmeansChartDREN', 'kmeansListsDREN', freqDren, chartsRefs.kmeans.DREN, c => chartsRefs.kmeans.DREN = c);
+            renderAlgorithmChart('kmeans', 'kmeansChartCISCO', 'kmeansListsCISCO', freqCisco, chartsRefs.kmeans.CISCO, c => chartsRefs.kmeans.CISCO = c);
+            renderAlgorithmChart('kmeans', 'kmeansChartZAP', 'kmeansListsZAP', freqZap, chartsRefs.kmeans.ZAP, c => chartsRefs.kmeans.ZAP = c);
 
-            populateSummaryTable('dren-summary-table', freqDren, totalRows);
-            populateSummaryTable('cisco-summary-table', freqCisco, totalRows);
-            populateSummaryTable('zap-summary-table', freqZap, totalRows);
+            // Onglet 4 : Jenks
+            renderAlgorithmChart('jenks', 'jenksChartDREN', 'jenksListsDREN', freqDren, chartsRefs.jenks.DREN, c => chartsRefs.jenks.DREN = c);
+            renderAlgorithmChart('jenks', 'jenksChartCISCO', 'jenksListsCISCO', freqCisco, chartsRefs.jenks.CISCO, c => chartsRefs.jenks.CISCO = c);
+            renderAlgorithmChart('jenks', 'jenksChartZAP', 'jenksListsZAP', freqZap, chartsRefs.jenks.ZAP, c => chartsRefs.jenks.ZAP = c);
 
-            renderClustering(freqDren, freqCisco, freqZap);
+            // Onglet 5 : DBSCAN
+            renderAlgorithmChart('dbscan', 'dbscanChartDREN', 'dbscanListsDREN', freqDren, chartsRefs.dbscan.DREN, c => chartsRefs.dbscan.DREN = c);
+            renderAlgorithmChart('dbscan', 'dbscanChartCISCO', 'dbscanListsCISCO', freqCisco, chartsRefs.dbscan.CISCO, c => chartsRefs.dbscan.CISCO = c);
+            renderAlgorithmChart('dbscan', 'dbscanChartZAP', 'dbscanListsZAP', freqZap, chartsRefs.dbscan.ZAP, c => chartsRefs.dbscan.ZAP = c);
         }
 
+        // ================= FILTRES ET INTERACTIVITE =================
         function setupAnalysisTableSearch(inputId, tbodyId) {
             $('#' + inputId).on('keyup', function() {
                 let val = cleanSpaces($(this).val());
-                $('#' + tbodyId + ' tr').filter(function() {
-                    let rowText = cleanSpaces($(this).text()); 
-                    $(this).toggle(fuzzyMatch(val, rowText));
-                });
+                $('#' + tbodyId + ' tr').filter(function() { $(this).toggle(fuzzyMatch(val, cleanSpaces($(this).text()))); });
             });
         }
 
         function applyFilters() {
-            const filters = {
-                dren: cleanSpaces($('#filter-dren').val()),
-                cisco: cleanSpaces($('#filter-cisco').val()),
-                zap: cleanSpaces($('#filter-zap').val()),
-                activite: cleanSpaces($('#filter-activite').val()),
-                produit: cleanSpaces($('#filter-produit').val()),
-                sousActivite: cleanSpaces($('#filter-sous-activite').val()),
-                sousProduit: cleanSpaces($('#filter-sous-produit').val())
-            };
-
-            let visibleCount = 0;
+            const f = { dren: cleanSpaces($('#filter-dren').val()), cisco: cleanSpaces($('#filter-cisco').val()), zap: cleanSpaces($('#filter-zap').val()), act: cleanSpaces($('#filter-activite').val()), prod: cleanSpaces($('#filter-produit').val()), sAct: cleanSpaces($('#filter-sous-activite').val()), sProd: cleanSpaces($('#filter-sous-produit').val()) };
+            let vC = 0;
             $('#table-body tr').each(function() {
-                const s = $(this).data('search');
-                if (!s) return; 
-                
-                let matchDren = fuzzyMatch(filters.dren, s.dren);
-                let matchCisco = fuzzyMatch(filters.cisco, s.cisco);
-                let matchZap = fuzzyMatch(filters.zap, s.zap);
-                
-                let matchActivite = fuzzyMatch(filters.activite, s.activiteDren) || fuzzyMatch(filters.activite, s.activiteCisco) || fuzzyMatch(filters.activite, s.activiteZap);
-                let matchProduit = fuzzyMatch(filters.produit, s.produitDren) || fuzzyMatch(filters.produit, s.produitCisco) || fuzzyMatch(filters.produit, s.produitZap);
-                let matchSousAct = fuzzyMatch(filters.sousActivite, s.sousActiviteDren) || fuzzyMatch(filters.sousActivite, s.sousActiviteCisco) || fuzzyMatch(filters.sousActivite, s.sousActiviteZap);
-                let matchSousProd = fuzzyMatch(filters.sousProduit, s.sousProduitDren) || fuzzyMatch(filters.sousProduit, s.sousProduitCisco) || fuzzyMatch(filters.sousProduit, s.sousProduitZap);
-
-                if (matchDren && matchCisco && matchZap && matchActivite && matchProduit && matchSousAct && matchSousProd) { 
-                    $(this).show(); visibleCount++; 
-                } else { 
-                    $(this).hide(); 
-                }
+                const s = $(this).data('search'); if (!s) return; 
+                let mD = fuzzyMatch(f.dren, s.dren), mC = fuzzyMatch(f.cisco, s.cisco), mZ = fuzzyMatch(f.zap, s.zap);
+                let mA = fuzzyMatch(f.act, s.activiteDren) || fuzzyMatch(f.act, s.activiteCisco) || fuzzyMatch(f.act, s.activiteZap);
+                let mP = fuzzyMatch(f.prod, s.produitDren) || fuzzyMatch(f.prod, s.produitCisco) || fuzzyMatch(f.prod, s.produitZap);
+                let mSA = fuzzyMatch(f.sAct, s.sousActiviteDren) || fuzzyMatch(f.sAct, s.sousActiviteCisco) || fuzzyMatch(f.sAct, s.sousActiviteZap);
+                let mSP = fuzzyMatch(f.sProd, s.sousProduitDren) || fuzzyMatch(f.sProd, s.sousProduitCisco) || fuzzyMatch(f.sProd, s.sousProduitZap);
+                if (mD && mC && mZ && mA && mP && mSA && mSP) { $(this).show(); vC++; } else { $(this).hide(); }
             });
-            $('#record-count').text(visibleCount);
+            $('#record-count').text(vC);
         }
 
         function clearFilters() { $('.filter-input').val(''); applyFilters(); }
+        
+        function getCurrentFilters() { return { "DREN": cleanSpaces($('#filter-dren').val()) || "Tous", "CISCO": cleanSpaces($('#filter-cisco').val()) || "Tous", "ZAP": cleanSpaces($('#filter-zap').val()) || "Tous", "Activité": cleanSpaces($('#filter-activite').val()) || "Tous", "Produit": cleanSpaces($('#filter-produit').val()) || "Tous", "Sous-activité": cleanSpaces($('#filter-sous-activite').val()) || "Tous", "Sous-produit": cleanSpaces($('#filter-sous-produit').val()) || "Tous" }; }
+        function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
+        
+        function getAnalysisFilters() { return { "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune", "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune", "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune" }; }
+        function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
 
-        function getCurrentFilters() {
-            return {
-                "DREN": cleanSpaces($('#filter-dren').val()) || "Tous",
-                "CISCO": cleanSpaces($('#filter-cisco').val()) || "Tous",
-                "ZAP": cleanSpaces($('#filter-zap').val()) || "Tous",
-                "Activité": cleanSpaces($('#filter-activite').val()) || "Tous",
-                "Produit": cleanSpaces($('#filter-produit').val()) || "Tous",
-                "Sous-activité": cleanSpaces($('#filter-sous-activite').val()) || "Tous",
-                "Sous-produit": cleanSpaces($('#filter-sous-produit').val()) || "Tous"
-            };
-        }
+        // ================= EXPORTS ET PARTAGE =================
+        function downloadFile(b, fn) { let a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = fn; a.style.display="none"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
 
-        function getFiltersPlainText() {
-            let filters = getCurrentFilters();
-            let text = "";
-            for (let key in filters) {
-                if (filters[key] !== "Tous") {
-                    text += `- ${key} : ${filters[key]}\n`;
-                }
-            }
-            return text === "" ? "- Aucun filtre (Toutes les données)" : text;
-        }
-
-        function getAnalysisFilters() {
-            return {
-                "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune",
-                "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune",
-                "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune"
-            };
-        }
-
-        function getAnalysisFiltersPlainText() {
-            let filters = getAnalysisFilters();
-            let text = "";
-            for (let key in filters) {
-                if (filters[key] !== "Aucune") {
-                    text += `- ${key} : ${filters[key]}\n`;
-                }
-            }
-            return text === "" ? "- Aucun filtre local appliqué" : text;
-        }
-
-        function downloadFile(blob, filename) {
-            let downloadLink = document.createElement("a");
-            downloadLink.href = window.URL.createObjectURL(blob);
-            downloadLink.download = filename;
-            downloadLink.style.display = "none";
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-        }
-
-        function exportTableToCSV(prefix) {
-            let filename = generateFilename(prefix, 'csv');
-            let csv = [];
-            let exportDate = getFormattedDateTime();
-            
-            csv.push('"' + TITRE_PLATEFORME + '"');
-            csv.push('"' + SOUS_TITRE_PLATEFORME + '"');
-            csv.push("");
-            csv.push('"--- METADONNEES D\'EXPORT ---"');
-            csv.push('"Date d\'exportation";"' + exportDate + '"');
-            csv.push("");
-            
-            let filters = getCurrentFilters();
-            csv.push('"--- CRITERES DE RECHERCHE APPLIQUES ---"');
-            for (let key in filters) {
-                csv.push('"' + key + '";"' + filters[key] + '"');
-            }
-            csv.push("");
-            csv.push('"--- RESULTATS ---"');
-
-            let rows = document.querySelectorAll("#data-table tr");
-            for (let i = 0; i < rows.length; i++) {
-                if (rows[i].id === 'table-group-header-row') {
-                    let row = [], cols = rows[i].querySelectorAll("td, th");
-                    for (let j = 0; j < cols.length; j++) {
-                        let cellData = cleanSpaces(cols[j].innerText).replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""');
-                        row.push('"' + cellData + '"');
-                        if (cols[j].hasAttribute('colspan')) {
-                            let colspan = parseInt(cols[j].getAttribute('colspan'), 10);
-                            for (let k = 1; k < colspan; k++) row.push('""');
-                        }
-                    }
-                    csv.push(row.join(";"));
-                    continue;
-                }
-                if (rows[i].style.display !== 'none') {
-                    let row = [], cols = rows[i].querySelectorAll("td, th");
-                    for (let j = 0; j < cols.length; j++) {
-                        let cellData = cols[j].hasAttribute('data-csv') ? cols[j].getAttribute('data-csv') : cols[j].innerText;
-                        cellData = cleanSpaces(cellData).replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""');
-                        row.push('"' + cellData + '"');
-                    }
-                    csv.push(row.join(";")); 
-                }
-            }
-            let csvFile = new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"});
-            downloadFile(csvFile, filename);
-        }
-
-        function exportTableToExcel(prefix) {
-            let filename = generateFilename(prefix, 'xlsx');
-            let wb = XLSX.utils.book_new();
-            let wsData = [];
-            let exportDate = getFormattedDateTime();
-            
-            wsData.push([TITRE_PLATEFORME]);
-            wsData.push([SOUS_TITRE_PLATEFORME]);
-            wsData.push([]);
-            wsData.push(["--- METADONNEES D'EXPORT ---"]);
-            wsData.push(["Date d'exportation", exportDate]);
-            wsData.push([]);
-            
-            let filters = getCurrentFilters();
-            wsData.push(["--- CRITERES DE RECHERCHE APPLIQUES ---"]);
-            for (let key in filters) {
-                wsData.push([key, filters[key]]);
-            }
-            wsData.push([]);
-            wsData.push(["--- RESULTATS ---"]);
-
-            let headerRowIndex = wsData.length;
-            let headers1 = [];
-            let merges = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
-                { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } }
-            ];
-            let currentHeaderCol = 0;
-
-            $('#table-group-header-row th').each(function() {
-                let text = cleanSpaces($(this).text());
-                let colspan = parseInt($(this).attr('colspan') || 1, 10);
-
-                headers1.push(text);
-                if (colspan > 1) {
-                    merges.push({
-                        s: { r: headerRowIndex, c: currentHeaderCol },
-                        e: { r: headerRowIndex, c: currentHeaderCol + colspan - 1 }
-                    });
-                    for (let i = 1; i < colspan; i++) {
-                        headers1.push("");
-                    }
-                }
-                currentHeaderCol += colspan;
-            });
-
-            if (headers1.length > 0) wsData.push(headers1);
-
-            let headers2 = [];
-            $('#table-sub-header-row th').each(function() { headers2.push(cleanSpaces($(this).text())); });
-            wsData.push(headers2);
-            
-            $('#table-body tr:visible').each(function() {
-                let row = [];
-                $(this).find('td').each(function() {
-                    let val = $(this).attr('data-csv');
-                    if (val === undefined || val === null) val = $(this).text();
-                    row.push(cleanSpaces(val));
+        function exportTableToCSV(pfx) {
+            let fn = generateFilename(pfx, 'csv'), csv = [], d = getFormattedDateTime(), f = getCurrentFilters();
+            csv.push(`"${TITRE_PLATEFORME}"`); csv.push(`"${SOUS_TITRE_PLATEFORME}"`); csv.push("");
+            csv.push(`"--- METADONNEES D'EXPORT ---"`); csv.push(`"Date d'exportation";"${d}"`); csv.push("");
+            csv.push(`"--- CRITERES DE RECHERCHE APPLIQUES ---"`); for (let k in f) csv.push(`"${k}";"${f[k]}"`); csv.push("");
+            csv.push(`"--- RESULTATS ---"`);
+            $('#data-table tr:visible').each(function() {
+                let r = []; $(this).find('td, th').each(function() {
+                    let cd = cleanSpaces($(this).attr('data-csv') || $(this).text()).replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""');
+                    r.push(`"${cd}"`);
+                    if ($(this).attr('colspan')) { for (let k = 1; k < parseInt($(this).attr('colspan')); k++) r.push('""'); }
                 });
-                wsData.push(row);
+                csv.push(r.join(";"));
             });
-            
-            let ws = XLSX.utils.aoa_to_sheet(wsData);
-            if (merges.length > 0) ws['!merges'] = merges;
-
-            XLSX.utils.book_append_sheet(wb, ws, "Donnees_Kobo");
-            XLSX.writeFile(wb, filename);
+            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
         }
 
-        function exportTableToHTML(prefix) {
-            let filename = generateFilename(prefix, 'html');
-            let exportDate = getFormattedDateTime();
-            let filters = getCurrentFilters();
-            
-            let filterHtml = `<div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                <h3 style="margin-top: 0; color: #2c3e50;">Critères de recherche appliqués</h3>
-                <p><strong>Date d'exportation :</strong> ${exportDate}</p>
-                <ul style="list-style-type: none; padding-left: 0;">`;
-            for (let key in filters) {
-                filterHtml += `<li style="margin-bottom: 5px;"><strong>${key}</strong> : ${filters[key]}</li>`;
-            }
-            filterHtml += `</ul></div><hr style="border:1px solid #bdc3c7; margin-bottom:20px;">`;
+        function exportTableToExcel(pfx) {
+            let fn = generateFilename(pfx, 'xlsx'), wb = XLSX.utils.book_new(), wsD = [], merges = [];
+            wsD.push([TITRE_PLATEFORME]); wsD.push([SOUS_TITRE_PLATEFORME]); wsD.push([]);
+            wsD.push(["--- METADONNEES D'EXPORT ---"]); wsD.push(["Date d'exportation", getFormattedDateTime()]); wsD.push([]);
+            wsD.push(["--- CRITERES DE RECHERCHE APPLIQUES ---"]); let f = getCurrentFilters(); for(let k in f) wsD.push([k, f[k]]); wsD.push([]);
+            wsD.push(["--- RESULTATS ---"]);
+            let hrIdx = wsD.length, h1 = [], cH = 0;
+            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } });
+            $('#table-group-header-row th').each(function() {
+                h1.push(cleanSpaces($(this).text())); let cs = parseInt($(this).attr('colspan') || 1, 10);
+                if (cs > 1) { merges.push({ s: { r: hrIdx, c: cH }, e: { r: hrIdx, c: cH + cs - 1 } }); for (let i = 1; i < cs; i++) h1.push(""); }
+                cH += cs;
+            });
+            if (h1.length > 0) wsD.push(h1);
+            let h2 = []; $('#table-sub-header-row th').each(function() { h2.push(cleanSpaces($(this).text())); }); wsD.push(h2);
+            $('#table-body tr:visible').each(function() { let r = []; $(this).find('td').each(function() { r.push(cleanSpaces($(this).attr('data-csv') || $(this).text())); }); wsD.push(r); });
+            let ws = XLSX.utils.aoa_to_sheet(wsD); if (merges.length > 0) ws['!merges'] = merges;
+            XLSX.utils.book_append_sheet(wb, ws, "Donnees_Kobo"); XLSX.writeFile(wb, fn);
+        }
 
-            let tableHtml = document.getElementById('data-table').outerHTML;
-            let html = `<!DOCTYPE html>
-            <html lang="fr">
-            <head>
-                <meta charset="utf-8">
-                <title>Export KoboToolbox</title>
-                <style>
-                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
-                    h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; line-height: 1.4; }
-                    h4 { text-align: center; color: #7f8c8d; font-weight: 500; margin-bottom: 30px; margin-top: 5px; }
-                    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-                    th, td { border: 1px solid #bdc3c7; padding: 10px; text-align: left; }
-                    th { background-color: #34495e; color: white; }
-                    a { color: #2980b9; text-decoration: none; }
-                </style>
-            </head>
-            <body>
-                <h2>${TITRE_PLATEFORME}</h2>
-                <h4>${SOUS_TITRE_PLATEFORME}</h4>
-                ${filterHtml}
-                ${tableHtml}
-            </body>
-            </html>`;
-            
-            let blob = new Blob([html], { type: 'text/html' });
-            downloadFile(blob, filename);
+        function exportTableToHTML(pfx) {
+            let fh = `<div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px;"><h3 style="margin-top: 0;">Critères appliqués</h3><p><strong>Date :</strong> ${getFormattedDateTime()}</p><ul>`;
+            let f = getCurrentFilters(); for (let k in f) fh += `<li><strong>${k}</strong> : ${f[k]}</li>`; fh += `</ul></div>`;
+            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px;}table{border-collapse:collapse;width:100%;margin-top:20px;}th,td{border:1px solid #ddd;padding:8px;}th{background:#333;color:#fff;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4>${SOUS_TITRE_PLATEFORME}</h4>${fh}${document.getElementById('data-table').outerHTML}</body></html>`;
+            downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
         }
 
         function getTableJSONData() {
-            let exportDate = getFormattedDateTime();
-            let headers = [];
-            $('#table-sub-header-row th').each(function() {
-                headers.push(cleanSpaces($(this).text()));
-            });
-            
-            let jsonData = [];
-            $('#table-body tr:visible').each(function() {
-                let rowObj = {};
-                $(this).find('td').each(function(index) {
-                    let val = $(this).attr('data-csv');
-                    if (val === undefined || val === null) val = $(this).text();
-                    rowObj[headers[index]] = cleanSpaces(val);
-                });
-                jsonData.push(rowObj);
-            });
-            
-            let finalOutput = {
-                "titre_plateforme": TITRE_PLATEFORME,
-                "sous_titre": SOUS_TITRE_PLATEFORME,
-                "date_exportation": exportDate,
-                "criteres_de_recherche": getCurrentFilters(),
-                "resultats_obtenus": jsonData
-            };
-            
-            return JSON.stringify(finalOutput, null, 2); 
+            let h = []; $('#table-sub-header-row th').each(function() { h.push(cleanSpaces($(this).text())); });
+            let jd = []; $('#table-body tr:visible').each(function() { let r = {}; $(this).find('td').each(function(i) { r[h[i]] = cleanSpaces($(this).attr('data-csv') || $(this).text()); }); jd.push(r); });
+            return JSON.stringify({ "titre_plateforme": TITRE_PLATEFORME, "sous_titre": SOUS_TITRE_PLATEFORME, "date_exportation": getFormattedDateTime(), "criteres": getCurrentFilters(), "resultats": jd }, null, 2); 
         }
 
-        function exportTableToJSONFile(prefix) {
-            let filename = generateFilename(prefix, 'json');
-            let jsonString = getTableJSONData();
-            let blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
-            downloadFile(blob, filename);
-        }
+        function exportTableToJSONFile(pfx) { downloadFile(new Blob([getTableJSONData()], { type: 'application/json;charset=utf-8;' }), generateFilename(pfx, 'json')); }
 
-        // --- FONCTIONS D'EXPORTATION ONGLET 2 (ANALYSE) ---
+        function getAiInsightsArray() { let a = []; $('#ai-report-content p').each(function() { let t = cleanSpaces($(this).text()); if(t) a.push(t); }); return a.length > 0 ? a : ["Aucune donnée."]; }
+
         function getAnalysisJSONData() {
-            let exportDate = getFormattedDateTime();
-            let finalOutput = {
-                "titre_plateforme": TITRE_PLATEFORME,
-                "sous_titre": SOUS_TITRE_PLATEFORME,
-                "date_exportation": exportDate,
-                "criteres_de_recherche_locaux": getAnalysisFilters(),
-                "analyse_intelligente": getAiInsightsArray(),
-                "analyse_dren": [],
-                "analyse_cisco": [],
-                "analyse_zap": []
-            };
-
-            const tables = [
-                { key: "analyse_dren", id: "dren-summary-table", head: ["Nom de la DREN", "Soumissions", "Part (%)"] },
-                { key: "analyse_cisco", id: "cisco-summary-table", head: ["Nom de la CISCO", "Soumissions", "Part (%)"] },
-                { key: "analyse_zap", id: "zap-summary-table", head: ["Nom de la ZAP", "Soumissions", "Part (%)"] }
-            ];
-
-            tables.forEach(t => {
-                $('#' + t.id + ' tr:visible').each(function() {
-                    let rowObj = {};
-                    let hasData = false;
-                    $(this).find('td').each(function(index) {
-                        let val = (index === 2) ? $(this).find('span').text() : $(this).text();
-                        val = cleanSpaces(val);
-                        if(val !== "Aucune donnée trouvée") {
-                            rowObj[t.head[index]] = val;
-                            hasData = true;
-                        }
-                    });
-                    if (hasData) finalOutput[t.key].push(rowObj);
+            let fo = { "titre_plateforme": TITRE_PLATEFORME, "sous_titre": SOUS_TITRE_PLATEFORME, "date_exportation": getFormattedDateTime(), "criteres_locaux": getAnalysisFilters(), "analyse_ia": getAiInsightsArray(), "analyse_dren": [], "analyse_cisco": [], "analyse_zap": [] };
+            [{k:"analyse_dren", id:"dren-summary-table", hd:["Nom","Soumissions","Part (%)"]}, {k:"analyse_cisco", id:"cisco-summary-table", hd:["Nom","Soumissions","Part (%)"]}, {k:"analyse_zap", id:"zap-summary-table", hd:["Nom","Soumissions","Part (%)"]}].forEach(t => {
+                $(`#${t.id} tr:visible`).each(function() {
+                    let ro = {}, ok = false; $(this).find('td').each(function(i) { let v = cleanSpaces((i===2)?$(this).find('span').text():$(this).text()); if(v!=="Aucune donnée trouvée") { ro[t.hd[i]] = v; ok = true; } });
+                    if(ok) fo[t.k].push(ro);
                 });
             });
-
-            return JSON.stringify(finalOutput, null, 2);
+            return JSON.stringify(fo, null, 2);
         }
 
-        function exportAnalysisToJSONFile(prefix) {
-            let filename = generateFilename(prefix, 'json');
-            let jsonString = getAnalysisJSONData();
-            let blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
-            downloadFile(blob, filename);
-        }
+        function exportAnalysisToJSONFile(pfx) { downloadFile(new Blob([getAnalysisJSONData()], { type: 'application/json;charset=utf-8;' }), generateFilename(pfx, 'json')); }
 
-        function exportAnalysisToCSV(prefix) {
-            let filename = generateFilename(prefix, 'csv');
-            let csv = [];
-            let exportDate = getFormattedDateTime();
-            let filters = getAnalysisFilters();
-            let insights = getAiInsightsArray();
-            
-            csv.push('"' + TITRE_PLATEFORME + '"');
-            csv.push('"' + SOUS_TITRE_PLATEFORME + '"');
-            csv.push("");
-            csv.push('"--- METADONNEES D\'EXPORT ---"');
-            csv.push('"Date d\'exportation";"' + exportDate + '"');
-            csv.push("");
-            
-            csv.push('"--- CRITERES DE RECHERCHE LOCAUX APPLIQUES ---"');
-            for (let key in filters) { csv.push('"' + key + '";"' + filters[key] + '"'); }
-            csv.push("");
-
-            csv.push('"--- RAPPORT D\'ANALYSE INTELLIGENTE ---"');
-            insights.forEach(line => csv.push('"' + cleanSpaces(line).replace(/"/g, '""') + '"'));
-            csv.push("");
-
-            const tables = [
-                { title: "DETAIL DES SOUMISSIONS PAR DREN", id: "dren-summary-table" },
-                { title: "DETAIL DES SOUMISSIONS PAR CISCO", id: "cisco-summary-table" },
-                { title: "DETAIL DES SOUMISSIONS PAR ZAP", id: "zap-summary-table" }
-            ];
-
-            tables.forEach(t => {
-                csv.push('"' + t.title + '"');
-                csv.push('"Nom";"Soumissions";"Part (%)"');
-                $('#' + t.id + ' tr:visible').each(function() {
-                    let row = [];
-                    $(this).find('td').each(function(idx) {
-                        let val = (idx === 2) ? $(this).find('span').text() : $(this).text();
-                        row.push('"' + cleanSpaces(val) + '"');
-                    });
-                    if(row.length > 0 && row[0] !== '"Aucune donnée trouvée"') csv.push(row.join(";"));
-                });
-                csv.push("");
+        function exportAnalysisToCSV(pfx) {
+            let csv = [], f = getAnalysisFilters();
+            csv.push(`"${TITRE_PLATEFORME}"`); csv.push(`"${SOUS_TITRE_PLATEFORME}"`); csv.push("");
+            csv.push(`"--- METADONNEES D'EXPORT ---"`); csv.push(`"Date d'exportation";"${getFormattedDateTime()}"`); csv.push("");
+            csv.push(`"--- CRITERES LOCAUX ---"`); for(let k in f) csv.push(`"${k}";"${f[k]}"`); csv.push("");
+            csv.push(`"--- ANALYSE INTELLIGENTE ---"`); getAiInsightsArray().forEach(l => csv.push(`"${cleanSpaces(l).replace(/"/g, '""')}"`)); csv.push("");
+            [{t:"DETAIL DREN", id:"dren-summary-table"}, {t:"DETAIL CISCO", id:"cisco-summary-table"}, {t:"DETAIL ZAP", id:"zap-summary-table"}].forEach(tb => {
+                csv.push(`"${tb.t}"`); csv.push(`"Nom";"Soumissions";"Part (%)"`);
+                $(`#${tb.id} tr:visible`).each(function() { let r=[]; $(this).find('td').each(function(i) { r.push(`"${cleanSpaces((i===2)?$(this).find('span').text():$(this).text())}"`); }); if(r.length>0 && r[0]!=='"Aucune donnée trouvée"') csv.push(r.join(";")); }); csv.push("");
             });
-
-            let csvFile = new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"});
-            downloadFile(csvFile, filename);
+            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), generateFilename(pfx, 'csv'));
         }
 
-        function exportAnalysisToExcel(prefix) {
-            let filename = generateFilename(prefix, 'xlsx');
-            let wb = XLSX.utils.book_new();
-            let wsData = [];
-            let exportDate = getFormattedDateTime();
-            
-            let merges = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
-                { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }
-            ];
-
-            wsData.push([TITRE_PLATEFORME]);
-            wsData.push([SOUS_TITRE_PLATEFORME]);
-            wsData.push([]);
-            wsData.push(["--- METADONNEES D'EXPORT ---"]);
-            wsData.push(["Date d'exportation", exportDate]);
-            wsData.push([]);
-
-            let filters = getAnalysisFilters();
-            wsData.push(["--- CRITERES DE RECHERCHE LOCAUX APPLIQUES ---"]);
-            for (let key in filters) { wsData.push([key, filters[key]]); }
-            wsData.push([]);
-
-            let insights = getAiInsightsArray();
-            wsData.push(["--- RAPPORT D'ANALYSE INTELLIGENTE ---"]);
-            let startAiRow = wsData.length;
-            insights.forEach(line => wsData.push([cleanSpaces(line)]));
-            let endAiRow = wsData.length - 1;
-            wsData.push([]);
-
-            for(let r = startAiRow; r <= endAiRow; r++) {
-                merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 3 } });
-            }
-
-            const tables = [
-                { title: "DETAIL DES SOUMISSIONS PAR DREN", id: "dren-summary-table", head: ["Nom de la DREN", "Soumissions", "Part (%)"] },
-                { title: "DETAIL DES SOUMISSIONS PAR CISCO", id: "cisco-summary-table", head: ["Nom de la CISCO", "Soumissions", "Part (%)"] },
-                { title: "DETAIL DES SOUMISSIONS PAR ZAP", id: "zap-summary-table", head: ["Nom de la ZAP", "Soumissions", "Part (%)"] }
-            ];
-
-            tables.forEach(t => {
-                wsData.push([t.title]);
-                wsData.push(t.head);
-                $('#' + t.id + ' tr:visible').each(function() {
-                    let row = [];
-                    $(this).find('td').each(function(idx) {
-                        let val = (idx === 2) ? $(this).find('span').text() : $(this).text();
-                        row.push(cleanSpaces(val));
-                    });
-                    if(row.length > 0 && row[0] !== "Aucune donnée trouvée") wsData.push(row);
-                });
-                wsData.push([]);
+        function exportAnalysisToExcel(pfx) {
+            let wb = XLSX.utils.book_new(), wsD = [], mg = [{s:{r:0,c:0},e:{r:0,c:3}}, {s:{r:1,c:0},e:{r:1,c:3}}];
+            wsD.push([TITRE_PLATEFORME]); wsD.push([SOUS_TITRE_PLATEFORME]); wsD.push([]);
+            wsD.push(["--- METADONNEES D'EXPORT ---"]); wsD.push(["Date d'exportation", getFormattedDateTime()]); wsD.push([]);
+            wsD.push(["--- CRITERES LOCAUX ---"]); let f = getAnalysisFilters(); for(let k in f) wsD.push([k, f[k]]); wsD.push([]);
+            wsD.push(["--- ANALYSE INTELLIGENTE ---"]); let sR = wsD.length; getAiInsightsArray().forEach(l => wsD.push([cleanSpaces(l)])); let eR = wsD.length-1; wsD.push([]);
+            for(let r=sR; r<=eR; r++) mg.push({s:{r:r,c:0},e:{r:r,c:3}});
+            [{t:"DETAIL DREN", id:"dren-summary-table", h:["Nom","Soumissions","Part (%)"]}, {t:"DETAIL CISCO", id:"cisco-summary-table", h:["Nom","Soumissions","Part (%)"]}, {t:"DETAIL ZAP", id:"zap-summary-table", h:["Nom","Soumissions","Part (%)"]}].forEach(tb => {
+                wsD.push([tb.t]); wsD.push(tb.h);
+                $(`#${tb.id} tr:visible`).each(function() { let r=[]; $(this).find('td').each(function(i) { r.push(cleanSpaces((i===2)?$(this).find('span').text():$(this).text())); }); if(r.length>0 && r[0]!=="Aucune donnée trouvée") wsD.push(r); }); wsD.push([]);
             });
-
-            let ws = XLSX.utils.aoa_to_sheet(wsData);
-            ws['!merges'] = merges;
-
-            XLSX.utils.book_append_sheet(wb, ws, "Analyse");
-            XLSX.writeFile(wb, filename);
+            let ws = XLSX.utils.aoa_to_sheet(wsD); ws['!merges'] = mg; XLSX.utils.book_append_sheet(wb, ws, "Analyse"); XLSX.writeFile(wb, generateFilename(pfx, 'xlsx'));
         }
 
-        function exportAnalysisToHTML(prefix) {
-            let filename = generateFilename(prefix, 'html');
-            let exportDate = getFormattedDateTime();
-            let filters = getAnalysisFilters();
-            let filterHtml = `<div style="background-color: #e8f4f8; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                <h3 style="margin-top: 0; color: #2c3e50;">Critères de recherche locaux appliqués</h3>
-                <p><strong>Date d'exportation :</strong> ${exportDate}</p>
-                <ul style="list-style-type: none; padding-left: 0;">`;
-            for (let key in filters) {
-                filterHtml += `<li style="margin-bottom: 5px;"><strong>${key}</strong> : ${filters[key]}</li>`;
-            }
-            filterHtml += `</ul></div><hr style="border:1px solid #bdc3c7; margin-bottom:20px;">`;
-
-            let clone = document.getElementById('analyse').cloneNode(true);
-            
-            $(clone).find('input').remove();
-            $(clone).find('.btn-group').remove();
-            
-            let analysisHtml = clone.innerHTML;
-            
-            let html = `<!DOCTYPE html>
-            <html lang="fr">
-            <head>
-                <meta charset="utf-8">
-                <title>Export Analyse - Plateforme de Suivi du PMA 2026</title>
-                <style>
-                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
-                    h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; line-height: 1.4;}
-                    h4 { text-align: center; color: #7f8c8d; font-weight: 500; margin-bottom: 30px; margin-top: 5px; }
-                    h5 { color: #2c3e50; }
-                    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-                    th, td { border: 1px solid #bdc3c7; padding: 10px; text-align: left; }
-                    th { background-color: #34495e; color: white; }
-                    .ai-insights { background: #e0f7fa; padding: 20px; border-left: 5px solid #2980b9; margin-bottom: 20px;}
-                    .progress { display: none; }
-                </style>
-            </head>
-            <body>
-                <h2>${TITRE_PLATEFORME}</h2>
-                <h4>${SOUS_TITRE_PLATEFORME}</h4>
-                ${filterHtml}
-                ${analysisHtml}
-            </body>
-            </html>`;
-
-            let blob = new Blob([html], { type: 'text/html' });
-            downloadFile(blob, filename);
+        function exportAnalysisToHTML(pfx) {
+            let fh = `<div style="background-color: #e8f4f8; padding: 15px; border-radius: 5px; margin-bottom: 20px;"><h3>Critères locaux</h3><p><strong>Date :</strong> ${getFormattedDateTime()}</p><ul>`;
+            let f = getAnalysisFilters(); for (let k in f) fh += `<li><strong>${k}</strong> : ${f[k]}</li>`; fh += `</ul></div>`;
+            let clone = document.getElementById('analyse').cloneNode(true); $(clone).find('input, .btn-group').remove();
+            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px;}table{border-collapse:collapse;width:100%;margin-bottom:20px;}th,td{border:1px solid #ddd;padding:8px;}th{background:#333;color:#fff;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4>${SOUS_TITRE_PLATEFORME}</h4>${fh}${clone.innerHTML}</body></html>`;
+            downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
         }
 
-        // --- FONCTIONS DE PARTAGE (HACK PRESSE-PAPIERS) ---
         function sendToGmail() {
-            let count = $('#record-count').text();
-            let jsonString = getTableJSONData();
-            let filtresEnClair = getFiltersPlainText(); 
-            let exportDate = getFormattedDateTime();
-            
-            navigator.clipboard.writeText(jsonString).then(function() {
-                alert("✅ SUCCÈS !\n\nLe texte JSON est trop lourd pour être envoyé directement. Il a donc été copié automatiquement dans votre presse-papiers.\n\nDans l'e-mail qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) à l'endroit indiqué.");
-                
-                let subject = encodeURIComponent("Rapport - Plateforme de Suivi du PMA (PTA 2026 des STD) envoyé le " + exportDate);
-                
-                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le dernier rapport généré depuis la ${TITRE_PLATEFORME} (${SOUS_TITRE_PLATEFORME}).\n\n` + 
-                               `🕒 Date d'exportation : ${exportDate}\n\n` +
-                               `🎯 CRITÈRES DE RECHERCHE APPLIQUÉS :\n${filtresEnClair}\n` +
-                               `📊 Nombre d'enregistrements validés : ${count}\n\n` + 
-                               `=== DONNÉES FORMAT JSON ===\n\n[ FAITES CLIC DROIT -> COLLER ICI ]\n\n===========================\n\nCordialement.`;
-                               
-                let body = encodeURIComponent(bodyText);
-                
-                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
-            }).catch(function(err) {
-                alert("❌ Erreur : Impossible d'accéder au presse-papiers. Veuillez exporter le fichier JSON manuellement.");
-            });
+            let j = getTableJSONData(); navigator.clipboard.writeText(j).then(function() {
+                alert("✅ SUCCÈS !\nLe texte JSON est copié dans votre presse-papiers.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Rapport - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\nCritères :\n${getFiltersPlainText()}\nNombre : ${$('#record-count').text()}\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
+            }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendToWhatsApp() {
-            let count = $('#record-count').text();
-            let jsonString = getTableJSONData();
-            let filtresEnClair = getFiltersPlainText(); 
-            let exportDate = getFormattedDateTime();
-            
-            navigator.clipboard.writeText(jsonString).then(function() {
-                alert("✅ SUCCÈS !\n\nLe texte JSON a été copié automatiquement dans votre presse-papiers.\n\nDans la fenêtre WhatsApp qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) dans la zone de texte.");
-                
-                let bodyText = `📊 *Rapport - Plateforme de Suivi du PMA (PTA 2026 des STD)*\n\nLe tableau de bord vient d'être mis à jour.\n🕒 Date : ${exportDate}\n\n` +
-                               `🎯 *CRITÈRES APPLIQUÉS :*\n${filtresEnClair}\n` +
-                               `Nombre d'enregistrements validés : *${count}*.\n\n*DONNÉES FORMAT JSON :*\n\n[ FAITES CLIC DROIT -> COLLER ICI ]`;
-                               
-                let text = encodeURIComponent(bodyText);
-                
-                window.open(`https://wa.me/?text=${text}`, '_blank');
-            }).catch(function(err) {
-                alert("❌ Erreur : Impossible d'accéder au presse-papiers. Veuillez exporter le fichier JSON manuellement.");
-            });
+            let j = getTableJSONData(); navigator.clipboard.writeText(j).then(function() {
+                alert("✅ SUCCÈS !\nLe texte JSON est copié dans le presse-papiers.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Kobo*\nDate : ${getFormattedDateTime()}\n*Critères :*\n${getFiltersPlainText()}\nNombre : *${$('#record-count').text()}*\n\n[ COLLER JSON ICI ]`)}`, '_blank');
+            }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendAnalysisToGmail() {
-            let jsonString = getAnalysisJSONData();
-            let filtresEnClair = getAnalysisFiltersPlainText(); 
-            let exportDate = getFormattedDateTime();
-            let aiText = getAiInsightsArray().join('\n');
-            
-            navigator.clipboard.writeText(jsonString).then(function() {
-                alert("✅ SUCCÈS !\n\nLe texte JSON d'analyse a été copié automatiquement dans votre presse-papiers.\n\nDans l'e-mail qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) à l'endroit indiqué.");
-                
-                let subject = encodeURIComponent("Rapport Synthétique d'Analyse - Plateforme de Suivi du PMA envoyé le " + exportDate);
-                
-                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le rapport d'analyse synthétique généré depuis la ${TITRE_PLATEFORME} (${SOUS_TITRE_PLATEFORME}).\n\n` + 
-                               `🕒 Date d'exportation : ${exportDate}\n\n` +
-                               `🎯 CRITÈRES D'ANALYSE (LOCAUX) :\n${filtresEnClair}\n\n` +
-                               `🤖 ANALYSE INTELLIGENTE :\n${aiText}\n\n` +
-                               `=== DONNÉES SYNTHÉTIQUES FORMAT JSON ===\n\n[ FAITES CLIC DROIT -> COLLER ICI ]\n\n===========================\n\nCordialement.`;
-                               
-                let body = encodeURIComponent(bodyText);
-                
-                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
-            }).catch(function(err) {
-                alert("❌ Erreur : Impossible d'accéder au presse-papiers.");
-            });
+            let j = getAnalysisJSONData(); navigator.clipboard.writeText(j).then(function() {
+                alert("✅ SUCCÈS !\nLe JSON d'analyse est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Analyse - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\nCritères :\n${getAnalysisFiltersPlainText()}\nIA :\n${getAiInsightsArray().join('\n')}\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
+            }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendAnalysisToWhatsApp() {
-            let jsonString = getAnalysisJSONData();
-            let filtresEnClair = getAnalysisFiltersPlainText(); 
-            let exportDate = getFormattedDateTime();
-            let aiText = getAiInsightsArray().join('\n');
-            
-            navigator.clipboard.writeText(jsonString).then(function() {
-                alert("✅ SUCCÈS !\n\nLe texte JSON d'analyse a été copié automatiquement dans votre presse-papiers.\n\nDans la fenêtre WhatsApp qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) dans la zone de texte.");
-                
-                let bodyText = `📊 *Synthèse Analytique - Plateforme de Suivi du PMA (PTA 2026)*\n\nLe rapport croisé vient d'être généré.\n🕒 Date : ${exportDate}\n\n` +
-                               `🎯 *CRITÈRES D'ANALYSE (LOCAUX) :*\n${filtresEnClair}\n\n` +
-                               `🤖 *ANALYSE INTELLIGENTE :*\n${aiText}\n\n` +
-                               `*DONNÉES SYNTHÉTIQUES FORMAT JSON :*\n\n[ FAITES CLIC DROIT -> COLLER ICI ]`;
-                               
-                let text = encodeURIComponent(bodyText);
-                
-                window.open(`https://wa.me/?text=${text}`, '_blank');
-            }).catch(function(err) {
-                alert("❌ Erreur : Impossible d'accéder au presse-papiers.");
-            });
+            let j = getAnalysisJSONData(); navigator.clipboard.writeText(j).then(function() {
+                alert("✅ SUCCÈS !\nLe JSON d'analyse est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Synthèse Kobo*\nDate : ${getFormattedDateTime()}\n*Critères :*\n${getAnalysisFiltersPlainText()}\n*IA :*\n${getAiInsightsArray().join('\n')}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
+            }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         $(document).ready(function() {
             fetchData();
-            
             let typingTimer;
-            $('.filter-input').on('keyup', function () {
-                clearTimeout(typingTimer);
-                typingTimer = setTimeout(applyFilters, 300);
-            });
+            $('.filter-input').on('keyup', function () { clearTimeout(typingTimer); typingTimer = setTimeout(applyFilters, 300); });
             $('.filter-input').on('change', applyFilters);
-
             setupAnalysisTableSearch('search-dren-table', 'dren-summary-table');
             setupAnalysisTableSearch('search-cisco-table', 'cisco-summary-table');
             setupAnalysisTableSearch('search-zap-table', 'zap-summary-table');
