@@ -200,6 +200,7 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
+                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 1 -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -974,7 +975,7 @@
             return text === "" ? "- Aucun filtre (Toutes les données)" : text;
         }
 
-        // --- NOUVEAU : GESTION DÉDIÉE DES FILTRES ONGLET 2 (GLOBAL + LOCAL) ---
+        // --- GESTION DÉDIÉE DES FILTRES ONGLET 2 (GLOBAL + LOCAL) ---
         function getAnalysisFilters() {
             return {
                 "Filtre Global - DREN": $('#filter-dren').val() || "Tous",
@@ -1177,7 +1178,7 @@
             downloadFile(blob, filename);
         }
 
-        // --- FONCTIONS D'EXPORTATION ONGLET 2 (ANALYSE) ---
+        // --- NOUVELLES FONCTIONS D'EXPORTATION ONGLET 2 (ANALYSE) ---
         
         function getAnalysisJSONData() {
             let finalOutput = {
