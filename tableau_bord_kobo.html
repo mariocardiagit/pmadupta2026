@@ -409,10 +409,47 @@
                     <h4 class="text-expert m-0"><i class="fas fa-cogs"></i> Intelligence Artificielle Symbolique : Moteur d'Inférence</h4>
                 </div>
                 <div class="ai-insights shadow-sm mb-4 border-expert" style="background: linear-gradient(135deg, #f5eef8 0%, #ebdef0 100%);">
-                    <h5 class="text-expert"><i class="fas fa-clipboard-check"></i> Diagnostic Automatisé du PTA</h5>
-                    <p>Ce <strong>Système Expert</strong> applique des règles métiers strictes sur les données. Il ne devine rien, il déduit logiquement des recommandations administratives directes en croisant les volumes de soumissions (calculés par l'algorithme de Jenks) avec le statut des entités.</p>
+                    <h5 class="text-expert"><i class="fas fa-clipboard-check"></i> Explicabilité de l'IA (Explainable AI)</h5>
+                    <p>Pour garantir une transparence totale des décisions administratives, cet onglet affiche <strong>le raisonnement complet</strong> de la machine. L'IA combine les statistiques de l'Algorithme de Jenks avec les Règles d'Action de l'Expert pour générer son diagnostic.</p>
                 </div>
                 
+                <!-- NOUVEAU BLOC : EXPLICATIONS ET SEUILS -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="card border-expert shadow-sm h-100">
+                            <div class="card-header bg-expert fw-bold"><i class="fas fa-gavel"></i> Règles d'Action (Base de Connaissances)</div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item py-3">
+                                        <strong>SI</strong> [Forte Activité] <i class="fas fa-arrow-right mx-2 text-muted"></i> <strong>ALORS</strong> <span class="badge bg-success">OPTIMAL</span><br>
+                                        <em class="text-muted"><i class="fas fa-comment-dots text-success"></i> "Féliciter et encourager les Responsables"</em>
+                                    </li>
+                                    <li class="list-group-item py-3">
+                                        <strong>SI</strong> [Activité Moyenne] <i class="fas fa-arrow-right mx-2 text-muted"></i> <strong>ALORS</strong> <span class="badge bg-warning text-dark">ATTENTION</span><br>
+                                        <em class="text-muted"><i class="fas fa-comment-dots text-warning"></i> "Soutenir les Responsables avec des Emails d'encouragement"</em>
+                                    </li>
+                                    <li class="list-group-item py-3">
+                                        <strong>SI</strong> [Activité Faible] <i class="fas fa-arrow-right mx-2 text-muted"></i> <strong>ALORS</strong> <span class="badge bg-danger">CRITIQUE</span><br>
+                                        <em class="text-muted"><i class="fas fa-comment-dots text-danger"></i> "Relance immédiate avec des Emails auprès des Responsables requise ou Appels Téléphoniques d'urgence"</em>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-success shadow-sm h-100">
+                            <div class="card-header bg-success text-white fw-bold"><i class="fas fa-calculator"></i> Raisonnement Mathématique (Seuils de Jenks)</div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">Voici les ruptures de variance calculées en temps réel par l'algorithme de Jenks pour classer les entités :</p>
+                                <ul class="list-unstyled mb-0" id="expert-thresholds-content">
+                                    <!-- Injecté par JS -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- FIN NOUVEAU BLOC -->
+
                 <div class="analysis-card shadow-sm">
                     <h5 class="text-secondary mb-3"><i class="fas fa-list-ul"></i> Registre des Diagnostics et Recommandations</h5>
                     <input type="text" id="search-expert-table" class="form-control form-control-sm mb-3" placeholder="Rechercher une entité ou un diagnostic..." autocomplete="off">
@@ -641,7 +678,42 @@
             return map;
         }
 
+        // Fonction pour afficher l'explicabilité de Jenks (les seuils)
+        function renderExpertThresholds(freqDren, freqCisco, freqZap) {
+            const getBreaksInfo = (freqData) => {
+                let counts = Object.entries(freqData).filter(([k,v]) => k !== "Non renseigné").map(e => e[1]);
+                if(counts.length === 0) return null;
+                let uniqueData = [...new Set(counts)].sort((a,b)=>a-b);
+                if(uniqueData.length <= 3) return { type: 'unique' };
+                return { type: 'breaks', vals: getJenksBreaks(counts, 3) };
+            };
+
+            const formatHtml = (info, name) => {
+                if(!info) return `<li class="mb-3"><strong>${name} :</strong> <span class="text-muted">Données insuffisantes</span></li>`;
+                if(info.type === 'unique') return `<li class="mb-3"><strong><i class="fas fa-sitemap"></i> ${name} :</strong> <span class="text-muted">Volumes trop homogènes pour définir des ruptures.</span></li>`;
+                
+                let br = info.vals;
+                return `<li class="mb-3 pb-2 border-bottom">
+                    <h6 class="fw-bold text-secondary mb-2"><i class="fas fa-sitemap"></i> Seuils ${name} :</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-primary fs-6 fw-normal text-start" style="line-height:1.4;">Faible<br><strong>${br[0]} à ${br[1]}</strong> soum.</span> 
+                        <span class="badge bg-warning text-dark fs-6 fw-normal text-start" style="line-height:1.4;">Moyenne<br><strong>${br[1]+1} à ${br[2]}</strong> soum.</span> 
+                        <span class="badge bg-success fs-6 fw-normal text-start" style="line-height:1.4;">Forte<br><strong>${br[2]+1} à ${br[3]}</strong> soum.</span>
+                    </div>
+                </li>`;
+            };
+
+            let html = formatHtml(getBreaksInfo(freqDren), 'DREN') +
+                       formatHtml(getBreaksInfo(freqCisco), 'CISCO') +
+                       formatHtml(getBreaksInfo(freqZap), 'ZAP');
+            
+            $('#expert-thresholds-content').html(html);
+        }
+
         function runExpertSystem(freqDren, freqCisco, freqZap) {
+            // Affichage des seuils (Explicabilité)
+            renderExpertThresholds(freqDren, freqCisco, freqZap);
+
             let drensMap = getClusterMap(freqDren, 3);
             let ciscosMap = getClusterMap(freqCisco, 3);
             let zapsMap = getClusterMap(freqZap, 3);
