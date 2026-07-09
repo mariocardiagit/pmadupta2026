@@ -583,7 +583,6 @@
 
         function getTranslatedHeader(xmlName) {
             let key = String(xmlName).toLowerCase();
-            
             const exactMatches = {
                 'vi_r_f_rentiel_standard_des_pr': "VI. Référentiel standard des preuves par type d'activité",
                 'date_enq': "Date de suivi",
@@ -593,7 +592,6 @@
                 'liste_d_margement': "Liste d'émargement"
             };
             if (exactMatches[key]) return exactMatches[key];
-
             return smartKoboAutoCorrect(xmlName);
         }
 
@@ -689,12 +687,10 @@
         function isBaseColumn(key) {
             let parts = key.split('/');
             let variableName = parts[parts.length - 1].toLowerCase();
-            
             for (let col of baseColsInfo) {
                 let hasEx = col.ex && col.ex.some(e => variableName.includes(e));
                 let hasMust = col.mustMatch && col.mustMatch.length > 0 ? col.mustMatch.every(m => variableName.includes(m)) : true;
                 let hasMatch = col.matches.some(m => variableName.includes(m));
-                
                 if (!hasEx && hasMust && hasMatch) return true;
             }
             return false;
@@ -891,6 +887,16 @@
                 html += `<p>La zone la plus active est la DREN <span class="highlight-val">${maxDren[0]}</span>, représentant <span class="highlight-val">${percent}%</span> du volume total des remontées terrain.</p>`;
             }
             $('#ai-report-content').html(html);
+        }
+
+        // --- NOUVEAU : EXTRACTION DE L'ANALYSE INTELLIGENTE ---
+        function getAiInsightsArray() {
+            let insights = [];
+            $('#ai-report-content p').each(function() {
+                let text = $(this).text().trim();
+                if(text) insights.push(text);
+            });
+            return insights.length > 0 ? insights : ["Aucune donnée à analyser pour le moment."];
         }
 
         function populateSummaryTable(tbodyId, freqData, totalRows) {
@@ -1247,6 +1253,7 @@
                 "sous_titre": SOUS_TITRE_PLATEFORME,
                 "date_exportation": exportDate,
                 "criteres_de_recherche_locaux": getAnalysisFilters(),
+                "analyse_intelligente": getAiInsightsArray(),
                 "analyse_dren": [],
                 "analyse_cisco": [],
                 "analyse_zap": []
@@ -1288,6 +1295,7 @@
             let csv = [];
             let exportDate = getFormattedDateTime();
             let filters = getAnalysisFilters();
+            let insights = getAiInsightsArray();
             
             csv.push('"' + TITRE_PLATEFORME + '"');
             csv.push('"' + SOUS_TITRE_PLATEFORME + '"');
@@ -1298,6 +1306,10 @@
             
             csv.push('"--- CRITERES DE RECHERCHE LOCAUX APPLIQUES ---"');
             for (let key in filters) { csv.push('"' + key + '";"' + filters[key] + '"'); }
+            csv.push("");
+
+            csv.push('"--- RAPPORT D\'ANALYSE INTELLIGENTE ---"');
+            insights.forEach(line => csv.push('"' + line.replace(/"/g, '""') + '"'));
             csv.push("");
 
             const tables = [
@@ -1329,6 +1341,10 @@
             let wb = XLSX.utils.book_new();
             let wsData = [];
             let exportDate = getFormattedDateTime();
+            let merges = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+                { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }
+            ];
 
             wsData.push([TITRE_PLATEFORME]);
             wsData.push([SOUS_TITRE_PLATEFORME]);
@@ -1341,6 +1357,17 @@
             wsData.push(["--- CRITERES DE RECHERCHE LOCAUX APPLIQUES ---"]);
             for (let key in filters) { wsData.push([key, filters[key]]); }
             wsData.push([]);
+
+            let insights = getAiInsightsArray();
+            wsData.push(["--- RAPPORT D'ANALYSE INTELLIGENTE ---"]);
+            let startAiRow = wsData.length;
+            insights.forEach(line => wsData.push([line]));
+            let endAiRow = wsData.length - 1;
+            wsData.push([]);
+            
+            for(let r = startAiRow; r <= endAiRow; r++) {
+                merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 3 } });
+            }
 
             const tables = [
                 { title: "DETAIL DES SOUMISSIONS PAR DREN", id: "dren-summary-table", head: ["Nom de la DREN", "Soumissions", "Part (%)"] },
@@ -1363,11 +1390,6 @@
             });
 
             let ws = XLSX.utils.aoa_to_sheet(wsData);
-            
-            let merges = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
-                { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }
-            ];
             ws['!merges'] = merges;
 
             XLSX.utils.book_append_sheet(wb, ws, "Analyse");
@@ -1475,6 +1497,7 @@
             let jsonString = getAnalysisJSONData();
             let filtresEnClair = getAnalysisFiltersPlainText(); 
             let exportDate = getFormattedDateTime();
+            let aiText = getAiInsightsArray().join('\n');
             
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON d'analyse a été copié automatiquement dans votre presse-papiers.\n\nDans l'e-mail qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) à l'endroit indiqué.");
@@ -1484,6 +1507,7 @@
                 let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le rapport d'analyse synthétique généré depuis la ${TITRE_PLATEFORME} (${SOUS_TITRE_PLATEFORME}).\n\n` + 
                                `🕒 Date d'exportation : ${exportDate}\n\n` +
                                `🎯 CRITÈRES D'ANALYSE (LOCAUX) :\n${filtresEnClair}\n\n` +
+                               `🤖 ANALYSE INTELLIGENTE :\n${aiText}\n\n` +
                                `=== DONNÉES SYNTHÉTIQUES FORMAT JSON ===\n\n[ FAITES CLIC DROIT -> COLLER ICI ]\n\n===========================\n\nCordialement.`;
                                
                 let body = encodeURIComponent(bodyText);
@@ -1498,12 +1522,14 @@
             let jsonString = getAnalysisJSONData();
             let filtresEnClair = getAnalysisFiltersPlainText(); 
             let exportDate = getFormattedDateTime();
+            let aiText = getAiInsightsArray().join('\n');
             
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON d'analyse a été copié automatiquement dans votre presse-papiers.\n\nDans la fenêtre WhatsApp qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) dans la zone de texte.");
                 
                 let bodyText = `📊 *Synthèse Analytique - Plateforme de Suivi du PMA (PTA 2026)*\n\nLe rapport croisé vient d'être généré.\n🕒 Date : ${exportDate}\n\n` +
                                `🎯 *CRITÈRES D'ANALYSE (LOCAUX) :*\n${filtresEnClair}\n\n` +
+                               `🤖 *ANALYSE INTELLIGENTE :*\n${aiText}\n\n` +
                                `*DONNÉES SYNTHÉTIQUES FORMAT JSON :*\n\n[ FAITES CLIC DROIT -> COLLER ICI ]`;
                                
                 let text = encodeURIComponent(bodyText);
