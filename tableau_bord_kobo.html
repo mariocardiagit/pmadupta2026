@@ -240,20 +240,32 @@
             <!-- ONGLET 2 : ANALYSE & IA -->
             <div class="tab-pane fade" id="analyse" role="tabpanel">
                 
-                <!-- EN-TÊTE ONGLET 2 AVEC EXPORT -->
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <!-- EN-TÊTE ONGLET 2 AVEC EXPORT ET PARTAGE -->
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                     <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
                     
-                    <div class="btn-group shadow-sm">
-                        <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-download"></i> Exporter l'Analyse
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" onclick="exportAnalysisToCSV('analyse_kobo.csv')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="exportAnalysisToExcel('analyse_kobo.xlsx')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="exportAnalysisToHTML('analyse_kobo.html')"><i class="fas fa-file-code text-primary"></i> Enregistrer sous HTML</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="exportAnalysisToJSONFile('analyse_kobo.json')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
-                        </ul>
+                    <div class="d-flex align-items-center flex-wrap gap-3">
+                        <div class="btn-group shadow-sm">
+                            <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-download"></i> Exporter l'Analyse
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToCSV('analyse_kobo.csv')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToExcel('analyse_kobo.xlsx')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToHTML('analyse_kobo.html')"><i class="fas fa-file-code text-primary"></i> Enregistrer sous HTML</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToJSONFile('analyse_kobo.json')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="btn-group shadow-sm">
+                            <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-share-alt"></i> Partager l'Analyse
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" onclick="sendAnalysisToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (Texte JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendAnalysisToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (Texte JSON)</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
 
@@ -266,7 +278,7 @@
                     <div class="col-md-6 mb-4">
                         <div class="analysis-card shadow-sm h-100">
                             <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par DREN</h5>
-                            <input type="text" id="search-dren-table" class="form-control form-control-sm mb-3" placeholder="Filtrer une DREN..." autocomplete="off">
+                            <input type="text" id="search-dren-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale DREN (Inclusion + Levenshtein)..." autocomplete="off">
                             <div class="table-responsive" style="max-height: 350px;">
                                 <table class="table table-sm table-bordered table-hover text-center align-middle" id="dren-summary-table-container">
                                     <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
@@ -284,7 +296,7 @@
                     <div class="col-md-6 mb-4">
                         <div class="analysis-card shadow-sm h-100">
                             <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par CISCO</h5>
-                            <input type="text" id="search-cisco-table" class="form-control form-control-sm mb-3" placeholder="Filtrer une CISCO..." autocomplete="off">
+                            <input type="text" id="search-cisco-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale CISCO (Inclusion + Levenshtein)..." autocomplete="off">
                             <div class="table-responsive" style="max-height: 350px;">
                                 <table class="table table-sm table-bordered table-hover text-center align-middle" id="cisco-summary-table-container">
                                     <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
@@ -305,7 +317,7 @@
                     <div class="col-12">
                         <div class="analysis-card shadow-sm">
                             <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par ZAP</h5>
-                            <input type="text" id="search-zap-table" class="form-control form-control-sm mb-3" placeholder="Filtrer une ZAP..." autocomplete="off">
+                            <input type="text" id="search-zap-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale ZAP (Inclusion + Levenshtein)..." autocomplete="off">
                             <div class="table-responsive" style="max-height: 350px;">
                                 <table class="table table-sm table-bordered table-hover text-center align-middle" id="zap-summary-table-container">
                                     <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
@@ -938,6 +950,7 @@
 
         function clearFilters() { $('.filter-input').val(''); applyFilters(); }
         
+        // --- GESTION STRICTE DES FILTRES ONGLET 1 ---
         function getCurrentFilters() {
             return {
                 "DREN": $('#filter-dren').val() || "Tous",
@@ -959,6 +972,33 @@
                 }
             }
             return text === "" ? "- Aucun filtre (Toutes les données)" : text;
+        }
+
+        // --- NOUVEAU : GESTION DÉDIÉE DES FILTRES ONGLET 2 (GLOBAL + LOCAL) ---
+        function getAnalysisFilters() {
+            return {
+                "Filtre Global - DREN": $('#filter-dren').val() || "Tous",
+                "Filtre Global - CISCO": $('#filter-cisco').val() || "Tous",
+                "Filtre Global - ZAP": $('#filter-zap').val() || "Tous",
+                "Filtre Global - Activité": $('#filter-activite').val() || "Tous",
+                "Filtre Global - Produit": $('#filter-produit').val() || "Tous",
+                "Filtre Global - Sous-activité": $('#filter-sous-activite').val() || "Tous",
+                "Filtre Global - Sous-produit": $('#filter-sous-produit').val() || "Tous",
+                "Recherche Locale - Tableau DREN": $('#search-dren-table').val() || "Aucune",
+                "Recherche Locale - Tableau CISCO": $('#search-cisco-table').val() || "Aucune",
+                "Recherche Locale - Tableau ZAP": $('#search-zap-table').val() || "Aucune"
+            };
+        }
+
+        function getAnalysisFiltersPlainText() {
+            let filters = getAnalysisFilters();
+            let text = "";
+            for (let key in filters) {
+                if (filters[key] !== "Tous" && filters[key] !== "Aucune") {
+                    text += `- ${key} : ${filters[key]}\n`;
+                }
+            }
+            return text === "" ? "- Aucun filtre global ou local appliqué" : text;
         }
 
         // --- FONCTIONS D'EXPORTATION ONGLET 1 ---
@@ -1064,10 +1104,7 @@
             });
             
             let ws = XLSX.utils.aoa_to_sheet(wsData);
-            
-            if (merges.length > 0) {
-                ws['!merges'] = merges;
-            }
+            if (merges.length > 0) ws['!merges'] = merges;
 
             XLSX.utils.book_append_sheet(wb, ws, "Donnees_Kobo");
             XLSX.writeFile(wb, filename);
@@ -1140,11 +1177,11 @@
             downloadFile(blob, filename);
         }
 
-        // --- NOUVELLES FONCTIONS D'EXPORTATION ONGLET 2 (ANALYSE) ---
+        // --- FONCTIONS D'EXPORTATION ONGLET 2 (ANALYSE) ---
         
         function getAnalysisJSONData() {
             let finalOutput = {
-                "criteres_de_recherche": getCurrentFilters(),
+                "criteres_de_recherche": getAnalysisFilters(),
                 "analyse_dren": [],
                 "analyse_cisco": [],
                 "analyse_zap": []
@@ -1182,9 +1219,9 @@
 
         function exportAnalysisToCSV(filename) {
             let csv = [];
-            let filters = getCurrentFilters();
+            let filters = getAnalysisFilters();
             
-            csv.push('"--- CRITERES DE RECHERCHE APPLIQUES ---"');
+            csv.push('"--- CRITERES DE RECHERCHE GLOBAUX ET LOCAUX APPLIQUES ---"');
             for (let key in filters) { csv.push('"' + key + '";"' + filters[key] + '"'); }
             csv.push("");
 
@@ -1216,8 +1253,8 @@
             let wb = XLSX.utils.book_new();
             let wsData = [];
 
-            let filters = getCurrentFilters();
-            wsData.push(["--- CRITERES DE RECHERCHE APPLIQUES ---"]);
+            let filters = getAnalysisFilters();
+            wsData.push(["--- CRITERES DE RECHERCHE GLOBAUX ET LOCAUX APPLIQUES ---"]);
             for (let key in filters) { wsData.push([key, filters[key]]); }
             wsData.push([]);
 
@@ -1247,19 +1284,17 @@
         }
 
         function exportAnalysisToHTML(filename) {
-            let filters = getCurrentFilters();
-            let filterHtml = `<div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                <h3 style="margin-top: 0; color: #2c3e50;">Critères de recherche appliqués</h3>
+            let filters = getAnalysisFilters();
+            let filterHtml = `<div style="background-color: #e8f4f8; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <h3 style="margin-top: 0; color: #2c3e50;">Critères de recherche (Globaux et Locaux)</h3>
                 <ul style="list-style-type: none; padding-left: 0;">`;
             for (let key in filters) {
                 filterHtml += `<li style="margin-bottom: 5px;"><strong>${key}</strong> : ${filters[key]}</li>`;
             }
             filterHtml += `</ul></div><hr style="border:1px solid #bdc3c7; margin-bottom:20px;">`;
 
-            // On clone l'onglet d'analyse pour le nettoyer avant export
             let clone = document.getElementById('analyse').cloneNode(true);
             
-            // Nettoyage visuel : suppression des barres de recherche internes et des boutons d'export
             $(clone).find('input').remove();
             $(clone).find('.btn-group').remove();
             
@@ -1277,7 +1312,7 @@
                     th, td { border: 1px solid #bdc3c7; padding: 10px; text-align: left; }
                     th { background-color: #34495e; color: white; }
                     .ai-insights { background: #e0f7fa; padding: 20px; border-left: 5px solid #2980b9; margin-bottom: 20px;}
-                    .progress { display: none; } /* Masquer les barres de progression brutes en HTML statique */
+                    .progress { display: none; }
                 </style>
             </head>
             <body>
@@ -1333,6 +1368,46 @@
                 window.open(`https://wa.me/?text=${text}`, '_blank');
             }).catch(function(err) {
                 alert("❌ Erreur : Impossible d'accéder au presse-papiers. Veuillez exporter le fichier JSON manuellement.");
+            });
+        }
+
+        function sendAnalysisToGmail() {
+            let jsonString = getAnalysisJSONData();
+            let filtresEnClair = getAnalysisFiltersPlainText(); 
+            
+            navigator.clipboard.writeText(jsonString).then(function() {
+                alert("✅ SUCCÈS !\n\nLe texte JSON d'analyse a été copié automatiquement dans votre presse-papiers.\n\nDans l'e-mail qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) à l'endroit indiqué.");
+                
+                let subject = encodeURIComponent("Rapport Synthétique d'Analyse KoboToolbox");
+                
+                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le rapport d'analyse synthétique généré depuis le tableau de bord KoboToolbox.\n\n` + 
+                               `🎯 CRITÈRES D'ANALYSE (GLOBAUX ET LOCAUX) :\n${filtresEnClair}\n\n` +
+                               `=== DONNÉES SYNTHÉTIQUES FORMAT JSON ===\n\n[ FAITES CLIC DROIT -> COLLER ICI ]\n\n===========================\n\nCordialement.`;
+                               
+                let body = encodeURIComponent(bodyText);
+                
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
+            }).catch(function(err) {
+                alert("❌ Erreur : Impossible d'accéder au presse-papiers.");
+            });
+        }
+
+        function sendAnalysisToWhatsApp() {
+            let jsonString = getAnalysisJSONData();
+            let filtresEnClair = getAnalysisFiltersPlainText(); 
+            
+            navigator.clipboard.writeText(jsonString).then(function() {
+                alert("✅ SUCCÈS !\n\nLe texte JSON d'analyse a été copié automatiquement dans votre presse-papiers.\n\nDans la fenêtre WhatsApp qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) dans la zone de texte.");
+                
+                let bodyText = `📊 *Synthèse Analytique KoboToolbox*\n\nLe rapport croisé vient d'être généré.\n\n` +
+                               `🎯 *CRITÈRES D'ANALYSE (GLOBAUX ET LOCAUX) :*\n${filtresEnClair}\n\n` +
+                               `*DONNÉES SYNTHÉTIQUES FORMAT JSON :*\n\n[ FAITES CLIC DROIT -> COLLER ICI ]`;
+                               
+                let text = encodeURIComponent(bodyText);
+                
+                window.open(`https://wa.me/?text=${text}`, '_blank');
+            }).catch(function(err) {
+                alert("❌ Erreur : Impossible d'accéder au presse-papiers.");
             });
         }
 
