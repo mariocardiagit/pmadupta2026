@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau de Bord KoboToolbox & Analytics</title>
+    <title>Plateforme de Suivi du PMA - PTA 2026 des STD</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome pour les icônes -->
@@ -21,7 +21,8 @@
         .header-title {
             color: #2c3e50;
             font-weight: 700;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            line-height: 1.4;
         }
         .nav-tabs .nav-link {
             font-weight: 600;
@@ -105,7 +106,7 @@
 </head>
 <body>
     <div class="container-fluid">
-        <h2 class="text-center header-title"><i class="fas fa-database"></i> Tableau de Bord : Données & Analytics KoboToolbox</h2>
+        <h3 class="text-center header-title"><i class="fas fa-chart-line text-primary"></i> Plateforme de Suivi du Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel (PTA) de l'Année 2026 des Services Techniques Déconcentrés (STD)</h3>
 
         <div class="error-message" id="error-box"></div>
         <div class="spinner-container" id="loading-box">
@@ -132,7 +133,7 @@
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="analyse-tab" data-bs-toggle="tab" data-bs-target="#analyse" type="button" role="tab">
-                    <i class="fas fa-chart-line"></i> Onglet 2 : Analyse & IA
+                    <i class="fas fa-chart-pie"></i> Onglet 2 : Analyse & IA
                 </button>
             </li>
         </ul>
@@ -200,7 +201,6 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
-                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 1 -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -245,7 +245,6 @@
                     <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
                     
                     <div class="d-flex align-items-center flex-wrap gap-3">
-                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 2 -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter l'Analyse
@@ -342,6 +341,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // === TITRE OFFICIEL DE LA PLATEFORME ===
+        const TITRE_PLATEFORME = "Plateforme de Suivi du Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel (PTA) de l'Année 2026 des Services Techniques Déconcentrés (STD)";
+
         // === VARIABLES GLOBALES ===
         let allData = [];
         let headerMap = {};
@@ -508,7 +510,6 @@
             return t.charAt(0).toUpperCase() + t.slice(1);
         }
 
-        // --- MOTEUR LEVENSHTEIN + LIKE %MOT% ---
         function levenshtein(a, b) {
             if (a.length === 0) return b.length;
             if (b.length === 0) return a.length;
@@ -970,7 +971,7 @@
         }
 
         function clearFilters() { $('.filter-input').val(''); applyFilters(); }
-        
+
         // --- GESTION STRICTE DES FILTRES ONGLET 1 ---
         function getCurrentFilters() {
             return {
@@ -1032,6 +1033,8 @@
             let csv = [];
             let exportDate = getFormattedDateTime();
             
+            csv.push('"' + TITRE_PLATEFORME + '"');
+            csv.push("");
             csv.push('"--- METADONNEES D\'EXPORT ---"');
             csv.push('"Date d\'exportation";"' + exportDate + '"');
             csv.push("");
@@ -1079,6 +1082,8 @@
             let wsData = [];
             let exportDate = getFormattedDateTime();
             
+            wsData.push([TITRE_PLATEFORME]);
+            wsData.push([]);
             wsData.push(["--- METADONNEES D'EXPORT ---"]);
             wsData.push(["Date d'exportation", exportDate]);
             wsData.push([]);
@@ -1093,7 +1098,9 @@
 
             let headerRowIndex = wsData.length;
             let headers1 = [];
-            let merges = [];
+            let merges = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } } // Fusionner le titre principal sur plusieurs colonnes
+            ];
             let currentHeaderCol = 0;
 
             $('#table-group-header-row th').each(function() {
@@ -1155,10 +1162,10 @@
             <html lang="fr">
             <head>
                 <meta charset="utf-8">
-                <title>Export KoboToolbox</title>
+                <title>Export - Plateforme de Suivi du PMA 2026</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
-                    h2 { color: #2c3e50; text-align: center; }
+                    h2 { color: #2c3e50; text-align: center; margin-bottom: 30px; line-height: 1.4; }
                     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
                     th, td { border: 1px solid #bdc3c7; padding: 10px; text-align: left; }
                     th { background-color: #34495e; color: white; }
@@ -1166,7 +1173,7 @@
                 </style>
             </head>
             <body>
-                <h2>Tableau de Bord : Données KoboToolbox</h2>
+                <h2>${TITRE_PLATEFORME}</h2>
                 ${filterHtml}
                 ${tableHtml}
             </body>
@@ -1195,6 +1202,7 @@
             });
             
             let finalOutput = {
+                "titre_plateforme": TITRE_PLATEFORME,
                 "date_exportation": exportDate,
                 "criteres_de_recherche": getCurrentFilters(),
                 "resultats_obtenus": jsonData
@@ -1215,6 +1223,7 @@
         function getAnalysisJSONData() {
             let exportDate = getFormattedDateTime();
             let finalOutput = {
+                "titre_plateforme": TITRE_PLATEFORME,
                 "date_exportation": exportDate,
                 "criteres_de_recherche_locaux": getAnalysisFilters(),
                 "analyse_dren": [],
@@ -1259,6 +1268,8 @@
             let exportDate = getFormattedDateTime();
             let filters = getAnalysisFilters();
             
+            csv.push('"' + TITRE_PLATEFORME + '"');
+            csv.push("");
             csv.push('"--- METADONNEES D\'EXPORT ---"');
             csv.push('"Date d\'exportation";"' + exportDate + '"');
             csv.push("");
@@ -1297,6 +1308,8 @@
             let wsData = [];
             let exportDate = getFormattedDateTime();
 
+            wsData.push([TITRE_PLATEFORME]);
+            wsData.push([]);
             wsData.push(["--- METADONNEES D'EXPORT ---"]);
             wsData.push(["Date d'exportation", exportDate]);
             wsData.push([]);
@@ -1327,6 +1340,12 @@
             });
 
             let ws = XLSX.utils.aoa_to_sheet(wsData);
+            
+            let merges = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }
+            ];
+            ws['!merges'] = merges;
+
             XLSX.utils.book_append_sheet(wb, ws, "Analyse");
             XLSX.writeFile(wb, filename);
         }
@@ -1355,10 +1374,11 @@
             <html lang="fr">
             <head>
                 <meta charset="utf-8">
-                <title>Export Analyse KoboToolbox</title>
+                <title>Export Analyse - Plateforme de Suivi du PMA 2026</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
-                    h2, h4, h5 { color: #2c3e50; }
+                    h2 { color: #2c3e50; text-align: center; margin-bottom: 30px; line-height: 1.4;}
+                    h4, h5 { color: #2c3e50; }
                     table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
                     th, td { border: 1px solid #bdc3c7; padding: 10px; text-align: left; }
                     th { background-color: #34495e; color: white; }
@@ -1367,7 +1387,7 @@
                 </style>
             </head>
             <body>
-                <h2>Rapport d'Analyse KoboToolbox</h2>
+                <h2>${TITRE_PLATEFORME}</h2>
                 ${filterHtml}
                 ${analysisHtml}
             </body>
@@ -1388,9 +1408,9 @@
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON est trop lourd pour être envoyé directement. Il a donc été copié automatiquement dans votre presse-papiers.\n\nDans l'e-mail qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) à l'endroit indiqué.");
                 
-                let subject = encodeURIComponent("Rapport KoboToolbox - " + count + " enregistrements (Généré le " + exportDate + ")");
+                let subject = encodeURIComponent("Rapport - Plateforme de Suivi du PMA (PTA 2026 des STD) envoyé le " + exportDate);
                 
-                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le dernier rapport généré depuis le tableau de bord KoboToolbox.\n\n` + 
+                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le dernier rapport généré depuis la ${TITRE_PLATEFORME}.\n\n` + 
                                `🕒 Date d'exportation : ${exportDate}\n\n` +
                                `🎯 CRITÈRES DE RECHERCHE APPLIQUÉS :\n${filtresEnClair}\n` +
                                `📊 Nombre d'enregistrements validés : ${count}\n\n` + 
@@ -1413,7 +1433,7 @@
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON a été copié automatiquement dans votre presse-papiers.\n\nDans la fenêtre WhatsApp qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) dans la zone de texte.");
                 
-                let bodyText = `📊 *Rapport KoboToolbox*\n\nLe tableau de bord vient d'être mis à jour.\n🕒 Date : ${exportDate}\n\n` +
+                let bodyText = `📊 *Rapport - Plateforme de Suivi du PMA (PTA 2026 des STD)*\n\nLe tableau de bord vient d'être mis à jour.\n🕒 Date : ${exportDate}\n\n` +
                                `🎯 *CRITÈRES APPLIQUÉS :*\n${filtresEnClair}\n` +
                                `Nombre d'enregistrements validés : *${count}*.\n\n*DONNÉES FORMAT JSON :*\n\n[ FAITES CLIC DROIT -> COLLER ICI ]`;
                                
@@ -1433,9 +1453,9 @@
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON d'analyse a été copié automatiquement dans votre presse-papiers.\n\nDans l'e-mail qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) à l'endroit indiqué.");
                 
-                let subject = encodeURIComponent("Rapport Synthétique d'Analyse KoboToolbox envoyé le " + exportDate);
+                let subject = encodeURIComponent("Rapport Synthétique d'Analyse - Plateforme de Suivi du PMA envoyé le " + exportDate);
                 
-                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le rapport d'analyse synthétique généré depuis le tableau de bord KoboToolbox.\n\n` + 
+                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le rapport d'analyse synthétique généré depuis la ${TITRE_PLATEFORME}.\n\n` + 
                                `🕒 Date d'exportation : ${exportDate}\n\n` +
                                `🎯 CRITÈRES D'ANALYSE (LOCAUX) :\n${filtresEnClair}\n\n` +
                                `=== DONNÉES SYNTHÉTIQUES FORMAT JSON ===\n\n[ FAITES CLIC DROIT -> COLLER ICI ]\n\n===========================\n\nCordialement.`;
@@ -1456,7 +1476,7 @@
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON d'analyse a été copié automatiquement dans votre presse-papiers.\n\nDans la fenêtre WhatsApp qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) dans la zone de texte.");
                 
-                let bodyText = `📊 *Synthèse Analytique KoboToolbox*\n\nLe rapport croisé vient d'être généré.\n🕒 Date : ${exportDate}\n\n` +
+                let bodyText = `📊 *Synthèse Analytique - Plateforme de Suivi du PMA (PTA 2026)*\n\nLe rapport croisé vient d'être généré.\n🕒 Date : ${exportDate}\n\n` +
                                `🎯 *CRITÈRES D'ANALYSE (LOCAUX) :*\n${filtresEnClair}\n\n` +
                                `*DONNÉES SYNTHÉTIQUES FORMAT JSON :*\n\n[ FAITES CLIC DROIT -> COLLER ICI ]`;
                                
