@@ -208,7 +208,7 @@
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="#" onclick="exportTableToCSV('donnees_suivi_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="exportTableToExcel('donnees_suivi_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportTableToHTML('donnees_suivi_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer sous HTML</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportTableToHTML('donnees_suivi_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer HTML</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="exportTableToJSONFile('donnees_suivi_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
                             </ul>
                         </div>
@@ -218,8 +218,8 @@
                                 <i class="fas fa-share-alt"></i> Partager
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (Texte JSON)</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (Texte JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (JSON)</a></li>
                             </ul>
                         </div>
                     </div>
@@ -253,7 +253,7 @@
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="#" onclick="exportAnalysisToCSV('analyse_suivi_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="exportAnalysisToExcel('analyse_suivi_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToHTML('analyse_suivi_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer sous HTML</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToHTML('analyse_suivi_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer HTML</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="exportAnalysisToJSONFile('analyse_suivi_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
                             </ul>
                         </div>
@@ -263,8 +263,8 @@
                                 <i class="fas fa-share-alt"></i> Partager l'Analyse
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="sendAnalysisToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (Texte JSON)</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="sendAnalysisToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (Texte JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendAnalysisToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendAnalysisToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (JSON)</a></li>
                             </ul>
                         </div>
                     </div>
@@ -373,6 +373,30 @@
             { key: 'sousActiviteZap', matches: ['sous_activite', 'sous-activite'], mustMatch: ['zap'], ex: [], label: 'Sous-activité de la ZAP', xmlName: '' },
             { key: 'sousProduitZap', matches: ['sous_produit', 'sous-produit'], mustMatch: ['zap'], ex: [], label: 'Sous-produit de la ZAP', xmlName: '' }
         ];
+
+        // --- GÉNÉRATEUR HORODATAGE ---
+        function getFormattedDateTime() {
+            const d = new Date();
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const hh = String(d.getHours()).padStart(2, '0');
+            const min = String(d.getMinutes()).padStart(2, '0');
+            const ss = String(d.getSeconds()).padStart(2, '0');
+            return `${dd}/${mm}/${yyyy} à ${hh}:${min}:${ss}`;
+        }
+
+        function generateFilename(prefix, extension) {
+            const d = new Date();
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const hh = String(d.getHours()).padStart(2, '0');
+            const min = String(d.getMinutes()).padStart(2, '0');
+            const ss = String(d.getSeconds()).padStart(2, '0');
+            const timestamp = `${yyyy}${mm}${dd}_${hh}${min}${ss}`;
+            return `${prefix}_${timestamp}_kobo.${extension}`;
+        }
 
         async function loadDictionaryAutomatically() {
             try {
@@ -548,7 +572,6 @@
 
         function getTranslatedHeader(xmlName) {
             let key = String(xmlName).toLowerCase();
-            
             const exactMatches = {
                 'vi_r_f_rentiel_standard_des_pr': "VI. Référentiel standard des preuves par type d'activité",
                 'date_enq': "Date de suivi",
@@ -558,7 +581,6 @@
                 'liste_d_margement': "Liste d'émargement"
             };
             if (exactMatches[key]) return exactMatches[key];
-
             return smartKoboAutoCorrect(xmlName);
         }
 
@@ -654,12 +676,10 @@
         function isBaseColumn(key) {
             let parts = key.split('/');
             let variableName = parts[parts.length - 1].toLowerCase();
-            
             for (let col of baseColsInfo) {
                 let hasEx = col.ex && col.ex.some(e => variableName.includes(e));
                 let hasMust = col.mustMatch && col.mustMatch.length > 0 ? col.mustMatch.every(m => variableName.includes(m)) : true;
                 let hasMatch = col.matches.some(m => variableName.includes(m));
-                
                 if (!hasEx && hasMust && hasMatch) return true;
             }
             return false;
@@ -951,19 +971,6 @@
 
         function clearFilters() { $('.filter-input').val(''); applyFilters(); }
         
-        // --- GÉNÉRATEUR DE NOMS DE FICHIERS DYNAMIQUES (HORODATAGE) ---
-        function generateFilename(prefix, extension) {
-            const d = new Date();
-            const yyyy = d.getFullYear();
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const dd = String(d.getDate()).padStart(2, '0');
-            const hh = String(d.getHours()).padStart(2, '0');
-            const min = String(d.getMinutes()).padStart(2, '0');
-            const ss = String(d.getSeconds()).padStart(2, '0');
-            const timestamp = `${yyyy}${mm}${dd}_${hh}${min}${ss}`;
-            return `${prefix}_${timestamp}_kobo.${extension}`;
-        }
-
         // --- GESTION STRICTE DES FILTRES ONGLET 1 ---
         function getCurrentFilters() {
             return {
@@ -1023,6 +1030,11 @@
         function exportTableToCSV(prefix) {
             let filename = generateFilename(prefix, 'csv');
             let csv = [];
+            let exportDate = getFormattedDateTime();
+            
+            csv.push('"--- METADONNEES D\'EXPORT ---"');
+            csv.push('"Date d\'exportation";"' + exportDate + '"');
+            csv.push("");
             
             let filters = getCurrentFilters();
             csv.push('"--- CRITERES DE RECHERCHE APPLIQUES ---"');
@@ -1065,6 +1077,11 @@
             let filename = generateFilename(prefix, 'xlsx');
             let wb = XLSX.utils.book_new();
             let wsData = [];
+            let exportDate = getFormattedDateTime();
+            
+            wsData.push(["--- METADONNEES D'EXPORT ---"]);
+            wsData.push(["Date d'exportation", exportDate]);
+            wsData.push([]);
             
             let filters = getCurrentFilters();
             wsData.push(["--- CRITERES DE RECHERCHE APPLIQUES ---"]);
@@ -1121,9 +1138,12 @@
 
         function exportTableToHTML(prefix) {
             let filename = generateFilename(prefix, 'html');
+            let exportDate = getFormattedDateTime();
             let filters = getCurrentFilters();
+            
             let filterHtml = `<div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
                 <h3 style="margin-top: 0; color: #2c3e50;">Critères de recherche appliqués</h3>
+                <p><strong>Date d'exportation :</strong> ${exportDate}</p>
                 <ul style="list-style-type: none; padding-left: 0;">`;
             for (let key in filters) {
                 filterHtml += `<li style="margin-bottom: 5px;"><strong>${key}</strong> : ${filters[key]}</li>`;
@@ -1157,6 +1177,7 @@
         }
 
         function getTableJSONData() {
+            let exportDate = getFormattedDateTime();
             let headers = [];
             $('#table-sub-header-row th').each(function() {
                 headers.push($(this).text().trim());
@@ -1174,6 +1195,7 @@
             });
             
             let finalOutput = {
+                "date_exportation": exportDate,
                 "criteres_de_recherche": getCurrentFilters(),
                 "resultats_obtenus": jsonData
             };
@@ -1191,7 +1213,9 @@
         // --- FONCTIONS D'EXPORTATION ONGLET 2 (ANALYSE) ---
         
         function getAnalysisJSONData() {
+            let exportDate = getFormattedDateTime();
             let finalOutput = {
+                "date_exportation": exportDate,
                 "criteres_de_recherche_locaux": getAnalysisFilters(),
                 "analyse_dren": [],
                 "analyse_cisco": [],
@@ -1232,7 +1256,12 @@
         function exportAnalysisToCSV(prefix) {
             let filename = generateFilename(prefix, 'csv');
             let csv = [];
+            let exportDate = getFormattedDateTime();
             let filters = getAnalysisFilters();
+            
+            csv.push('"--- METADONNEES D\'EXPORT ---"');
+            csv.push('"Date d\'exportation";"' + exportDate + '"');
+            csv.push("");
             
             csv.push('"--- CRITERES DE RECHERCHE LOCAUX APPLIQUES ---"');
             for (let key in filters) { csv.push('"' + key + '";"' + filters[key] + '"'); }
@@ -1266,6 +1295,11 @@
             let filename = generateFilename(prefix, 'xlsx');
             let wb = XLSX.utils.book_new();
             let wsData = [];
+            let exportDate = getFormattedDateTime();
+
+            wsData.push(["--- METADONNEES D'EXPORT ---"]);
+            wsData.push(["Date d'exportation", exportDate]);
+            wsData.push([]);
 
             let filters = getAnalysisFilters();
             wsData.push(["--- CRITERES DE RECHERCHE LOCAUX APPLIQUES ---"]);
@@ -1299,9 +1333,11 @@
 
         function exportAnalysisToHTML(prefix) {
             let filename = generateFilename(prefix, 'html');
+            let exportDate = getFormattedDateTime();
             let filters = getAnalysisFilters();
             let filterHtml = `<div style="background-color: #e8f4f8; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
                 <h3 style="margin-top: 0; color: #2c3e50;">Critères de recherche locaux appliqués</h3>
+                <p><strong>Date d'exportation :</strong> ${exportDate}</p>
                 <ul style="list-style-type: none; padding-left: 0;">`;
             for (let key in filters) {
                 filterHtml += `<li style="margin-bottom: 5px;"><strong>${key}</strong> : ${filters[key]}</li>`;
@@ -1347,13 +1383,15 @@
             let count = $('#record-count').text();
             let jsonString = getTableJSONData();
             let filtresEnClair = getFiltersPlainText(); 
+            let exportDate = getFormattedDateTime();
             
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON est trop lourd pour être envoyé directement. Il a donc été copié automatiquement dans votre presse-papiers.\n\nDans l'e-mail qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) à l'endroit indiqué.");
                 
-                let subject = encodeURIComponent("Rapport KoboToolbox - " + count + " enregistrements");
+                let subject = encodeURIComponent("Rapport KoboToolbox - " + count + " enregistrements (Généré le " + exportDate + ")");
                 
                 let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le dernier rapport généré depuis le tableau de bord KoboToolbox.\n\n` + 
+                               `🕒 Date d'exportation : ${exportDate}\n\n` +
                                `🎯 CRITÈRES DE RECHERCHE APPLIQUÉS :\n${filtresEnClair}\n` +
                                `📊 Nombre d'enregistrements validés : ${count}\n\n` + 
                                `=== DONNÉES FORMAT JSON ===\n\n[ FAITES CLIC DROIT -> COLLER ICI ]\n\n===========================\n\nCordialement.`;
@@ -1370,11 +1408,12 @@
             let count = $('#record-count').text();
             let jsonString = getTableJSONData();
             let filtresEnClair = getFiltersPlainText(); 
+            let exportDate = getFormattedDateTime();
             
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON a été copié automatiquement dans votre presse-papiers.\n\nDans la fenêtre WhatsApp qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) dans la zone de texte.");
                 
-                let bodyText = `📊 *Rapport KoboToolbox*\n\nLe tableau de bord vient d'être mis à jour.\n\n` +
+                let bodyText = `📊 *Rapport KoboToolbox*\n\nLe tableau de bord vient d'être mis à jour.\n🕒 Date : ${exportDate}\n\n` +
                                `🎯 *CRITÈRES APPLIQUÉS :*\n${filtresEnClair}\n` +
                                `Nombre d'enregistrements validés : *${count}*.\n\n*DONNÉES FORMAT JSON :*\n\n[ FAITES CLIC DROIT -> COLLER ICI ]`;
                                
@@ -1389,13 +1428,15 @@
         function sendAnalysisToGmail() {
             let jsonString = getAnalysisJSONData();
             let filtresEnClair = getAnalysisFiltersPlainText(); 
+            let exportDate = getFormattedDateTime();
             
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON d'analyse a été copié automatiquement dans votre presse-papiers.\n\nDans l'e-mail qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) à l'endroit indiqué.");
                 
-                let subject = encodeURIComponent("Rapport Synthétique d'Analyse KoboToolbox");
+                let subject = encodeURIComponent("Rapport Synthétique d'Analyse KoboToolbox envoyé le " + exportDate);
                 
                 let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le rapport d'analyse synthétique généré depuis le tableau de bord KoboToolbox.\n\n` + 
+                               `🕒 Date d'exportation : ${exportDate}\n\n` +
                                `🎯 CRITÈRES D'ANALYSE (LOCAUX) :\n${filtresEnClair}\n\n` +
                                `=== DONNÉES SYNTHÉTIQUES FORMAT JSON ===\n\n[ FAITES CLIC DROIT -> COLLER ICI ]\n\n===========================\n\nCordialement.`;
                                
@@ -1410,11 +1451,12 @@
         function sendAnalysisToWhatsApp() {
             let jsonString = getAnalysisJSONData();
             let filtresEnClair = getAnalysisFiltersPlainText(); 
+            let exportDate = getFormattedDateTime();
             
             navigator.clipboard.writeText(jsonString).then(function() {
                 alert("✅ SUCCÈS !\n\nLe texte JSON d'analyse a été copié automatiquement dans votre presse-papiers.\n\nDans la fenêtre WhatsApp qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) dans la zone de texte.");
                 
-                let bodyText = `📊 *Synthèse Analytique KoboToolbox*\n\nLe rapport croisé vient d'être généré.\n\n` +
+                let bodyText = `📊 *Synthèse Analytique KoboToolbox*\n\nLe rapport croisé vient d'être généré.\n🕒 Date : ${exportDate}\n\n` +
                                `🎯 *CRITÈRES D'ANALYSE (LOCAUX) :*\n${filtresEnClair}\n\n` +
                                `*DONNÉES SYNTHÉTIQUES FORMAT JSON :*\n\n[ FAITES CLIC DROIT -> COLLER ICI ]`;
                                
