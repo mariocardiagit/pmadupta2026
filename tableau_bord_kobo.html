@@ -334,9 +334,9 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="text-primary m-0"><i class="fas fa-project-diagram"></i> Algorithme 1 : K-Means (Centre de Gravité)</h4>
                 </div>
-                <div class="ai-insights shadow-sm mb-4">
-                    <h5><i class="fas fa-lightbulb text-warning"></i> Fonctionnement : K-Means</h5>
-                    <p>Le K-Means est un algorithme géométrique rapide. Il regroupe obligatoirement les entités en <strong>3 groupes stricts</strong> en calculant la distance mathématique entre leur nombre de soumissions et le centre moyen de chaque groupe.</p>
+                <div class="ai-insights shadow-sm mb-4 border-primary">
+                    <h5><i class="fas fa-lightbulb text-primary"></i> Fonctionnement : K-Means</h5>
+                    <p><strong>L'algorithme géométrique classique.</strong> Il cherche le centre de gravité des soumissions.</p>
                 </div>
                 <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
                     <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#kmeans-dren" type="button">Clustering DREN</button></li>
@@ -357,7 +357,7 @@
                 </div>
                 <div class="ai-insights shadow-sm mb-4 border-success">
                     <h5><i class="fas fa-bullseye text-success"></i> Fonctionnement : Algorithme de Jenks</h5>
-                    <p>L'algorithme de Jenks est le plus précis en 1D (statistiques pures). Il ne se contente pas de chercher le centre, il calcule les "ruptures naturelles" pour <strong>minimiser la variance à l'intérieur d'un groupe et maximiser l'écart entre les groupes</strong>.</p>
+                    <p><strong>Le roi de la précision unidimensionnelle (1D).</strong> Il calcule les "ruptures naturelles" en réduisant au maximum la variance (les écarts) à l'intérieur d'un même groupe. C'est l'algorithme absolu en cartographie.</p>
                 </div>
                 <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
                     <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#jenks-dren" type="button">Clustering DREN</button></li>
@@ -378,7 +378,7 @@
                 </div>
                 <div class="ai-insights shadow-sm mb-4 border-danger">
                     <h5><i class="fas fa-search-location text-danger"></i> Fonctionnement : DBSCAN</h5>
-                    <p>DBSCAN ne fixe pas de nombre de groupes à l'avance. Il scanne la densité des données et trouve lui-même les regroupements pertinents. Surtout, il <strong>détecte et isole en rouge le Bruit (Anomalies)</strong> : les entités qui ont un volume de soumissions totalement atypique !</p>
+                    <p><strong>L'algorithme basé sur la densité.</strong> Il est imprévisible mais puissant : il décide lui-même du nombre de groupes à créer (Cluster 1, 2, 3...) et isole en rouge les <strong>"Anomalies" (Bruit)</strong>, c'est-à-dire les DREN ou CISCO qui ont un comportement statistique totalement anormal par rapport aux autres !</p>
                 </div>
                 <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
                     <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#dbscan-dren" type="button">Clustering DREN</button></li>
@@ -545,10 +545,8 @@
         function performDBSCAN(data) {
             if (data.length === 0) return { assignments: [], numClusters: 0 };
             let max = Math.max(...data), min = Math.min(...data);
-            
-            // Calcul dynamique du seuil d'epsilon (tolérance spatiale)
             let eps = Math.max(1, (max - min) * 0.15); 
-            let minPts = 2; // Au moins 2 entités pour faire un groupe
+            let minPts = 2;
             
             let labels = new Array(data.length).fill(undefined);
             let clusterId = 0;
@@ -561,14 +559,14 @@
                 }
                 
                 if (neighbors.length < minPts) {
-                    labels[i] = -1; // -1 = BRUIT / ANOMALIE
+                    labels[i] = -1;
                 } else {
                     labels[i] = clusterId;
                     let seedSet = neighbors.filter(n => n !== i);
                     
                     while (seedSet.length > 0) {
                         let q = seedSet.pop();
-                        if (labels[q] === -1) labels[q] = clusterId; // Repêchage du bruit aux frontières
+                        if (labels[q] === -1) labels[q] = clusterId;
                         if (labels[q] !== undefined) continue;
                         labels[q] = clusterId;
                         
@@ -912,10 +910,8 @@
             let htmlLists = `<div class="row mt-4">`;
             let keys = Object.keys(clusterDefs).map(Number);
             
-            // Tri pour l'affichage : Haut vers Bas pour K-Means/Jenks.
             if(algo === 'kmeans' || algo === 'jenks') keys.sort((a,b)=>b-a);
             else { 
-                // DBSCAN : Groupes normaux d'abord, puis le Bruit à la fin
                 keys.sort((a,b)=>b-a);
                 let nIdx = keys.indexOf(-1);
                 if(nIdx > -1) { keys.splice(nIdx, 1); keys.push(-1); }
@@ -923,7 +919,7 @@
 
             keys.forEach(k => {
                 clusterGroups[k].sort((a, b) => b.count - a.count);
-                if(algo === 'dbscan' && k === -1 && clusterGroups[k].length === 0) return; // Cacher le Bruit s'il n'y en a pas
+                if(algo === 'dbscan' && k === -1 && clusterGroups[k].length === 0) return;
                 
                 let def = clusterDefs[k];
                 let icon = k === -1 ? 'fa-exclamation-triangle' : (k === 2 ? 'fa-arrow-up' : (k === 0 ? 'fa-arrow-down' : 'fa-check'));
@@ -951,7 +947,6 @@
             let freqCisco = data.reduce((acc, row) => { let v = cleanSpaces(getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous'])); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
             let freqZap = data.reduce((acc, row) => { let v = cleanSpaces(getKoboValue(row, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous'])); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
 
-            // Onglet 2
             if (totalRows === 0) $('#ai-report-content').html("<p>Aucune donnée.</p>");
             else {
                 let maxDren = Object.entries(freqDren).filter(([k,v]) => k !== "Non renseigné").sort((a,b) => b[1] - a[1])[0];
@@ -965,17 +960,14 @@
             };
             popTab('dren-summary-table', freqDren); popTab('cisco-summary-table', freqCisco); popTab('zap-summary-table', freqZap);
 
-            // Onglet 3 : KMeans
             renderAlgorithmChart('kmeans', 'kmeansChartDREN', 'kmeansListsDREN', freqDren, chartsRefs.kmeans.DREN, c => chartsRefs.kmeans.DREN = c);
             renderAlgorithmChart('kmeans', 'kmeansChartCISCO', 'kmeansListsCISCO', freqCisco, chartsRefs.kmeans.CISCO, c => chartsRefs.kmeans.CISCO = c);
             renderAlgorithmChart('kmeans', 'kmeansChartZAP', 'kmeansListsZAP', freqZap, chartsRefs.kmeans.ZAP, c => chartsRefs.kmeans.ZAP = c);
 
-            // Onglet 4 : Jenks
             renderAlgorithmChart('jenks', 'jenksChartDREN', 'jenksListsDREN', freqDren, chartsRefs.jenks.DREN, c => chartsRefs.jenks.DREN = c);
             renderAlgorithmChart('jenks', 'jenksChartCISCO', 'jenksListsCISCO', freqCisco, chartsRefs.jenks.CISCO, c => chartsRefs.jenks.CISCO = c);
             renderAlgorithmChart('jenks', 'jenksChartZAP', 'jenksListsZAP', freqZap, chartsRefs.jenks.ZAP, c => chartsRefs.jenks.ZAP = c);
 
-            // Onglet 5 : DBSCAN
             renderAlgorithmChart('dbscan', 'dbscanChartDREN', 'dbscanListsDREN', freqDren, chartsRefs.dbscan.DREN, c => chartsRefs.dbscan.DREN = c);
             renderAlgorithmChart('dbscan', 'dbscanChartCISCO', 'dbscanListsCISCO', freqCisco, chartsRefs.dbscan.CISCO, c => chartsRefs.dbscan.CISCO = c);
             renderAlgorithmChart('dbscan', 'dbscanChartZAP', 'dbscanListsZAP', freqZap, chartsRefs.dbscan.ZAP, c => chartsRefs.dbscan.ZAP = c);
