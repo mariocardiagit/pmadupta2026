@@ -354,17 +354,12 @@
             <div class="tab-pane fade" id="clustering" role="tabpanel">
                 
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                    <h4 class="text-secondary m-0"><i class="fas fa-brain"></i> Machine Learning : Algorithme de Clustering 2D</h4>
+                    <h4 class="text-secondary m-0"><i class="fas fa-brain"></i> Machine Learning : Algorithme de Clustering K-Means</h4>
                 </div>
 
                 <div class="ai-insights shadow-sm mb-4">
-                    <h5><i class="fas fa-lightbulb text-warning"></i> Fonctionnement de l'Intelligence Artificielle (K-Means)</h5>
-                    <p>Cet algorithme analyse les données mathématiques en temps réel et regroupe (clusterise) les entités ayant un comportement similaire. L'IA a déterminé automatiquement 3 groupes distincts :</p>
-                    <ul>
-                        <li><span class="badge" style="background-color: rgba(52, 152, 219, 1)">Cluster Bleu</span> : Activité Faible</li>
-                        <li><span class="badge" style="background-color: rgba(243, 156, 18, 1)">Cluster Orange</span> : Activité Moyenne</li>
-                        <li><span class="badge" style="background-color: rgba(39, 174, 96, 1)">Cluster Vert</span> : Forte Activité</li>
-                    </ul>
+                    <h5><i class="fas fa-lightbulb text-warning"></i> Fonctionnement de l'Intelligence Artificielle</h5>
+                    <p>Cet algorithme analyse les données mathématiques en temps réel et regroupe (clusterise) les entités ayant un comportement similaire. Les listes ci-dessous sont générées automatiquement et triées par <strong>ordre décroissant</strong> de performance.</p>
                 </div>
 
                 <ul class="nav nav-pills mb-4 justify-content-center" id="clustering-pills-tab" role="tablist">
@@ -384,16 +379,19 @@
                         <div class="analysis-card shadow-sm" style="position: relative; height: 55vh;">
                             <canvas id="clusterChartDREN"></canvas>
                         </div>
+                        <div id="clusterListsDREN" class="mt-4"></div>
                     </div>
                     <div class="tab-pane fade" id="pills-cisco" role="tabpanel">
                         <div class="analysis-card shadow-sm" style="position: relative; height: 55vh;">
                             <canvas id="clusterChartCISCO"></canvas>
                         </div>
+                        <div id="clusterListsCISCO" class="mt-4"></div>
                     </div>
                     <div class="tab-pane fade" id="pills-zap" role="tabpanel">
                         <div class="analysis-card shadow-sm" style="position: relative; height: 55vh;">
                             <canvas id="clusterChartZAP"></canvas>
                         </div>
+                        <div id="clusterListsZAP" class="mt-4"></div>
                     </div>
                 </div>
 
@@ -483,7 +481,6 @@
             let actualK = Math.min(k, uniqueData.length);
             if (actualK <= 1) return data.map(() => 0);
 
-            // Initialisation des centroïdes
             let centroids = [];
             for (let i = 0; i < actualK; i++) {
                 centroids.push(uniqueData[Math.floor(i * uniqueData.length / actualK)]);
@@ -514,7 +511,6 @@
                 iter++;
             }
 
-            // Trier les centroïdes pour assurer un ordre logique des couleurs (Faible = 0, Moyen = 1, Élevé = 2)
             let sortedCentroids = centroids.map((val, idx) => ({val, idx})).sort((a,b) => a.val - b.val);
             let rankMap = {};
             sortedCentroids.forEach((c, rank) => { rankMap[c.idx] = rank; });
@@ -925,12 +921,15 @@
             $('#ai-report-content').html(html);
         }
 
-        // --- NOUVEAU : GENERATION DU GRAPHIQUE DE CLUSTERING ---
-        function renderClusterChart(canvasId, freqData, label, existingChart, setChartRef) {
+        // --- NOUVEAU : GENERATION DU GRAPHIQUE ET DES LISTES DE CLUSTERING ---
+        function renderClusterChart(canvasId, listContainerId, freqData, label, existingChart, setChartRef) {
             if (existingChart) existingChart.destroy();
             
             let entries = Object.entries(freqData).filter(([k,v]) => k !== "Non renseigné");
-            if (entries.length === 0) return;
+            if (entries.length === 0) {
+                document.getElementById(listContainerId).innerHTML = '';
+                return;
+            }
             
             entries.sort((a,b) => a[1] - b[1]); // Tri croissant pour un beau graphique
             let counts = entries.map(e => e[1]);
@@ -975,12 +974,72 @@
                 }
             });
             setChartRef(newChart);
+
+            // --- Construction des listes de clusters triées par ordre décroissant ---
+            let clusterGroups = { 0: [], 1: [], 2: [] };
+            
+            // Regroupement des entités par cluster
+            for (let i = 0; i < entries.length; i++) {
+                let cl = clusters[i];
+                clusterGroups[cl].push({ name: labels[i], count: counts[i] });
+            }
+            
+            // Tri décroissant de chaque liste (du plus grand nombre au plus petit)
+            clusterGroups[0].sort((a, b) => b.count - a.count);
+            clusterGroups[1].sort((a, b) => b.count - a.count);
+            clusterGroups[2].sort((a, b) => b.count - a.count);
+
+            // Génération du HTML pour les 3 listes
+            let htmlLists = `<div class="row mt-4">`;
+            
+            // Cluster Vert (Forte Activité)
+            htmlLists += `
+                <div class="col-md-4">
+                    <div class="card border-success mb-3 shadow-sm">
+                        <div class="card-header bg-success text-white fw-bold"><i class="fas fa-arrow-up"></i> Groupe : Forte Activité</div>
+                        <ul class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+            `;
+            clusterGroups[2].forEach(item => {
+                htmlLists += `<li class="list-group-item d-flex justify-content-between align-items-center">${item.name} <span class="badge bg-success rounded-pill fs-6">${item.count}</span></li>`;
+            });
+            if(clusterGroups[2].length === 0) htmlLists += `<li class="list-group-item text-muted">Aucune entité dans ce groupe</li>`;
+            htmlLists += `</ul></div></div>`;
+            
+            // Cluster Orange (Activité Moyenne)
+            htmlLists += `
+                <div class="col-md-4">
+                    <div class="card border-warning mb-3 shadow-sm">
+                        <div class="card-header bg-warning text-dark fw-bold"><i class="fas fa-minus"></i> Groupe : Activité Moyenne</div>
+                        <ul class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+            `;
+            clusterGroups[1].forEach(item => {
+                htmlLists += `<li class="list-group-item d-flex justify-content-between align-items-center">${item.name} <span class="badge bg-warning text-dark rounded-pill fs-6">${item.count}</span></li>`;
+            });
+            if(clusterGroups[1].length === 0) htmlLists += `<li class="list-group-item text-muted">Aucune entité dans ce groupe</li>`;
+            htmlLists += `</ul></div></div>`;
+
+            // Cluster Bleu (Activité Faible)
+            htmlLists += `
+                <div class="col-md-4">
+                    <div class="card border-primary mb-3 shadow-sm">
+                        <div class="card-header bg-primary text-white fw-bold"><i class="fas fa-arrow-down"></i> Groupe : Activité Faible</div>
+                        <ul class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+            `;
+            clusterGroups[0].forEach(item => {
+                htmlLists += `<li class="list-group-item d-flex justify-content-between align-items-center">${item.name} <span class="badge bg-primary rounded-pill fs-6">${item.count}</span></li>`;
+            });
+            if(clusterGroups[0].length === 0) htmlLists += `<li class="list-group-item text-muted">Aucune entité dans ce groupe</li>`;
+            htmlLists += `</ul></div></div>`;
+
+            htmlLists += `</div>`;
+            
+            document.getElementById(listContainerId).innerHTML = htmlLists;
         }
 
         function renderClustering(freqDren, freqCisco, freqZap) {
-            renderClusterChart('clusterChartDREN', freqDren, 'DREN', chartDREN, (c) => chartDREN = c);
-            renderClusterChart('clusterChartCISCO', freqCisco, 'CISCO', chartCISCO, (c) => chartCISCO = c);
-            renderClusterChart('clusterChartZAP', freqZap, 'ZAP', chartZAP, (c) => chartZAP = c);
+            renderClusterChart('clusterChartDREN', 'clusterListsDREN', freqDren, 'DREN', chartDREN, (c) => chartDREN = c);
+            renderClusterChart('clusterChartCISCO', 'clusterListsCISCO', freqCisco, 'CISCO', chartCISCO, (c) => chartCISCO = c);
+            renderClusterChart('clusterChartZAP', 'clusterListsZAP', freqZap, 'ZAP', chartZAP, (c) => chartZAP = c);
         }
 
         function getAiInsightsArray() {
@@ -1042,7 +1101,7 @@
             populateSummaryTable('cisco-summary-table', freqCisco, totalRows);
             populateSummaryTable('zap-summary-table', freqZap, totalRows);
 
-            // APPEL DE L'IA CLUSTERING
+            // APPEL DE L'IA CLUSTERING ET LISTES
             renderClustering(freqDren, freqCisco, freqZap);
         }
 
@@ -1092,6 +1151,7 @@
 
         function clearFilters() { $('.filter-input').val(''); applyFilters(); }
 
+        // --- GESTION STRICTE DES FILTRES ONGLET 1 ---
         function getCurrentFilters() {
             return {
                 "DREN": cleanSpaces($('#filter-dren').val()) || "Tous",
@@ -1108,11 +1168,14 @@
             let filters = getCurrentFilters();
             let text = "";
             for (let key in filters) {
-                if (filters[key] !== "Tous") { text += `- ${key} : ${filters[key]}\n`; }
+                if (filters[key] !== "Tous") {
+                    text += `- ${key} : ${filters[key]}\n`;
+                }
             }
             return text === "" ? "- Aucun filtre (Toutes les données)" : text;
         }
 
+        // --- GESTION DÉDIÉE DES FILTRES ONGLET 2 ---
         function getAnalysisFilters() {
             return {
                 "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune",
@@ -1125,11 +1188,14 @@
             let filters = getAnalysisFilters();
             let text = "";
             for (let key in filters) {
-                if (filters[key] !== "Aucune") { text += `- ${key} : ${filters[key]}\n`; }
+                if (filters[key] !== "Aucune") {
+                    text += `- ${key} : ${filters[key]}\n`;
+                }
             }
             return text === "" ? "- Aucun filtre local appliqué" : text;
         }
 
+        // --- FONCTIONS D'EXPORTATION ONGLET 1 ---
         function downloadFile(blob, filename) {
             let downloadLink = document.createElement("a");
             downloadLink.href = window.URL.createObjectURL(blob);
@@ -1154,7 +1220,9 @@
             
             let filters = getCurrentFilters();
             csv.push('"--- CRITERES DE RECHERCHE APPLIQUES ---"');
-            for (let key in filters) { csv.push('"' + key + '";"' + filters[key] + '"'); }
+            for (let key in filters) {
+                csv.push('"' + key + '";"' + filters[key] + '"');
+            }
             csv.push("");
             csv.push('"--- RESULTATS ---"');
 
@@ -1202,7 +1270,9 @@
             
             let filters = getCurrentFilters();
             wsData.push(["--- CRITERES DE RECHERCHE APPLIQUES ---"]);
-            for (let key in filters) { wsData.push([key, filters[key]]); }
+            for (let key in filters) {
+                wsData.push([key, filters[key]]);
+            }
             wsData.push([]);
             wsData.push(["--- RESULTATS ---"]);
 
@@ -1224,7 +1294,9 @@
                         s: { r: headerRowIndex, c: currentHeaderCol },
                         e: { r: headerRowIndex, c: currentHeaderCol + colspan - 1 }
                     });
-                    for (let i = 1; i < colspan; i++) { headers1.push(""); }
+                    for (let i = 1; i < colspan; i++) {
+                        headers1.push("");
+                    }
                 }
                 currentHeaderCol += colspan;
             });
@@ -1297,7 +1369,9 @@
         function getTableJSONData() {
             let exportDate = getFormattedDateTime();
             let headers = [];
-            $('#table-sub-header-row th').each(function() { headers.push(cleanSpaces($(this).text())); });
+            $('#table-sub-header-row th').each(function() {
+                headers.push(cleanSpaces($(this).text()));
+            });
             
             let jsonData = [];
             $('#table-body tr:visible').each(function() {
