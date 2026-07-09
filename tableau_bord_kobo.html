@@ -385,6 +385,13 @@
             { key: 'sousProduitZap', matches: ['sous_produit', 'sous-produit'], mustMatch: ['zap'], ex: [], label: 'Sous-produit de la ZAP', xmlName: '' }
         ];
 
+        // --- FONCTION DE NETTOYAGE DES ESPACES (DATA CLEANSING) ---
+        function cleanSpaces(str) {
+            if (str === null || str === undefined) return '';
+            // Remplace les multiples espaces internes par un seul et supprime les espaces aux extrémités
+            return String(str).replace(/\s+/g, ' ').trim();
+        }
+
         // --- GÉNÉRATEUR HORODATAGE ---
         function getFormattedDateTime() {
             const d = new Date();
@@ -499,7 +506,7 @@
 
         function smartKoboAutoCorrect(text) {
             if (!text) return '';
-            let t = String(text).toLowerCase();
+            let t = cleanSpaces(text).toLowerCase();
 
             const corrections = {
                 'b_n_ficiaire': 'bénéficiaire', 'r_f_rentiel': 'référentiel', 'd_margement': "d'émargement",
@@ -545,17 +552,17 @@
         function fuzzyMatch(query, target) {
             if (!query) return true;
             if (!target) return false;
-            query = query.trim().toLowerCase();
-            target = target.toLowerCase();
+            query = cleanSpaces(query).toLowerCase();
+            target = cleanSpaces(target).toLowerCase();
             
             if (target.includes(query)) return true;
             
-            const targetWords = target.split(/[\s,;.-]+/).filter(Boolean);
-            const queryWords = query.split(/[\s,;.-]+/).filter(Boolean);
+            const targetWords = query.split(/[\s,;.-]+/).filter(Boolean);
+            const sourceWords = target.split(/[\s,;.-]+/).filter(Boolean);
             
-            for (let qw of queryWords) {
+            for (let qw of targetWords) {
                 let wordMatch = false;
-                for (let tw of targetWords) {
+                for (let tw of sourceWords) {
                     if (tw.includes(qw)) { 
                         wordMatch = true; 
                         break; 
@@ -604,7 +611,7 @@
             const noTranslationKeywords = ['realisation', 'nombre', 'montant', 'quantit', 'effectif'];
             if (noTranslationKeywords.some(kw => xmlNameLower.includes(kw)) || 
                (xmlNameLower.includes('budget') && !xmlNameLower.includes('budgetiser'))) {
-                return String(val).trim(); 
+                return cleanSpaces(val); 
             }
 
             const requiresCodeLabel = ['dren', 'cisco', 'zap', 'activite', 'produit', 'sous', 'vi_'];
@@ -618,7 +625,7 @@
 
             let parts = String(val).split(' ');
             let translatedParts = parts.map(p => {
-                let pClean = String(p).trim();
+                let pClean = cleanSpaces(p);
                 let pLower = pClean.toLowerCase();
                 let t = null;
 
@@ -654,7 +661,7 @@
                 
                 return pClean;
             });
-            return translatedParts.join(' ; ');
+            return cleanSpaces(translatedParts.join(' ; '));
         }
 
         function findXmlName(row, possibleKeys, excludeKeys, mustMatchKeys) {
@@ -828,7 +835,7 @@
                     return processed.join(' | ');
                 };
 
-                return parts.map(p => linkify(p)).join(' ; ');
+                return cleanSpaces(parts.map(p => linkify(p)).join(' ; '));
             }
 
             data.forEach(row => {
@@ -838,7 +845,7 @@
                 baseColsInfo.forEach(col => {
                     let val = getKoboValue(row, col.matches, col.ex, col.mustMatch);
                     tr.append($('<td></td>').attr('data-csv', val).text(val));
-                    rowSearchData[col.key] = String(val).toLowerCase();
+                    rowSearchData[col.key] = cleanSpaces(String(val)).toLowerCase();
                 });
                 
                 extraSurveyKeys.forEach(key => {
@@ -863,7 +870,7 @@
 
         function getFrequencies(arr) {
             return arr.reduce((acc, val) => {
-                let key = val ? String(val).trim() : "Non renseigné";
+                let key = val ? cleanSpaces(String(val)) : "Non renseigné";
                 acc[key] = (acc[key] || 0) + 1;
                 return acc;
             }, {});
@@ -889,11 +896,11 @@
             $('#ai-report-content').html(html);
         }
 
-        // --- NOUVEAU : EXTRACTION DE L'ANALYSE INTELLIGENTE ---
+        // --- EXTRACTION DE L'ANALYSE INTELLIGENTE ---
         function getAiInsightsArray() {
             let insights = [];
             $('#ai-report-content p').each(function() {
-                let text = $(this).text().trim();
+                let text = cleanSpaces($(this).text());
                 if(text) insights.push(text);
             });
             return insights.length > 0 ? insights : ["Aucune donnée à analyser pour le moment."];
@@ -952,9 +959,9 @@
 
         function setupAnalysisTableSearch(inputId, tbodyId) {
             $('#' + inputId).on('keyup', function() {
-                let val = $(this).val();
+                let val = cleanSpaces($(this).val());
                 $('#' + tbodyId + ' tr').filter(function() {
-                    let rowText = $(this).text(); 
+                    let rowText = cleanSpaces($(this).text()); 
                     $(this).toggle(fuzzyMatch(val, rowText));
                 });
             });
@@ -962,9 +969,13 @@
 
         function applyFilters() {
             const filters = {
-                dren: $('#filter-dren').val(), cisco: $('#filter-cisco').val(), zap: $('#filter-zap').val(),
-                activite: $('#filter-activite').val(), produit: $('#filter-produit').val(),
-                sousActivite: $('#filter-sous-activite').val(), sousProduit: $('#filter-sous-produit').val()
+                dren: cleanSpaces($('#filter-dren').val()),
+                cisco: cleanSpaces($('#filter-cisco').val()),
+                zap: cleanSpaces($('#filter-zap').val()),
+                activite: cleanSpaces($('#filter-activite').val()),
+                produit: cleanSpaces($('#filter-produit').val()),
+                sousActivite: cleanSpaces($('#filter-sous-activite').val()),
+                sousProduit: cleanSpaces($('#filter-sous-produit').val())
             };
 
             let visibleCount = 0;
@@ -992,16 +1003,16 @@
 
         function clearFilters() { $('.filter-input').val(''); applyFilters(); }
 
-        // --- GESTION STRICTE DES FILTRES ONGLET 1 ---
+        // --- GESTION STRICTE DES FILTRES ONGLET 1 (AVEC NETTOYAGE) ---
         function getCurrentFilters() {
             return {
-                "DREN": $('#filter-dren').val() || "Tous",
-                "CISCO": $('#filter-cisco').val() || "Tous",
-                "ZAP": $('#filter-zap').val() || "Tous",
-                "Activité": $('#filter-activite').val() || "Tous",
-                "Produit": $('#filter-produit').val() || "Tous",
-                "Sous-activité": $('#filter-sous-activite').val() || "Tous",
-                "Sous-produit": $('#filter-sous-produit').val() || "Tous"
+                "DREN": cleanSpaces($('#filter-dren').val()) || "Tous",
+                "CISCO": cleanSpaces($('#filter-cisco').val()) || "Tous",
+                "ZAP": cleanSpaces($('#filter-zap').val()) || "Tous",
+                "Activité": cleanSpaces($('#filter-activite').val()) || "Tous",
+                "Produit": cleanSpaces($('#filter-produit').val()) || "Tous",
+                "Sous-activité": cleanSpaces($('#filter-sous-activite').val()) || "Tous",
+                "Sous-produit": cleanSpaces($('#filter-sous-produit').val()) || "Tous"
             };
         }
 
@@ -1016,12 +1027,12 @@
             return text === "" ? "- Aucun filtre (Toutes les données)" : text;
         }
 
-        // --- GESTION DÉDIÉE DES FILTRES ONGLET 2 (UNIQUEMENT LOCAUX) ---
+        // --- GESTION DÉDIÉE DES FILTRES ONGLET 2 (UNIQUEMENT LOCAUX - AVEC NETTOYAGE) ---
         function getAnalysisFilters() {
             return {
-                "Recherche Locale - Tableau DREN": $('#search-dren-table').val() || "Aucune",
-                "Recherche Locale - Tableau CISCO": $('#search-cisco-table').val() || "Aucune",
-                "Recherche Locale - Tableau ZAP": $('#search-zap-table').val() || "Aucune"
+                "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune",
+                "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune",
+                "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune"
             };
         }
 
@@ -1073,7 +1084,7 @@
                 if (rows[i].id === 'table-group-header-row') {
                     let row = [], cols = rows[i].querySelectorAll("td, th");
                     for (let j = 0; j < cols.length; j++) {
-                        let cellData = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""').trim();
+                        let cellData = cleanSpaces(cols[j].innerText).replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""');
                         row.push('"' + cellData + '"');
                         if (cols[j].hasAttribute('colspan')) {
                             let colspan = parseInt(cols[j].getAttribute('colspan'), 10);
@@ -1087,7 +1098,7 @@
                     let row = [], cols = rows[i].querySelectorAll("td, th");
                     for (let j = 0; j < cols.length; j++) {
                         let cellData = cols[j].hasAttribute('data-csv') ? cols[j].getAttribute('data-csv') : cols[j].innerText;
-                        cellData = cellData.replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""').trim();
+                        cellData = cleanSpaces(cellData).replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""');
                         row.push('"' + cellData + '"');
                     }
                     csv.push(row.join(";")); 
@@ -1127,7 +1138,7 @@
             let currentHeaderCol = 0;
 
             $('#table-group-header-row th').each(function() {
-                let text = $(this).text().trim();
+                let text = cleanSpaces($(this).text());
                 let colspan = parseInt($(this).attr('colspan') || 1, 10);
 
                 headers1.push(text);
@@ -1146,7 +1157,7 @@
             if (headers1.length > 0) wsData.push(headers1);
 
             let headers2 = [];
-            $('#table-sub-header-row th').each(function() { headers2.push($(this).text().trim()); });
+            $('#table-sub-header-row th').each(function() { headers2.push(cleanSpaces($(this).text())); });
             wsData.push(headers2);
             
             $('#table-body tr:visible').each(function() {
@@ -1154,7 +1165,7 @@
                 $(this).find('td').each(function() {
                     let val = $(this).attr('data-csv');
                     if (val === undefined || val === null) val = $(this).text();
-                    row.push(val);
+                    row.push(cleanSpaces(val));
                 });
                 wsData.push(row);
             });
@@ -1185,7 +1196,7 @@
             <html lang="fr">
             <head>
                 <meta charset="utf-8">
-                <title>Export - Plateforme de Suivi du PMA 2026</title>
+                <title>Export KoboToolbox</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
                     h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; line-height: 1.4; }
@@ -1212,7 +1223,7 @@
             let exportDate = getFormattedDateTime();
             let headers = [];
             $('#table-sub-header-row th').each(function() {
-                headers.push($(this).text().trim());
+                headers.push(cleanSpaces($(this).text()));
             });
             
             let jsonData = [];
@@ -1221,7 +1232,7 @@
                 $(this).find('td').each(function(index) {
                     let val = $(this).attr('data-csv');
                     if (val === undefined || val === null) val = $(this).text();
-                    rowObj[headers[index]] = val;
+                    rowObj[headers[index]] = cleanSpaces(val);
                 });
                 jsonData.push(rowObj);
             });
@@ -1270,7 +1281,8 @@
                     let rowObj = {};
                     let hasData = false;
                     $(this).find('td').each(function(index) {
-                        let val = (index === 2) ? $(this).find('span').text().trim() : $(this).text().trim();
+                        let val = (index === 2) ? $(this).find('span').text() : $(this).text();
+                        val = cleanSpaces(val);
                         if(val !== "Aucune donnée trouvée") {
                             rowObj[t.head[index]] = val;
                             hasData = true;
@@ -1309,7 +1321,7 @@
             csv.push("");
 
             csv.push('"--- RAPPORT D\'ANALYSE INTELLIGENTE ---"');
-            insights.forEach(line => csv.push('"' + line.replace(/"/g, '""') + '"'));
+            insights.forEach(line => csv.push('"' + cleanSpaces(line).replace(/"/g, '""') + '"'));
             csv.push("");
 
             const tables = [
@@ -1324,8 +1336,8 @@
                 $('#' + t.id + ' tr:visible').each(function() {
                     let row = [];
                     $(this).find('td').each(function(idx) {
-                        if(idx === 2) row.push('"' + $(this).find('span').text().trim() + '"');
-                        else row.push('"' + $(this).text().trim() + '"');
+                        let val = (idx === 2) ? $(this).find('span').text() : $(this).text();
+                        row.push('"' + cleanSpaces(val) + '"');
                     });
                     if(row.length > 0 && row[0] !== '"Aucune donnée trouvée"') csv.push(row.join(";"));
                 });
@@ -1341,6 +1353,7 @@
             let wb = XLSX.utils.book_new();
             let wsData = [];
             let exportDate = getFormattedDateTime();
+            
             let merges = [
                 { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
                 { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }
@@ -1361,10 +1374,10 @@
             let insights = getAiInsightsArray();
             wsData.push(["--- RAPPORT D'ANALYSE INTELLIGENTE ---"]);
             let startAiRow = wsData.length;
-            insights.forEach(line => wsData.push([line]));
+            insights.forEach(line => wsData.push([cleanSpaces(line)]));
             let endAiRow = wsData.length - 1;
             wsData.push([]);
-            
+
             for(let r = startAiRow; r <= endAiRow; r++) {
                 merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 3 } });
             }
@@ -1381,8 +1394,8 @@
                 $('#' + t.id + ' tr:visible').each(function() {
                     let row = [];
                     $(this).find('td').each(function(idx) {
-                        if(idx === 2) row.push($(this).find('span').text().trim());
-                        else row.push($(this).text().trim());
+                        let val = (idx === 2) ? $(this).find('span').text() : $(this).text();
+                        row.push(cleanSpaces(val));
                     });
                     if(row.length > 0 && row[0] !== "Aucune donnée trouvée") wsData.push(row);
                 });
@@ -1420,7 +1433,7 @@
             <html lang="fr">
             <head>
                 <meta charset="utf-8">
-                <title>Export Analyse - Plateforme de Suivi du PMA 2026</title>
+                <title>Export Analyse KoboToolbox</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
                     h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; line-height: 1.4;}
