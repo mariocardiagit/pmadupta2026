@@ -975,16 +975,12 @@
             return text === "" ? "- Aucun filtre (Toutes les données)" : text;
         }
 
-        // --- GESTION DÉDIÉE DES FILTRES ONGLET 2 (GLOBAL + LOCAL) ---
+        // --- GESTION DÉDIÉE DES FILTRES ONGLET 2 (NETTOYÉ) ---
         function getAnalysisFilters() {
             return {
                 "Filtre Global - DREN": $('#filter-dren').val() || "Tous",
                 "Filtre Global - CISCO": $('#filter-cisco').val() || "Tous",
                 "Filtre Global - ZAP": $('#filter-zap').val() || "Tous",
-                "Filtre Global - Activité": $('#filter-activite').val() || "Tous",
-                "Filtre Global - Produit": $('#filter-produit').val() || "Tous",
-                "Filtre Global - Sous-activité": $('#filter-sous-activite').val() || "Tous",
-                "Filtre Global - Sous-produit": $('#filter-sous-produit').val() || "Tous",
                 "Recherche Locale - Tableau DREN": $('#search-dren-table').val() || "Aucune",
                 "Recherche Locale - Tableau CISCO": $('#search-cisco-table').val() || "Aucune",
                 "Recherche Locale - Tableau ZAP": $('#search-zap-table').val() || "Aucune"
@@ -999,7 +995,7 @@
                     text += `- ${key} : ${filters[key]}\n`;
                 }
             }
-            return text === "" ? "- Aucun filtre global ou local appliqué" : text;
+            return text === "" ? "- Aucun filtre géographique global ou local appliqué" : text;
         }
 
         // --- FONCTIONS D'EXPORTATION ONGLET 1 ---
@@ -1178,7 +1174,7 @@
             downloadFile(blob, filename);
         }
 
-        // --- NOUVELLES FONCTIONS D'EXPORTATION ONGLET 2 (ANALYSE) ---
+        // --- FONCTIONS D'EXPORTATION ONGLET 2 (ANALYSE) ---
         
         function getAnalysisJSONData() {
             let finalOutput = {
