@@ -35,7 +35,8 @@
             font-weight: 600;
             color: #7f8c8d;
             border-radius: 10px 10px 0 0;
-            font-size: 0.95rem;
+            font-size: 0.90rem;
+            padding: 10px 12px;
         }
         .nav-tabs .nav-link.active {
             color: #2980b9;
@@ -110,6 +111,11 @@
         .ai-insights h5 { color: #2c3e50; font-weight: 700; margin-bottom: 15px; }
         .ai-insights p { margin-bottom: 8px; color: #34495e; font-size: 1.05rem; }
         .highlight-val { font-weight: 700; color: #e67e22; }
+
+        /* Couleur spécifique pour le système expert */
+        .text-expert { color: #8e44ad !important; }
+        .bg-expert { background-color: #8e44ad !important; color: white; }
+        .border-expert { border-color: #8e44ad !important; border-left: 5px solid #8e44ad !important; }
     </style>
 </head>
 <body>
@@ -152,12 +158,17 @@
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link text-success fw-bold" id="jenks-tab" data-bs-toggle="tab" data-bs-target="#jenks" type="button" role="tab">
-                    <i class="fas fa-layer-group"></i> 4 : Algorithme Jenks
+                    <i class="fas fa-layer-group"></i> 4 : Alg. Jenks
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link text-danger fw-bold" id="dbscan-tab" data-bs-toggle="tab" data-bs-target="#dbscan" type="button" role="tab">
                     <i class="fas fa-satellite-dish"></i> 5 : DBSCAN
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-expert fw-bold" id="expert-tab" data-bs-toggle="tab" data-bs-target="#expert" type="button" role="tab">
+                    <i class="fas fa-stethoscope"></i> 6 : Système Expert
                 </button>
             </li>
         </ul>
@@ -334,8 +345,8 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="text-primary m-0"><i class="fas fa-project-diagram"></i> Algorithme 1 : K-Means (Centre de Gravité)</h4>
                 </div>
-                <div class="ai-insights shadow-sm mb-4 border-primary">
-                    <h5><i class="fas fa-lightbulb text-primary"></i> Fonctionnement : K-Means</h5>
+                <div class="ai-insights shadow-sm mb-4 border-primary" style="border-left-color: rgba(41, 128, 185, 1) !important; background: linear-gradient(135deg, #ebf5fb 0%, #d6eaf8 100%);">
+                    <h5 style="color: rgba(41, 128, 185, 1);"><i class="fas fa-lightbulb"></i> Fonctionnement : K-Means</h5>
                     <p><strong>L'algorithme géométrique classique.</strong> Il cherche le centre de gravité des soumissions.</p>
                 </div>
                 <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
@@ -355,8 +366,8 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="text-success m-0"><i class="fas fa-layer-group"></i> Algorithme 2 : Jenks (Natural Breaks)</h4>
                 </div>
-                <div class="ai-insights shadow-sm mb-4 border-success">
-                    <h5><i class="fas fa-bullseye text-success"></i> Fonctionnement : Algorithme de Jenks</h5>
+                <div class="ai-insights shadow-sm mb-4 border-success" style="border-left-color: rgba(46, 204, 113, 1) !important; background: linear-gradient(135deg, #eafaf1 0%, #d5f5e3 100%);">
+                    <h5 style="color: rgba(46, 204, 113, 1);"><i class="fas fa-bullseye"></i> Fonctionnement : Algorithme de Jenks</h5>
                     <p><strong>Le roi de la précision unidimensionnelle (1D).</strong> Il calcule les "ruptures naturelles" en réduisant au maximum la variance (les écarts) à l'intérieur d'un même groupe. C'est l'algorithme absolu en cartographie.</p>
                 </div>
                 <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
@@ -376,9 +387,9 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="text-danger m-0"><i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Densité et Bruit)</h4>
                 </div>
-                <div class="ai-insights shadow-sm mb-4 border-danger">
-                    <h5><i class="fas fa-search-location text-danger"></i> Fonctionnement : DBSCAN</h5>
-                    <p><strong>L'algorithme basé sur la densité.</strong> Il est imprévisible mais puissant : il décide lui-même du nombre de groupes à créer (Cluster 1, 2, 3...) et isole en rouge les <strong>"Anomalies" (Bruit)</strong>, c'est-à-dire les DREN ou CISCO qui ont un comportement statistique totalement anormal par rapport aux autres !</p>
+                <div class="ai-insights shadow-sm mb-4 border-danger" style="border-left-color: rgba(231, 76, 60, 1) !important; background: linear-gradient(135deg, #fdedec 0%, #fadbd8 100%);">
+                    <h5 style="color: rgba(231, 76, 60, 1);"><i class="fas fa-search-location"></i> Fonctionnement : DBSCAN</h5>
+                    <p><strong>L'algorithme basé sur la densité.</strong> Il est imprévisible mais puissant : il décide <strong>lui-même</strong> du nombre de groupes à créer (Cluster 1, 2, 3...) et isole en rouge les <strong>"Anomalies" (Bruit)</strong>, c'est-à-dire les DREN ou CISCO qui ont un comportement statistique totalement anormal par rapport aux autres !</p>
                 </div>
                 <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
                     <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#dbscan-dren" type="button">Clustering DREN</button></li>
@@ -389,6 +400,38 @@
                     <div class="tab-pane fade show active" id="dbscan-dren"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="dbscanChartDREN"></canvas></div><div id="dbscanListsDREN"></div></div>
                     <div class="tab-pane fade" id="dbscan-cisco"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="dbscanChartCISCO"></canvas></div><div id="dbscanListsCISCO"></div></div>
                     <div class="tab-pane fade" id="dbscan-zap"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="dbscanChartZAP"></canvas></div><div id="dbscanListsZAP"></div></div>
+                </div>
+            </div>
+
+            <!-- ONGLET 6 : SYSTEME EXPERT -->
+            <div class="tab-pane fade" id="expert" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="text-expert m-0"><i class="fas fa-cogs"></i> Intelligence Artificielle Symbolique : Moteur d'Inférence</h4>
+                </div>
+                <div class="ai-insights shadow-sm mb-4 border-expert" style="background: linear-gradient(135deg, #f5eef8 0%, #ebdef0 100%);">
+                    <h5 class="text-expert"><i class="fas fa-clipboard-check"></i> Diagnostic Automatisé du PTA</h5>
+                    <p>Ce <strong>Système Expert</strong> applique des règles métiers strictes sur les données. Il ne devine rien, il déduit logiquement des recommandations administratives directes en croisant les volumes de soumissions (calculés par l'algorithme de Jenks) avec le statut des entités.</p>
+                </div>
+                
+                <div class="analysis-card shadow-sm">
+                    <h5 class="text-secondary mb-3"><i class="fas fa-list-ul"></i> Registre des Diagnostics et Recommandations</h5>
+                    <input type="text" id="search-expert-table" class="form-control form-control-sm mb-3" placeholder="Rechercher une entité ou un diagnostic..." autocomplete="off">
+                    <div class="table-responsive" style="max-height: 600px;">
+                        <table class="table table-bordered table-hover align-middle" id="expert-table">
+                            <thead class="bg-expert" style="position: sticky; top: 0; z-index: 5;">
+                                <tr>
+                                    <th class="text-white text-center">Entité Administrative</th>
+                                    <th class="text-white text-center">Niveau</th>
+                                    <th class="text-white text-center">Soumissions</th>
+                                    <th class="text-white text-center">Diagnostic du Système</th>
+                                    <th class="text-white">Action Requise / Recommandation</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expert-table-body">
+                                <!-- Injecté par JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -586,6 +629,82 @@
             return { assignments: labels, numClusters: clusterId };
         }
 
+        // ================= MOTEUR D'INFÉRENCE : SYSTÈME EXPERT =================
+        function getClusterMap(freqData, k) {
+            let entries = Object.entries(freqData).filter(([key,v]) => key !== "Non renseigné");
+            entries.sort((a,b) => a[1] - b[1]);
+            let counts = entries.map(e => e[1]);
+            let labels = entries.map(e => e[0]);
+            let assignments = performJenks(counts, k);
+            let map = {};
+            for(let i=0; i<labels.length; i++) { map[labels[i]] = assignments[i]; }
+            return map;
+        }
+
+        function runExpertSystem(freqDren, freqCisco, freqZap) {
+            let drensMap = getClusterMap(freqDren, 3);
+            let ciscosMap = getClusterMap(freqCisco, 3);
+            let zapsMap = getClusterMap(freqZap, 3);
+            
+            let expertResults = [];
+
+            const applyRules = (map, type) => {
+                for (let [name, cluster] of Object.entries(map)) {
+                    let count = type === 'DREN' ? freqDren[name] : (type === 'CISCO' ? freqCisco[name] : freqZap[name]);
+                    let status = "", rec = "", badgeClass = "";
+                    
+                    if (cluster === 0) {
+                        status = "CRITIQUE"; badgeClass = "bg-danger";
+                        rec = `Relance immédiate avec des Emails auprès des Responsables requise ou Appels Téléphoniques d'urgence`;
+                    } else if (cluster === 1) {
+                        status = "ATTENTION"; badgeClass = "bg-warning text-dark";
+                        rec = `Soutenir les Responsables avec des Emails d'encouragement`;
+                    } else if (cluster === 2) {
+                        status = "OPTIMAL"; badgeClass = "bg-success";
+                        rec = `Féliciter et encourager les Responsables`;
+                    }
+
+                    expertResults.push({ name, type, count, cluster, status, rec, badgeClass });
+                }
+            };
+
+            applyRules(drensMap, 'DREN');
+            applyRules(ciscosMap, 'CISCO');
+            applyRules(zapsMap, 'ZAP');
+
+            expertResults.sort((a, b) => {
+                if (a.cluster !== b.cluster) return a.cluster - b.cluster;
+                if (a.type !== b.type) return a.type.localeCompare(b.type);
+                return a.name.localeCompare(b.name);
+            });
+
+            let tbody = $('#expert-table-body').empty();
+            if (expertResults.length === 0) {
+                tbody.append('<tr><td colspan="5" class="text-center text-muted">Aucune donnée à analyser.</td></tr>');
+            } else {
+                expertResults.forEach(res => {
+                    let tr = $('<tr></tr>');
+                    tr.append(`<td><strong>${res.name}</strong></td>`);
+                    tr.append(`<td class="text-center"><span class="badge bg-secondary">${res.type}</span></td>`);
+                    tr.append(`<td class="text-center"><span class="badge bg-light text-dark border">${res.count}</span></td>`);
+                    tr.append(`<td class="text-center"><span class="badge ${res.badgeClass} p-2">${res.status}</span></td>`);
+                    tr.append(`<td><em>${res.rec}</em></td>`);
+                    
+                    tr.data('search', cleanSpaces(`${res.name} ${res.type} ${res.status} ${res.rec}`).toLowerCase());
+                    tbody.append(tr);
+                });
+            }
+        }
+
+        $('#search-expert-table').on('keyup', function() {
+            let val = cleanSpaces($(this).val()).toLowerCase();
+            $('#expert-table-body tr').filter(function() {
+                let s = $(this).data('search');
+                if(!s) return;
+                $(this).toggle(s.includes(val) || fuzzyMatch(val, s));
+            });
+        });
+
         // ================= LOGIQUE GENERALE =================
         async function loadDictionaryAutomatically() {
             try {
@@ -647,20 +766,6 @@
             for (const [bad, good] of Object.entries(corrections)) t = t.replace(new RegExp(bad, 'g'), good); 
             t = t.replace(/\b(d|l|qu|s|m|t|n)_/g, "$1'").replace(/_/g, ' ');
             return t.charAt(0).toUpperCase() + t.slice(1);
-        }
-
-        function levenshtein(a, b) {
-            if (a.length === 0) return b.length; if (b.length === 0) return a.length;
-            const matrix = [];
-            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-            for (let i = 1; i <= b.length; i++) {
-                for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1]; 
-                    else matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1); 
-                }
-            }
-            return matrix[b.length][a.length];
         }
 
         function fuzzyMatch(query, target) {
@@ -830,7 +935,7 @@
             $('#record-count').text(data.length);
         }
 
-        // ================= GESTION DES GRAPHIQUES ET DES LISTES DE CLUSTERING (MOTEUR UNIQUE) =================
+        // ================= GESTION DES GRAPHIQUES ET DES LISTES DE CLUSTERING =================
         function renderAlgorithmChart(algo, canvasId, listContainerId, freqData, existingChart, setChartRef) {
             if (existingChart) existingChart.destroy();
             
@@ -971,6 +1076,8 @@
             renderAlgorithmChart('dbscan', 'dbscanChartDREN', 'dbscanListsDREN', freqDren, chartsRefs.dbscan.DREN, c => chartsRefs.dbscan.DREN = c);
             renderAlgorithmChart('dbscan', 'dbscanChartCISCO', 'dbscanListsCISCO', freqCisco, chartsRefs.dbscan.CISCO, c => chartsRefs.dbscan.CISCO = c);
             renderAlgorithmChart('dbscan', 'dbscanChartZAP', 'dbscanListsZAP', freqZap, chartsRefs.dbscan.ZAP, c => chartsRefs.dbscan.ZAP = c);
+
+            runExpertSystem(freqDren, freqCisco, freqZap);
         }
 
         // ================= FILTRES ET INTERACTIVITE =================
