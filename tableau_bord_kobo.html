@@ -376,19 +376,19 @@
 
                 <div class="tab-content" id="clustering-pills-tabContent">
                     <div class="tab-pane fade show active" id="pills-dren" role="tabpanel">
-                        <div class="analysis-card shadow-sm" style="position: relative; height: 70vh;">
+                        <div class="analysis-card shadow-sm" style="position: relative; height: 65vh;">
                             <canvas id="clusterChartDREN"></canvas>
                         </div>
                         <div id="clusterListsDREN" class="mt-4"></div>
                     </div>
                     <div class="tab-pane fade" id="pills-cisco" role="tabpanel">
-                        <div class="analysis-card shadow-sm" style="position: relative; height: 70vh;">
+                        <div class="analysis-card shadow-sm" style="position: relative; height: 65vh;">
                             <canvas id="clusterChartCISCO"></canvas>
                         </div>
                         <div id="clusterListsCISCO" class="mt-4"></div>
                     </div>
                     <div class="tab-pane fade" id="pills-zap" role="tabpanel">
-                        <div class="analysis-card shadow-sm" style="position: relative; height: 70vh;">
+                        <div class="analysis-card shadow-sm" style="position: relative; height: 65vh;">
                             <canvas id="clusterChartZAP"></canvas>
                         </div>
                         <div id="clusterListsZAP" class="mt-4"></div>
@@ -448,6 +448,23 @@
         function cleanSpaces(str) {
             if (str === null || str === undefined) return '';
             return String(str).replace(/\s+/g, ' ').trim();
+        }
+        
+        // --- FONCTION DE RETOUR A LA LIGNE (WORD WRAP POUR GRAPHIQUE) ---
+        function wrapLabel(text, maxChars) {
+            let words = text.split(' ');
+            let lines = [];
+            let line = '';
+            for (let i = 0; i < words.length; i++) {
+                if (line.length + words[i].length > maxChars) {
+                    if (line.trim() !== '') lines.push(line.trim());
+                    line = words[i] + ' ';
+                } else {
+                    line += words[i] + ' ';
+                }
+            }
+            if (line.trim() !== '') lines.push(line.trim());
+            return lines;
         }
 
         // --- GÉNÉRATEUR HORODATAGE ---
@@ -620,67 +637,6 @@
             t = t.replace(/\b(d|l|qu|s|m|t|n)_/g, "$1'");
             t = t.replace(/_/g, ' ');
             return t.charAt(0).toUpperCase() + t.slice(1);
-        }
-
-        function levenshtein(a, b) {
-            if (a.length === 0) return b.length;
-            if (b.length === 0) return a.length;
-            const matrix = [];
-            for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
-            for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
-            for (let i = 1; i <= b.length; i++) {
-                for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) { 
-                        matrix[i][j] = matrix[i - 1][j - 1]; 
-                    } else { 
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1, 
-                            matrix[i][j - 1] + 1,     
-                            matrix[i - 1][j] + 1      
-                        ); 
-                    }
-                }
-            }
-            return matrix[b.length][a.length];
-        }
-
-        function fuzzyMatch(query, target) {
-            if (!query) return true;
-            if (!target) return false;
-            query = cleanSpaces(query).toLowerCase();
-            target = cleanSpaces(target).toLowerCase();
-            
-            if (target.includes(query)) return true;
-            
-            const targetWords = query.split(/[\s,;.-]+/).filter(Boolean);
-            const sourceWords = target.split(/[\s,;.-]+/).filter(Boolean);
-            
-            for (let qw of targetWords) {
-                let wordMatch = false;
-                for (let tw of sourceWords) {
-                    if (tw.includes(qw)) { 
-                        wordMatch = true; 
-                        break; 
-                    }
-                    
-                    let minLen = Math.max(1, qw.length - 1);
-                    let maxLen = Math.min(tw.length, qw.length + 1);
-                    
-                    for (let len = minLen; len <= maxLen; len++) {
-                        for (let i = 0; i <= tw.length - len; i++) {
-                            let sub = tw.substring(i, i + len);
-                            if (levenshtein(qw, sub) <= 1) {
-                                wordMatch = true;
-                                break;
-                            }
-                        }
-                        if (wordMatch) break;
-                    }
-                    if (wordMatch) break;
-                }
-                if (!wordMatch) return false; 
-            }
-            return true;
         }
 
         function getTranslatedHeader(xmlName) {
@@ -995,6 +951,10 @@
             entries.sort((a,b) => a[1] - b[1]); 
             let counts = entries.map(e => e[1]);
             let labels = entries.map(e => e[0]);
+            
+            // LA SOLUTION MAGIQUE : On découpe les longs textes en tableaux de lignes (Word-Wrap)
+            let formattedLabels = labels.map(l => wrapLabel(l, 25)); 
+            
             let clusters = perform1DKMeans(counts, 3);
             
             let colors = ['rgba(52, 152, 219, 0.7)', 'rgba(243, 156, 18, 0.7)', 'rgba(39, 174, 96, 0.7)'];
@@ -1004,7 +964,7 @@
             let newChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: formattedLabels, // Chart.js gère nativement les tableaux comme des textes multilignes !
                     datasets: [{
                         label: 'Soumissions (Colorisé par Cluster IA)',
                         data: counts,
@@ -1019,13 +979,19 @@
                     maintainAspectRatio: false,
                     layout: {
                         padding: {
-                            bottom: 180, // Marge géante pour les très longs textes inclinés
-                            right: 50
+                            left: 30,    // Marge de sécurité à gauche
+                            bottom: 30,  // Grâce au multiligne, plus besoin d'une marge géante !
+                            right: 30,
+                            top: 20
                         }
                     },
                     plugins: {
                         tooltip: {
                             callbacks: {
+                                title: function(context) {
+                                    // Au survol, on affiche la phrase originale entière sur une seule ligne
+                                    return labels[context[0].dataIndex];
+                                },
                                 afterLabel: function(context) {
                                     let cl = clusters[context.dataIndex];
                                     let clName = cl === 0 ? "Activité Faible" : cl === 1 ? "Activité Moyenne" : "Forte Activité";
@@ -1041,7 +1007,8 @@
                             ticks: { 
                                 maxRotation: 45, 
                                 minRotation: 45,
-                                autoSkip: false
+                                autoSkip: false, // Force l'affichage de TOUS les labels
+                                font: { size: 11 }
                             } 
                         }
                     }
@@ -1643,7 +1610,7 @@
             <html lang="fr">
             <head>
                 <meta charset="utf-8">
-                <title>Export Analyse KoboToolbox</title>
+                <title>Export Analyse - Plateforme de Suivi du PMA 2026</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
                     h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; line-height: 1.4;}
