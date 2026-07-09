@@ -200,7 +200,6 @@
                             <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                         </div>
                         
-                        <!-- BOUTONS D'EXPORT ET PARTAGE ONGLET 1 -->
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-download"></i> Exporter
@@ -241,7 +240,6 @@
             <!-- ONGLET 2 : ANALYSE & IA -->
             <div class="tab-pane fade" id="analyse" role="tabpanel">
                 
-                <!-- EN-TÊTE ONGLET 2 AVEC EXPORT ET PARTAGE -->
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                     <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
                     
@@ -975,12 +973,9 @@
             return text === "" ? "- Aucun filtre (Toutes les données)" : text;
         }
 
-        // --- GESTION DÉDIÉE DES FILTRES ONGLET 2 (NETTOYÉ) ---
+        // --- GESTION DÉDIÉE DES FILTRES ONGLET 2 (UNIQUEMENT LOCAUX) ---
         function getAnalysisFilters() {
             return {
-                "Filtre Global - DREN": $('#filter-dren').val() || "Tous",
-                "Filtre Global - CISCO": $('#filter-cisco').val() || "Tous",
-                "Filtre Global - ZAP": $('#filter-zap').val() || "Tous",
                 "Recherche Locale - Tableau DREN": $('#search-dren-table').val() || "Aucune",
                 "Recherche Locale - Tableau CISCO": $('#search-cisco-table').val() || "Aucune",
                 "Recherche Locale - Tableau ZAP": $('#search-zap-table').val() || "Aucune"
@@ -991,11 +986,11 @@
             let filters = getAnalysisFilters();
             let text = "";
             for (let key in filters) {
-                if (filters[key] !== "Tous" && filters[key] !== "Aucune") {
+                if (filters[key] !== "Aucune") {
                     text += `- ${key} : ${filters[key]}\n`;
                 }
             }
-            return text === "" ? "- Aucun filtre géographique global ou local appliqué" : text;
+            return text === "" ? "- Aucun filtre local appliqué" : text;
         }
 
         // --- FONCTIONS D'EXPORTATION ONGLET 1 ---
@@ -1178,7 +1173,7 @@
         
         function getAnalysisJSONData() {
             let finalOutput = {
-                "criteres_de_recherche": getAnalysisFilters(),
+                "criteres_de_recherche_locaux": getAnalysisFilters(),
                 "analyse_dren": [],
                 "analyse_cisco": [],
                 "analyse_zap": []
@@ -1218,7 +1213,7 @@
             let csv = [];
             let filters = getAnalysisFilters();
             
-            csv.push('"--- CRITERES DE RECHERCHE GLOBAUX ET LOCAUX APPLIQUES ---"');
+            csv.push('"--- CRITERES DE RECHERCHE LOCAUX APPLIQUES ---"');
             for (let key in filters) { csv.push('"' + key + '";"' + filters[key] + '"'); }
             csv.push("");
 
@@ -1251,7 +1246,7 @@
             let wsData = [];
 
             let filters = getAnalysisFilters();
-            wsData.push(["--- CRITERES DE RECHERCHE GLOBAUX ET LOCAUX APPLIQUES ---"]);
+            wsData.push(["--- CRITERES DE RECHERCHE LOCAUX APPLIQUES ---"]);
             for (let key in filters) { wsData.push([key, filters[key]]); }
             wsData.push([]);
 
@@ -1283,7 +1278,7 @@
         function exportAnalysisToHTML(filename) {
             let filters = getAnalysisFilters();
             let filterHtml = `<div style="background-color: #e8f4f8; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                <h3 style="margin-top: 0; color: #2c3e50;">Critères de recherche (Globaux et Locaux)</h3>
+                <h3 style="margin-top: 0; color: #2c3e50;">Critères de recherche locaux appliqués</h3>
                 <ul style="list-style-type: none; padding-left: 0;">`;
             for (let key in filters) {
                 filterHtml += `<li style="margin-bottom: 5px;"><strong>${key}</strong> : ${filters[key]}</li>`;
@@ -1378,7 +1373,7 @@
                 let subject = encodeURIComponent("Rapport Synthétique d'Analyse KoboToolbox");
                 
                 let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le rapport d'analyse synthétique généré depuis le tableau de bord KoboToolbox.\n\n` + 
-                               `🎯 CRITÈRES D'ANALYSE (GLOBAUX ET LOCAUX) :\n${filtresEnClair}\n\n` +
+                               `🎯 CRITÈRES D'ANALYSE (LOCAUX) :\n${filtresEnClair}\n\n` +
                                `=== DONNÉES SYNTHÉTIQUES FORMAT JSON ===\n\n[ FAITES CLIC DROIT -> COLLER ICI ]\n\n===========================\n\nCordialement.`;
                                
                 let body = encodeURIComponent(bodyText);
@@ -1397,7 +1392,7 @@
                 alert("✅ SUCCÈS !\n\nLe texte JSON d'analyse a été copié automatiquement dans votre presse-papiers.\n\nDans la fenêtre WhatsApp qui va s'ouvrir, faites simplement 'Clic Droit > Coller' (ou Ctrl+V) dans la zone de texte.");
                 
                 let bodyText = `📊 *Synthèse Analytique KoboToolbox*\n\nLe rapport croisé vient d'être généré.\n\n` +
-                               `🎯 *CRITÈRES D'ANALYSE (GLOBAUX ET LOCAUX) :*\n${filtresEnClair}\n\n` +
+                               `🎯 *CRITÈRES D'ANALYSE (LOCAUX) :*\n${filtresEnClair}\n\n` +
                                `*DONNÉES SYNTHÉTIQUES FORMAT JSON :*\n\n[ FAITES CLIC DROIT -> COLLER ICI ]`;
                                
                 let text = encodeURIComponent(bodyText);
