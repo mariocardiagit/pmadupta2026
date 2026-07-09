@@ -116,6 +116,18 @@
         .text-expert { color: #8e44ad !important; }
         .bg-expert { background-color: #8e44ad !important; color: white; }
         .border-expert { border-color: #8e44ad !important; border-left: 5px solid #8e44ad !important; }
+        
+        /* Formules mathématiques HTML */
+        .math-box {
+            font-family: 'Cambria', 'Courier New', monospace;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 1.05rem;
+            color: #2c3e50;
+            display: inline-block;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -346,8 +358,17 @@
                     <h4 class="text-primary m-0"><i class="fas fa-project-diagram"></i> Algorithme 1 : K-Means (Centre de Gravité)</h4>
                 </div>
                 <div class="ai-insights shadow-sm mb-4 border-primary" style="border-left-color: rgba(41, 128, 185, 1) !important; background: linear-gradient(135deg, #ebf5fb 0%, #d6eaf8 100%);">
-                    <h5 style="color: rgba(41, 128, 185, 1);"><i class="fas fa-lightbulb"></i> Fonctionnement : K-Means</h5>
-                    <p><strong>L'algorithme géométrique classique.</strong> Il cherche le centre de gravité des soumissions.</p>
+                    <h5 style="color: rgba(41, 128, 185, 1);"><i class="fas fa-lightbulb"></i> Explicabilité : Comment fonctionne le K-Means ?</h5>
+                    <p><strong>C'est l'algorithme géométrique de référence.</strong> Son objectif est de partitionner les entités en $K$ groupes (ici $K=3$) en cherchant mathématiquement le "centre de gravité" moyen des soumissions.</p>
+                    <p>Pour cela, l'Intelligence Artificielle cherche à minimiser la variance intra-cluster (l'inertie $J$), c'est-à-dire la somme des distances au carré entre chaque entité $x_i$ et le centroïde $\mu_j$ de son groupe :</p>
+                    <div class="text-center mb-3 mt-2">
+                        <span class="math-box"><strong>J = &Sigma; &Sigma; || x<sub>i</sub> - &mu;<sub>j</sub> ||<sup>2</sup></strong></span>
+                    </div>
+                    <ul class="mb-0">
+                        <li><strong>x<sub>i</sub></strong> : Le nombre de soumissions exact d'une DREN, CISCO ou ZAP.</li>
+                        <li><strong>&mu;<sub>j</sub></strong> : La moyenne (le centre de gravité dynamique) du cluster évalué.</li>
+                        <li><em>En pratique :</em> Le modèle tourne en boucle jusqu'à ce que plus aucune entité ne puisse trouver un centre de gravité plus proche que le sien.</li>
+                    </ul>
                 </div>
                 <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
                     <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#kmeans-dren" type="button">Clustering DREN</button></li>
@@ -367,8 +388,17 @@
                     <h4 class="text-success m-0"><i class="fas fa-layer-group"></i> Algorithme 2 : Jenks (Natural Breaks)</h4>
                 </div>
                 <div class="ai-insights shadow-sm mb-4 border-success" style="border-left-color: rgba(46, 204, 113, 1) !important; background: linear-gradient(135deg, #eafaf1 0%, #d5f5e3 100%);">
-                    <h5 style="color: rgba(46, 204, 113, 1);"><i class="fas fa-bullseye"></i> Fonctionnement : Algorithme de Jenks</h5>
-                    <p><strong>Le roi de la précision unidimensionnelle (1D).</strong> Il calcule les "ruptures naturelles" en réduisant au maximum la variance (les écarts) à l'intérieur d'un même groupe. C'est l'algorithme absolu en cartographie.</p>
+                    <h5 style="color: rgba(46, 204, 113, 1);"><i class="fas fa-bullseye"></i> Explicabilité : L'optimisation 1D de Jenks</h5>
+                    <p><strong>Le roi incontesté de la précision unidimensionnelle (1D).</strong> Contrairement au K-Means, Jenks est un algorithme déterministe absolu très prisé en cartographie. Il évalue toutes les combinaisons possibles pour trouver les "ruptures naturelles" des données.</p>
+                    <p>Le but de l'IA est de maximiser la Qualité d'Ajustement de la Variance (GVF) en comparant la Somme des Carrés Totale ($SDTM$) et la Somme des Carrés Intra-Classe ($SDIC$) :</p>
+                    <div class="text-center mb-3 mt-2">
+                        <span class="math-box text-success"><strong>GVF = ( SDTM - SDIC ) / SDTM</strong></span>
+                    </div>
+                    <ul class="mb-0">
+                        <li><strong>SDTM</strong> : L'écart au carré de chaque entité par rapport à la moyenne globale nationale.</li>
+                        <li><strong>SDIC</strong> : L'écart au carré par rapport à la moyenne de son seul sous-groupe (Faible, Moyen, Fort).</li>
+                        <li><em>En pratique :</em> Le système réduit mathématiquement au maximum l'écart à l'intérieur d'un même groupe, tout en maximisant l'écart entre les groupes différents.</li>
+                    </ul>
                 </div>
                 <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
                     <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#jenks-dren" type="button">Clustering DREN</button></li>
@@ -388,8 +418,17 @@
                     <h4 class="text-danger m-0"><i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Densité et Bruit)</h4>
                 </div>
                 <div class="ai-insights shadow-sm mb-4 border-danger" style="border-left-color: rgba(231, 76, 60, 1) !important; background: linear-gradient(135deg, #fdedec 0%, #fadbd8 100%);">
-                    <h5 style="color: rgba(231, 76, 60, 1);"><i class="fas fa-search-location"></i> Fonctionnement : DBSCAN</h5>
-                    <p><strong>L'algorithme basé sur la densité.</strong> Il est imprévisible mais puissant : il décide <strong>lui-même</strong> du nombre de groupes à créer (Cluster 1, 2, 3...) et isole en rouge les <strong>"Anomalies" (Bruit)</strong>, c'est-à-dire les DREN ou CISCO qui ont un comportement statistique totalement anormal par rapport aux autres !</p>
+                    <h5 style="color: rgba(231, 76, 60, 1);"><i class="fas fa-search-location"></i> Explicabilité : DBSCAN et détection de Bruit</h5>
+                    <p><strong>L'algorithme de clustering basé sur la densité locale.</strong> Extrêmement puissant, le DBSCAN est imprévisible : il n'est pas bridé par un nombre $K$ imposé. L'IA décide <strong>elle-même</strong> combien de clusters existent réellement, et isole les comportements exceptionnels qu'elle qualifie de "Bruit" (Anomalies en rouge).</p>
+                    <p>Une entité $x$ déclenche la création d'un cluster uniquement si son voisinage spatial respecte les paramètres de densité de l'algorithme :</p>
+                    <div class="text-center mb-3 mt-2">
+                        <span class="math-box text-danger"><strong>| N<sub>&epsilon;</sub>(x) | &ge; MinPts</strong></span>
+                    </div>
+                    <ul class="mb-0">
+                        <li><strong>&epsilon; (Epsilon)</strong> : La distance de tolérance (le "rayon de recherche") calculé dynamiquement à partir de la dispersion des données.</li>
+                        <li><strong>MinPts</strong> : Le nombre minimal de voisins requis (ici $MinPts = 2$) pour confirmer un comportement de groupe.</li>
+                        <li><em>En pratique :</em> Toute DREN ou CISCO qui n'a aucun voisin statistique dans la limite fixée par &epsilon; est expulsée des statistiques normales et classée en <strong class="text-danger">Anomalie</strong>.</li>
+                    </ul>
                 </div>
                 <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
                     <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#dbscan-dren" type="button">Clustering DREN</button></li>
@@ -410,7 +449,7 @@
                 </div>
                 <div class="ai-insights shadow-sm mb-4 border-expert" style="background: linear-gradient(135deg, #f5eef8 0%, #ebdef0 100%);">
                     <h5 class="text-expert"><i class="fas fa-clipboard-check"></i> Explicabilité de l'IA (Explainable AI)</h5>
-                    <p>Pour garantir une transparence totale des décisions administratives, cet onglet affiche <strong>le raisonnement complet</strong> de la machine. L'IA combine les statistiques de l'Algorithme de Jenks avec les Règles d'Action de l'Expert pour générer son diagnostic.</p>
+                    <p>Pour garantir une transparence totale des décisions administratives, cet onglet affiche <strong>le raisonnement complet</strong> de la machine. L'IA combine les statistiques de l'Algorithme de Jenks (le plus précis en 1D) avec les Règles d'Action de l'Expert pour générer son diagnostic final.</p>
                 </div>
                 
                 <!-- NOUVEAU BLOC : EXPLICATIONS ET SEUILS -->
@@ -440,7 +479,7 @@
                         <div class="card border-success shadow-sm h-100">
                             <div class="card-header bg-success text-white fw-bold"><i class="fas fa-calculator"></i> Raisonnement Mathématique (Seuils de Jenks)</div>
                             <div class="card-body">
-                                <p class="text-muted small mb-3">Voici les ruptures de variance calculées en temps réel par l'algorithme de Jenks pour classer les entités :</p>
+                                <p class="text-muted small mb-3">Voici les ruptures de variance calculées dynamiquement par l'algorithme de Jenks pour classer objectivement les entités :</p>
                                 <ul class="list-unstyled mb-0" id="expert-thresholds-content">
                                     <!-- Injecté par JS -->
                                 </ul>
@@ -678,7 +717,6 @@
             return map;
         }
 
-        // Fonction pour afficher l'explicabilité de Jenks (les seuils)
         function renderExpertThresholds(freqDren, freqCisco, freqZap) {
             const getBreaksInfo = (freqData) => {
                 let counts = Object.entries(freqData).filter(([k,v]) => k !== "Non renseigné").map(e => e[1]);
@@ -711,7 +749,6 @@
         }
 
         function runExpertSystem(freqDren, freqCisco, freqZap) {
-            // Affichage des seuils (Explicabilité)
             renderExpertThresholds(freqDren, freqCisco, freqZap);
 
             let drensMap = getClusterMap(freqDren, 3);
