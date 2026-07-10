@@ -91,6 +91,27 @@
             z-index: 100;
             position: relative;
         }
+        
+        /* Infobulle pour l'aperçu des images au survol */
+        #image-preview-tooltip {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            border: 3px solid #2980b9;
+            border-radius: 8px;
+            background: #fff;
+            padding: 5px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            pointer-events: none; /* Empêche le curseur d'interagir avec l'infobulle */
+        }
+        #image-preview-tooltip img {
+            max-width: 350px;
+            max-height: 350px;
+            border-radius: 4px;
+            object-fit: contain;
+            display: block;
+        }
+
         .group-header-survey { background-color: #2980b9 !important; color: white !important; font-weight: 600; border-bottom: 2px solid #1f618d !important; }
         .group-header-meta { background-color: #7f8c8d !important; color: white !important; font-weight: 600; border-bottom: 2px solid #616a6b !important; }
         .sub-header-survey { background-color: #34495e !important; color: white !important; font-weight: 500; }
@@ -154,6 +175,11 @@
     </style>
 </head>
 <body>
+    <!-- Infobulle dynamique pour l'aperçu des images -->
+    <div id="image-preview-tooltip">
+        <img id="preview-img" src="" alt="Aperçu de l'image">
+    </div>
+
     <div class="container-fluid">
         <h3 class="text-center header-title"><i class="fas fa-chart-line text-primary"></i> Plateforme de Suivi du Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel (PTA) de l'Année 2026 des Services Techniques Déconcentrés (STD)</h3>
         <h5 class="text-center header-subtitle">Tableau de Bord : Données & Analytics KoboToolbox</h5>
@@ -546,7 +572,6 @@
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <h5 class="text-secondary m-0"><i class="fas fa-list-ul"></i> Registre des Diagnostics et Recommandations</h5>
                         
-                        <!-- NOUVEAUX BOUTONS D'EXPORT ET PARTAGE EXPERT -->
                         <div class="d-flex align-items-center flex-wrap gap-3">
                             <div class="btn-group shadow-sm">
                                 <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter la Recommandation</button>
@@ -569,7 +594,6 @@
                                 <button class="btn btn-secondary btn-sm" onclick="scrollExpertDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                             </div>
                         </div>
-                        <!-- FIN NOUVEAUX BOUTONS -->
                         
                     </div>
                     <input type="text" id="search-expert-table" class="form-control form-control-sm mb-3" placeholder="Rechercher une entité ou un diagnostic..." autocomplete="off">
@@ -762,6 +786,39 @@
             { key: 'sousActiviteZap', matches: ['sous_activite', 'sous-activite'], mustMatch: ['zap'], ex: [], label: 'Sous-activité de la ZAP', xmlName: '' },
             { key: 'sousProduitZap', matches: ['sous_produit', 'sous-produit'], mustMatch: ['zap'], ex: [], label: 'Sous-produit de la ZAP', xmlName: '' }
         ];
+
+        // Fonctions de l'infobulle (Tooltip Image)
+        function showImagePreview(event, url) {
+            const tooltip = document.getElementById('image-preview-tooltip');
+            const img = document.getElementById('preview-img');
+            img.src = url;
+            tooltip.style.display = 'block';
+            moveImagePreview(event);
+        }
+
+        function hideImagePreview() {
+            document.getElementById('image-preview-tooltip').style.display = 'none';
+            document.getElementById('preview-img').src = '';
+        }
+
+        function moveImagePreview(event) {
+            const tooltip = document.getElementById('image-preview-tooltip');
+            if (tooltip.style.display === 'block') {
+                let x = event.clientX + 15;
+                let y = event.clientY + 15;
+                
+                // Anti-débordement à droite et en bas
+                if (x + tooltip.offsetWidth > window.innerWidth) {
+                    x = event.clientX - tooltip.offsetWidth - 15;
+                }
+                if (y + tooltip.offsetHeight > window.innerHeight) {
+                    y = event.clientY - tooltip.offsetHeight - 15;
+                }
+                
+                tooltip.style.left = x + 'px';
+                tooltip.style.top = y + 'px';
+            }
+        }
 
         function cleanSpaces(str) { return str === null || str === undefined ? '' : String(str).replace(/\s+/g, ' ').trim(); }
         
@@ -1239,10 +1296,18 @@
                         let att = rowData._attachments.find(a => a.media_file_basename === subStr);
                         if (att && att.download_url) {
                             if (isRaw) return att.download_url;
-                            if (currentImageMode === 'image' && ((att.mimetype && att.mimetype.startsWith('image/')) || (att.filename && att.filename.match(/\.(jpeg|jpg|png)$/i)))) {
+                            
+                            // Détection si c'est une image (pour afficher ou non l'infobulle)
+                            let isImage = ((att.mimetype && att.mimetype.startsWith('image/')) || (att.filename && att.filename.match(/\.(jpeg|jpg|png|gif)$/i)));
+                            
+                            if (currentImageMode === 'image' && isImage) {
                                 return `<a href="${att.download_url}" target="_blank"><img src="${att.download_url}" class="table-img"></a>`;
                             }
-                            return `<a href="${att.download_url}" target="_blank" class="text-primary text-decoration-underline"><i class="fas fa-link"></i> Lien</a>`;
+                            
+                            // Ajout des événements d'infobulle si c'est une image
+                            let hoverAttrs = isImage ? `onmouseover="showImagePreview(event, '${att.download_url}')" onmouseout="hideImagePreview()" onmousemove="moveImagePreview(event)"` : '';
+                            
+                            return `<a href="${att.download_url}" target="_blank" class="text-primary text-decoration-underline" ${hoverAttrs}><i class="fas fa-link"></i> Lien</a>`;
                         }
                         return subStr;
                     });
