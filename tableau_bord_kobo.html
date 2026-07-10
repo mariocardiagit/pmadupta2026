@@ -545,11 +545,32 @@
                 <div class="analysis-card shadow-sm">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <h5 class="text-secondary m-0"><i class="fas fa-list-ul"></i> Registre des Diagnostics et Recommandations</h5>
-                        <!-- BOUTONS DE DEFILEMENT EXPERT -->
-                        <div class="btn-group" role="group">
-                            <button class="btn btn-secondary btn-sm" onclick="scrollExpertUp()" title="Défiler vers le haut"><i class="fas fa-arrow-up"></i></button>
-                            <button class="btn btn-secondary btn-sm" onclick="scrollExpertDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
+                        
+                        <!-- NOUVEAUX BOUTONS D'EXPORT ET PARTAGE EXPERT -->
+                        <div class="d-flex align-items-center flex-wrap gap-3">
+                            <div class="btn-group shadow-sm">
+                                <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter la Recommandation</button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#" onclick="exportExpertToCSV('recommandations_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="exportExpertToExcel('recommandations_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="exportExpertToHTML('recommandations_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer HTML</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="exportExpertToJSONFile('recommandations_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
+                                </ul>
+                            </div>
+                            <div class="btn-group shadow-sm">
+                                <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-share-alt"></i> Partager la Recommandation</button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#" onclick="sendExpertToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (JSON)</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="sendExpertToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (JSON)</a></li>
+                                </ul>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-secondary btn-sm" onclick="scrollExpertUp()" title="Défiler vers le haut"><i class="fas fa-arrow-up"></i></button>
+                                <button class="btn btn-secondary btn-sm" onclick="scrollExpertDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
+                            </div>
                         </div>
+                        <!-- FIN NOUVEAUX BOUTONS -->
+                        
                     </div>
                     <input type="text" id="search-expert-table" class="form-control form-control-sm mb-3" placeholder="Rechercher une entité ou un diagnostic..." autocomplete="off">
                     <div class="table-responsive border" id="expert-table-scroll-container" style="max-height: 600px;">
@@ -1582,6 +1603,67 @@
             downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
         }
 
+        function getExpertJSONData() {
+            let headers = ["Entité Administrative", "Niveau", "Soumissions", "Diagnostic du Système", "Action Requise / Recommandation"];
+            let jd = [];
+            $('#expert-table-body tr:visible').each(function() {
+                let r = {};
+                let cells = $(this).find('td');
+                if (cells.length === 5) {
+                    r[headers[0]] = cleanSpaces($(cells[0]).text());
+                    r[headers[1]] = cleanSpaces($(cells[1]).text());
+                    r[headers[2]] = cleanSpaces($(cells[2]).text());
+                    r[headers[3]] = cleanSpaces($(cells[3]).text());
+                    r[headers[4]] = cleanSpaces($(cells[4]).text());
+                    jd.push(r);
+                }
+            });
+            return JSON.stringify({ "titre_plateforme": TITRE_PLATEFORME, "sous_titre": "Registre des Diagnostics et Recommandations", "date_exportation": getFormattedDateTime(), "resultats": jd }, null, 2);
+        }
+
+        function exportExpertToJSONFile(pfx) { downloadFile(new Blob([getExpertJSONData()], { type: 'application/json;charset=utf-8;' }), generateFilename(pfx, 'json')); }
+
+        function exportExpertToCSV(pfx) {
+            let fn = generateFilename(pfx, 'csv'), csv = [], d = getFormattedDateTime();
+            csv.push(`"${TITRE_PLATEFORME}"`); csv.push(`"Registre des Diagnostics et Recommandations"`); csv.push("");
+            csv.push(`"--- METADONNEES D'EXPORT ---"`); csv.push(`"Date d'exportation";"${d}"`); csv.push("");
+            csv.push(`"Entité Administrative";"Niveau";"Soumissions";"Diagnostic du Système";"Action Requise / Recommandation"`);
+            $('#expert-table-body tr:visible').each(function() {
+                let cells = $(this).find('td');
+                if(cells.length === 5) {
+                    let row = [];
+                    for(let i=0; i<5; i++) {
+                        row.push(`"${cleanSpaces($(cells[i]).text()).replace(/"/g, '""')}"`);
+                    }
+                    csv.push(row.join(";"));
+                }
+            });
+            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
+        }
+
+        function exportExpertToExcel(pfx) {
+            let fn = generateFilename(pfx, 'xlsx'), wb = XLSX.utils.book_new(), wsD = [];
+            wsD.push([TITRE_PLATEFORME]); wsD.push(["Registre des Diagnostics et Recommandations"]); wsD.push([]);
+            wsD.push(["Date d'exportation", getFormattedDateTime()]); wsD.push([]);
+            wsD.push(["Entité Administrative", "Niveau", "Soumissions", "Diagnostic du Système", "Action Requise / Recommandation"]);
+            $('#expert-table-body tr:visible').each(function() {
+                let cells = $(this).find('td');
+                if(cells.length === 5) {
+                    let row = [];
+                    for(let i=0; i<5; i++) row.push(cleanSpaces($(cells[i]).text()));
+                    wsD.push(row);
+                }
+            });
+            let ws = XLSX.utils.aoa_to_sheet(wsD);
+            XLSX.utils.book_append_sheet(wb, ws, "Recommandations"); XLSX.writeFile(wb, fn);
+        }
+
+        function exportExpertToHTML(pfx) {
+            let clone = document.getElementById('expert-table').outerHTML;
+            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px;}table{border-collapse:collapse;width:100%;margin-top:20px;}th,td{border:1px solid #ddd;padding:8px;}th{background:#8e44ad;color:#fff;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4>Registre des Diagnostics et Recommandations (Généré le ${getFormattedDateTime()})</h4>${clone}</body></html>`;
+            downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
+        }
+
         function sendToGmail() {
             let j = getTableJSONData(); navigator.clipboard.writeText(j).then(function() {
                 alert("✅ SUCCÈS !\nLe texte JSON est copié dans votre presse-papiers.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
@@ -1607,6 +1689,20 @@
             let j = getAnalysisJSONData(); navigator.clipboard.writeText(j).then(function() {
                 alert("✅ SUCCÈS !\nLe JSON d'analyse est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
                 window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Synthèse Kobo*\nDate : ${getFormattedDateTime()}\n*Critères :*\n${getAnalysisFiltersPlainText()}\n*IA :*\n${getAiInsightsArray().join('\n')}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
+            }).catch(function() { alert("❌ Erreur Presse-papiers."); });
+        }
+
+        function sendExpertToGmail() {
+            let j = getExpertJSONData(); navigator.clipboard.writeText(j).then(function() {
+                alert("✅ SUCCÈS !\nLe texte JSON des recommandations est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Recommandations - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous le registre des diagnostics du Système Expert.\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
+            }).catch(function() { alert("❌ Erreur Presse-papiers."); });
+        }
+
+        function sendExpertToWhatsApp() {
+            let j = getExpertJSONData(); navigator.clipboard.writeText(j).then(function() {
+                alert("✅ SUCCÈS !\nLe texte JSON des recommandations est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Recommandations Système Expert*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
