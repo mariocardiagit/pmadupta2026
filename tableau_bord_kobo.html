@@ -67,7 +67,8 @@
         }
         .table-responsive {
             max-height: 600px;
-            overflow: auto; 
+            overflow-y: auto; 
+            overflow-x: auto;
             scroll-behavior: smooth;
         }
         #data-table th, #data-table td {
@@ -437,7 +438,7 @@
                 </div>
                 <div class="ai-insights shadow-sm mb-4 border-danger" style="border-left-color: rgba(231, 76, 60, 1) !important; background: linear-gradient(135deg, #fdedec 0%, #fadbd8 100%);">
                     <h5 style="color: rgba(231, 76, 60, 1);"><i class="fas fa-search-location"></i> Explicabilité : DBSCAN et détection de Bruit</h5>
-                    <p><strong>L'algorithme basé sur la densité locale.</strong> Extrêmement puissant, le DBSCAN est imprévisible : il n'est pas bridé par un nombre $K$ imposé. L'IA décide <strong>elle-même</strong> combien de clusters existent réellement, et isole les comportements exceptionnels qu'elle qualifie de "Bruit" (Anomalies en rouge).</p>
+                    <p><strong>L'algorithme de clustering basé sur la densité locale.</strong> Extrêmement puissant, le DBSCAN est imprévisible : il n'est pas bridé par un nombre $K$ imposé. L'IA décide <strong>elle-même</strong> combien de clusters existent réellement, et isole les comportements exceptionnels qu'elle qualifie de "Bruit" (Anomalies en rouge).</p>
                     <p>Une entité $x$ déclenche la création d'un cluster uniquement si son voisinage spatial respecte les paramètres de densité de l'algorithme :</p>
                     <div class="text-center mb-3 mt-2">
                         <span class="math-box text-danger"><strong>| N<sub>&epsilon;</sub>(x) | &ge; MinPts</strong></span>
@@ -479,6 +480,7 @@
                     <p>Pour garantir une transparence totale des décisions administratives, cet onglet affiche <strong>le raisonnement complet</strong> de la machine. L'IA combine les statistiques de l'Algorithme de Jenks (le plus précis en 1D) avec les Règles d'Action de l'Expert pour générer son diagnostic final.</p>
                 </div>
                 
+                <!-- BLOC : EXPLICATIONS ET SEUILS -->
                 <div class="row mb-4">
                     <div class="col-md-6 mb-3 mb-md-0">
                         <div class="card border-expert shadow-sm h-100">
@@ -513,12 +515,20 @@
                         </div>
                     </div>
                 </div>
+                <!-- FIN BLOC -->
 
                 <div class="analysis-card shadow-sm">
-                    <h5 class="text-secondary mb-3"><i class="fas fa-list-ul"></i> Registre des Diagnostics et Recommandations</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <h5 class="text-secondary m-0"><i class="fas fa-list-ul"></i> Registre des Diagnostics et Recommandations</h5>
+                        <!-- BOUTONS DE DEFILEMENT EXPERT -->
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-secondary btn-sm" onclick="scrollExpertUp()" title="Défiler vers le haut"><i class="fas fa-arrow-up"></i></button>
+                            <button class="btn btn-secondary btn-sm" onclick="scrollExpertDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
+                        </div>
+                    </div>
                     <input type="text" id="search-expert-table" class="form-control form-control-sm mb-3" placeholder="Rechercher une entité ou un diagnostic..." autocomplete="off">
-                    <div class="table-responsive" style="max-height: 600px;">
-                        <table class="table table-bordered table-hover align-middle" id="expert-table">
+                    <div class="table-responsive border" id="expert-table-scroll-container" style="max-height: 600px;">
+                        <table class="table table-bordered table-hover align-middle mb-0" id="expert-table">
                             <thead class="bg-expert" style="position: sticky; top: 0; z-index: 5;">
                                 <tr>
                                     <th class="text-white text-center">Entité Administrative</th>
@@ -893,6 +903,14 @@
 
         function toggleImageMode() { currentImageMode = $('input[name="imageDisplayMode"]:checked').val(); renderTable(allData); applyFilters(); }
 
+        function scrollTableLeft() { document.getElementById('table-scroll-container').scrollBy({ left: -400, behavior: 'smooth' }); }
+        function scrollTableRight() { document.getElementById('table-scroll-container').scrollBy({ left: 400, behavior: 'smooth' }); }
+        function scrollTableUp() { document.getElementById('table-scroll-container').scrollBy({ top: -400, behavior: 'smooth' }); }
+        function scrollTableDown() { document.getElementById('table-scroll-container').scrollBy({ top: 400, behavior: 'smooth' }); }
+        
+        function scrollExpertUp() { document.getElementById('expert-table-scroll-container').scrollBy({ top: -400, behavior: 'smooth' }); }
+        function scrollExpertDown() { document.getElementById('expert-table-scroll-container').scrollBy({ top: 400, behavior: 'smooth' }); }
+
         function smartKoboAutoCorrect(text) {
             if (!text) return '';
             let t = cleanSpaces(text).toLowerCase();
@@ -1096,7 +1114,6 @@
                     2: { title: "Forte Activité", bg: 'rgba(39, 174, 96, 0.7)', border: 'rgba(46, 204, 113, 1)', cardBg: 'bg-success text-white', badge: 'bg-success' }
                 };
                 
-                // Explicabilité K-Means (Calcul des Min/Max pour afficher les seuils)
                 let c0 = counts.filter((_, i) => assignments[i] === 0);
                 let c1 = counts.filter((_, i) => assignments[i] === 1);
                 let c2 = counts.filter((_, i) => assignments[i] === 2);
@@ -1122,7 +1139,6 @@
                     2: { title: "Forte Activité", bg: 'rgba(39, 174, 96, 0.7)', border: 'rgba(46, 204, 113, 1)', cardBg: 'bg-success text-white', badge: 'bg-success' }
                 };
 
-                // Explicabilité Jenks
                 let uniqueCounts = [...new Set(counts)];
                 if(uniqueCounts.length > 3) {
                     let br = getJenksBreaks(counts, 3);
@@ -1156,7 +1172,6 @@
                     clusterDefs[i] = { title: "Groupe " + (i+1), bg: p.bg, border: p.b, cardBg: p.c, badge: p.lb };
                 }
 
-                // Explicabilité DBSCAN
                 rulesHtml = `<div class="alert alert-danger py-2 mb-3 shadow-sm border-danger" style="font-size: 0.95rem;">
                     <strong><i class="fas fa-search"></i> Règles de Densité appliquées par DBSCAN :</strong><br>
                     <ul class="mb-0 mt-1">
@@ -1167,7 +1182,6 @@
                 </div>`;
             }
 
-            // Injection des règles HTML
             document.getElementById(rulesContainerId).innerHTML = rulesHtml;
 
             let bgColors = assignments.map(a => clusterDefs[a].bg);
