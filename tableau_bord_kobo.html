@@ -515,15 +515,15 @@
                                 <ul class="list-group list-group-flush">
                                     <li class="list-group-item py-3">
                                         <strong>SI</strong> [Forte Activité] <i class="fas fa-arrow-right mx-2 text-muted"></i> <strong>ALORS</strong> <span class="badge bg-success">OPTIMAL</span><br>
-                                        <em class="text-muted"><i class="fas fa-comment-dots text-success"></i> "Forte soumission des Formulaires KOBOTOOLBOX. Féliciter et encourager les Responsables ! Les decentes sur terrains auprès des Responsables Locaux peuvent être maintenues afin de garder constant le nombre de soumissions des Formulaires KOBOTOOLBOX"</em>
+                                        <em class="text-muted"><i class="fas fa-comment-dots text-success"></i> "Forte soumission des Formulaires KOBOTOOLBOX. Féliciter et encourager les Responsables ! Les descentes sur terrain auprès des Responsables Locaux peuvent être maintenues afin de garder constant le nombre de soumissions des Formulaires KOBOTOOLBOX"</em>
                                     </li>
                                     <li class="list-group-item py-3">
                                         <strong>SI</strong> [Activité Moyenne] <i class="fas fa-arrow-right mx-2 text-muted"></i> <strong>ALORS</strong> <span class="badge bg-warning text-dark">ATTENTION</span><br>
-                                        <em class="text-muted"><i class="fas fa-comment-dots text-warning"></i> "Soumission Moyenne des Formulaires KOBOTOOLBOX. Soutenir les Responsables avec des Emails d'encouragement ! Les decentes sur terrains auprès des Responsables Locaux doivent être envisagées afin d'augmenter le nombre de soumissions des Formulaires KOBOTOOLBOX"</em>
+                                        <em class="text-muted"><i class="fas fa-comment-dots text-warning"></i> "Soumission Moyenne des Formulaires KOBOTOOLBOX. Soutenir les Responsables avec des Emails d'encouragement ! Les descentes sur terrain auprès des Responsables Locaux doivent être envisagées afin d'augmenter le nombre de soumissions des Formulaires KOBOTOOLBOX"</em>
                                     </li>
                                     <li class="list-group-item py-3">
                                         <strong>SI</strong> [Activité Faible] <i class="fas fa-arrow-right mx-2 text-muted"></i> <strong>ALORS</strong> <span class="badge bg-danger">CRITIQUE</span><br>
-                                        <em class="text-muted"><i class="fas fa-comment-dots text-danger"></i> "Faible soumission des Formulaires KOBOTOOLBOX. Relance immédiate avec des Emails auprès des Responsables Locaux requise ou Appels Téléphoniques d'urgence ! Les decentes sur terrains auprès des Responsables Locaux doivent immédiatement être envisagées de toute urgence afin d'augmenter le nombre de soumissions des Formulaires KOBOTOOLBOX. De plus des Actions de Sensibilisation auprès des Responsables Locaux expliquant l'intérêt de la manipulation de KOBOTOOLBOX doivent être entreprises de toute urgence !"</em>
+                                        <em class="text-muted"><i class="fas fa-comment-dots text-danger"></i> "Faible soumission des Formulaires KOBOTOOLBOX. Relance immédiate avec des Emails auprès des Responsables Locaux requise ou Appels Téléphoniques d'urgence ! Les descentes sur terrain auprès des Responsables Locaux doivent immédiatement être envisagées de toute urgence afin d'augmenter le nombre de soumissions des Formulaires KOBOTOOLBOX. De plus des Actions de Sensibilisation auprès des Responsables Locaux expliquant l'intérêt de la manipulation de KOBOTOOLBOX doivent être entreprises de toute urgence !"</em>
                                     </li>
                                 </ul>
                             </div>
@@ -956,13 +956,13 @@
                     
                     if (cluster === 0) {
                         status = "CRITIQUE"; badgeClass = "bg-danger";
-                        rec = `Faible soumission des Formulaires KOBOTOOLBOX. Relance immédiate avec des Emails auprès des Responsables Locaux requise ou Appels Téléphoniques d'urgence ! Les decentes sur terrains auprès des Responsables Locaux doivent immédiatement être envisagées de toute urgence afin d'augmenter le nombre de soumissions des Formulaires KOBOTOOLBOX. De plus des Actions de Sensibilisation auprès des Responsables Locaux expliquant l'intérêt de la manipulation de KOBOTOOLBOX doivent être entreprises de toute urgence !`;
+                        rec = `Faible soumission des Formulaires KOBOTOOLBOX. Relance immédiate avec des Emails auprès des Responsables Locaux requise ou Appels Téléphoniques d'urgence ! Les descentes sur terrain auprès des Responsables Locaux doivent immédiatement être envisagées de toute urgence afin d'augmenter le nombre de soumissions des Formulaires KOBOTOOLBOX. De plus des Actions de Sensibilisation auprès des Responsables Locaux expliquant l'intérêt de la manipulation de KOBOTOOLBOX doivent être entreprises de toute urgence !`;
                     } else if (cluster === 1) {
                         status = "ATTENTION"; badgeClass = "bg-warning text-dark";
-                        rec = `Soumission Moyenne des Formulaires KOBOTOOLBOX. Soutenir les Responsables avec des Emails d'encouragement ! Les decentes sur terrains auprès des Responsables Locaux doivent être envisagées afin d'augmenter le nombre de soumissions des Formulaires KOBOTOOLBOX`;
+                        rec = `Soumission Moyenne des Formulaires KOBOTOOLBOX. Soutenir les Responsables avec des Emails d'encouragement ! Les descentes sur terrain auprès des Responsables Locaux doivent être envisagées afin d'augmenter le nombre de soumissions des Formulaires KOBOTOOLBOX`;
                     } else if (cluster === 2) {
                         status = "OPTIMAL"; badgeClass = "bg-success";
-                        rec = `Forte soumission des Formulaires KOBOTOOLBOX. Féliciter et encourager les Responsables ! Les decentes sur terrains auprès des Responsables Locaux peuvent être maintenues afin de garder constant le nombre de soumissions des Formulaires KOBOTOOLBOX`;
+                        rec = `Forte soumission des Formulaires KOBOTOOLBOX. Féliciter et encourager les Responsables ! Les descentes sur terrain auprès des Responsables Locaux peuvent être maintenues afin de garder constant le nombre de soumissions des Formulaires KOBOTOOLBOX`;
                     }
 
                     expertResults.push({ name, type, count, cluster, status, rec, badgeClass });
