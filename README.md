@@ -1,80 +1,74 @@
 # pmadupta2026
-Tableau de Bord Kobotoolbox ! Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel FCE 2026
+Tableau de Bord Kobotoolbox ! Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel FCE 2026 des STD (DREN , CISCO , ZAP)
 
-Voici une proposition de fichier README.md complet, professionnel et structuré, prêt à être copié-collé sur la page d'accueil de votre dépôt GitHub.
+Pouvez vous réécrire le fichier README ? svp
 
-Il met en valeur l'architecture technique (100% frontend), les fonctionnalités avancées (Levenshtein, Data Lineage) et explique clairement le fonctionnement pour vos futurs collaborateurs.
+Voici une proposition complète et professionnelle pour votre fichier README.md. Il est structuré pour mettre en valeur toute la complexité algorithmique de votre travail, tout en restant clair pour d'éventuels collaborateurs ou décideurs administratifs.
 
-📊 Plateforme de Suivi du PMA - PTA 2026 (STD)
-Sous-titre : Tableau de Bord : Données & Analytics KoboToolbox
+J'ai rédigé ce document en utilisant le format Markdown standard (idéal pour GitHub).
 
+📊 Plateforme Intelligente de Suivi du PMA - PTA 2026 (STD)
 📝 Description du Projet
-Cette application web est un tableau de bord interactif et 100% frontend (Serverless). Elle est conçue pour le suivi du Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel (PTA) 2026 des Services Techniques Déconcentrés (STD) à Madagascar.
+Ce projet est un tableau de bord analytique "Single-Page Application" (SPA) conçu pour le suivi en temps réel du Paquet Minimum d'Activités (PMA) dans le cadre du Plan de Travail Annuel (PTA) 2026 des Services Techniques Déconcentrés (STD).
 
-L'outil se connecte en temps réel à l'API de KoboToolbox, récupère les données des formulaires terrain, traduit les codes bruts en labels lisibles (via un dictionnaire Excel), et offre une interface puissante d'analyse, de filtrage et d'exportation de données.
+Il se connecte dynamiquement à l'API de KoboToolbox pour récupérer, traduire (via un dictionnaire Excel automatisé) et traiter les données de terrain remontées par les DREN, CISCO et ZAP. La véritable force de cette plateforme réside dans son intégration de plusieurs modèles d'Intelligence Artificielle (Statistique et Symbolique) fonctionnant 100% côté client.
 
 ✨ Fonctionnalités Principales
-🔄 Synchronisation Dynamique : Connexion directe à l'API JSON KoboToolbox (via proxy CORS) pour récupérer les dernières soumissions en temps réel.
+1. Visualisation & Filtrage Avancé
+Synchronisation API : Récupération des formulaires KoboToolbox en direct.
 
-📖 Traduction Intelligente (Dictionnaire Excel) : Intégration de la librairie SheetJS pour lire à la volée le fichier XLS form Kobo (onglets survey et choices) et le fichier zaps.csv afin de traduire automatiquement les codes XML obscurs en données lisibles.
+Recherche Intelligente : Intégration de l'algorithme de distance de Levenshtein pour une recherche "Fuzzy" tolérante aux fautes de frappe.
 
-🧠 Moteur de Recherche Avancé (Fuzzy Search) : Implémentation d'un algorithme combinant la recherche par inclusion (LIKE %mot%) et le calcul de la distance de Levenshtein (tolérance d'une erreur de frappe) pour retrouver facilement les informations géographiques (DREN, CISCO, ZAP) ou les descriptifs d'activités.
+Traduction Automatisée : Nettoyage des chaînes de caractères et croisement avec des fichiers XLSX et CSV pour afficher des labels propres à la place des variables de base de données.
 
-📈 Module Analytique (Synthèse & IA) : Génération automatique de tableaux croisés synthétisant les remontées par zone géographique, avec barres de progression intégrées.
+2. Intelligence Artificielle Statistique (Clustering)
+La plateforme embarque un moteur d'Analyse Spatiale et Statistique divisé en trois algorithmes distincts (IA Explicable - XAI) pour segmenter les entités selon leurs performances :
 
-📤 Exports Traçables (Data Lineage) : Exportation des données brutes ou analysées en formats CSV, Excel (.xlsx), HTML statique et JSON. Chaque export embarque obligatoirement les métadonnées d'horodatage et les critères de recherche appliqués pour garantir l'intégrité de l'analyse.
+📐 K-Means (Centre de Gravité) : Partitionnement géométrique minimisant l'inertie intra-classe.
 
-🔗 Partage Intelligent (Gmail & WhatsApp) : Génération automatisée de rapports JSON synthétiques copiés dans le presse-papiers de l'utilisateur (contournement des limites de longueur d'URL des navigateurs), prêts à être collés dans un e-mail pré-formaté ou une discussion WhatsApp.
+🎯 Algorithme de Jenks (Natural Breaks) : Optimisation unidimensionnelle (1D) maximisant le critère GVF (Goodness of Variance Fit). Utilisé comme algorithme de référence pour le Système Expert.
 
-🏗️ Architecture et Technologies
-L'application repose sur une architecture statique légère, idéale pour un hébergement gratuit sur GitHub Pages, sans nécessiter de serveur backend (PHP, Node.js, Python, etc.).
+📡 DBSCAN (Densité) : Modèle basé sur la densité locale permettant de détecter et d'isoler automatiquement les anomalies statistiques (Bruit).
 
-HTML5 / CSS3 : Structure de la page.
+3. Intelligence Artificielle Symbolique (Système Expert)
+Un Moteur d'Inférence croise les ruptures de variance calculées par l'algorithme de Jenks avec une base de connaissances métier pour générer des recommandations managériales automatisées :
 
-JavaScript (Vanilla & ES6) : Logique algorithmique, parsing JSON, Levenshtein, presse-papiers.
+🟢 OPTIMAL : Félicitations et maintien des descentes sur terrain.
 
-jQuery (v3.6.0) : Manipulation dynamique du DOM.
+🟠 ATTENTION : Soutien par email et prévision de descentes.
 
-Bootstrap (v5.3.0) : Framework UI pour un design responsive et moderne.
+🔴 CRITIQUE : Relance immédiate, appels d'urgence et actions de sensibilisation de terrain obligatoires.
 
-SheetJS (xlsx.full.min.js) : Traitement côté client des fichiers Excel (lecture du dictionnaire et génération des exports .xlsx).
+4. Exportation et Partage Intégrés
+Exports complets : Fichiers générés en local aux formats .CSV, .XLSX, .JSON, et .HTML.
 
-FontAwesome (v6.0) : Typographie et icônes.
+Partage rapide : Injection directe des rapports d'analyse au format JSON dans Gmail et WhatsApp.
 
-📂 Structure des fichiers requis
-Pour que l'application fonctionne de manière optimale sur GitHub Pages, le dépôt doit contenir les éléments suivants à la racine :
+🚀 Installation & Utilisation (Développement Local)
+Aucun serveur backend lourd n'est requis pour la version actuelle. Le projet s'exécute directement dans le navigateur.
 
-index.html (ou tableau_bord_kobo.html) : Le fichier principal contenant le code source.
+Cloner le dépôt :
+Ouvrez Git Bash (ou le terminal de votre choix) et exécutez :
 
-ath6cv2NrXEUijffeKJqSf(12).xlsx : Le fichier d'outillage Kobo contenant le référentiel des questions et des choix.
+Bash
+git clone https://github.com/Mariogit20/suivi-pma-pta-2026.git
+Ouvrir le projet :
+Lancez le répertoire dans Visual Studio Code :
 
-zaps.csv : Le référentiel externe contenant la correspondance des codes ZAP.
+Bash
+cd suivi-pma-pta-2026
+code .
+Lancement :
+Ouvrez simplement le fichier tableau_bord_kobo.html dans un navigateur moderne (Chrome, Firefox, Edge) ou utilisez l'extension Live Server de VS Code pour recharger la page en direct lors de vos modifications.
 
-🚀 Installation & Déploiement
-Clonez ce dépôt ou uploadez les fichiers requis sur votre compte GitHub.
+(Note : Assurez-vous que les fichiers dictionnaire ath6cv2NrXEUijffeKJqSf(12).xlsx et zaps.csv se trouvent dans le même répertoire racine pour que le mapping de données fonctionne).
 
-Allez dans les Settings de votre dépôt GitHub.
+🗺️ Roadmap & Améliorations Futures
+[ ] Automatisation du Mapping de Données : Développer un script de synchronisation automatisé pour pousser les variables KoboToolbox vers Google Sheets, assurant la traduction des labels en amont de l'affichage HTML.
 
-Naviguez dans l'onglet Pages (dans le menu de gauche).
+[ ] Backend Django : Migration de l'architecture vers un projet multi-applications Django pour historiser les données et gérer les accès sécurisés.
 
-Dans la section "Build and deployment", sous "Source", choisissez Deploy from a branch.
+[ ] Application Compagnon (Kotlin) : Création d'une application Android native (avec SQLite local) pour alerter les responsables de terrain en temps réel en cas de statut de soumission "CRITIQUE".
 
-Sélectionnez la branche main (ou master), dossier / (root) et cliquez sur Save.
-
-Patientez quelques minutes. Votre application sera déployée et accessible via l'URL fournie par GitHub (ex: [https://votre-nom.github.io/votre-repo/](https://votre-nom.github.io/votre-repo/)).
-
-💡 Guide d'Utilisation
-Ouverture : À l'ouverture de la page, le script télécharge silencieusement le dictionnaire Excel, puis interroge l'API KoboToolbox. Le statut de synchronisation s'affiche en haut de l'écran.
-
-Filtrage (Onglet 1) : Utilisez les barres de recherche pour filtrer la matrice. N'hésitez pas à faire des fautes de frappe légères, le moteur Levenshtein corrigera automatiquement !
-
-Visualisation des Images : Cliquez sur le bouton "Véritables Images" pour afficher les preuves photographiques directement dans le tableau.
-
-Analyse (Onglet 2) : Basculez sur cet onglet pour voir la répartition des soumissions. Vous pouvez filtrer localement chaque tableau (DREN, CISCO, ZAP).
-
-Exportation : Cliquez sur "Exporter" ou "Partager". Si vous utilisez Gmail ou WhatsApp, le système vous indiquera qu'une charge utile a été copiée dans votre presse-papiers (Ctrl+V pour coller).
-
-⚠️ Notes de Sécurité et Limites
-CORS Policy : Pour contourner les politiques de sécurité des navigateurs (Cross-Origin Resource Sharing) interdisant à un domaine GitHub d'appeler l'API KoboToolbox en JavaScript pur, le proxy public [https://corsproxy.io/](https://corsproxy.io/)? est utilisé en amont de l'URL de l'API.
-
-Absence de Clé d'API : Les données Kobo ciblées ici sont configurées en accès public (data.json). Aucune clé privée ou token d'authentification n'est codé en dur dans le fichier HTML, respectant ainsi les bonnes pratiques de sécurité frontend.
+👨‍💻 Auteur
+Développé et maintenu par Mario (@Mariogit20).
