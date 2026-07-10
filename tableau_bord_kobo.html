@@ -1606,7 +1606,36 @@
         function exportTableToHTML(pfx) {
             let fh = `<div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px;"><h3 style="margin-top: 0;">Critères appliqués</h3><p><strong>Date :</strong> ${getFormattedDateTime()}</p><ul>`;
             let f = getCurrentFilters(); for (let k in f) fh += `<li><strong>${k}</strong> : ${f[k]}</li>`; fh += `</ul></div>`;
-            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px;}table{border-collapse:collapse;width:100%;margin-top:20px;}th,td{border:1px solid #ddd;padding:8px;}th{background:#333;color:#fff;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4>${SOUS_TITRE_PLATEFORME}</h4>${fh}${document.getElementById('data-table').outerHTML}</body></html>`;
+            
+            let tooltipHTML = `<div id="image-preview-tooltip" style="display: none; position: fixed; z-index: 9999; border: 3px solid #2980b9; border-radius: 8px; background: #fff; padding: 5px; box-shadow: 0 15px 30px rgba(0,0,0,0.3); pointer-events: none;"><img id="preview-img" src="" style="max-width: 350px; max-height: 350px; border-radius: 4px; object-fit: contain; display: block;" alt="Aperçu de l'image"></div>`;
+            
+            let scriptHTML = `<script>
+                function showImagePreview(event, url) {
+                    const tooltip = document.getElementById('image-preview-tooltip');
+                    const img = document.getElementById('preview-img');
+                    img.src = url;
+                    tooltip.style.display = 'block';
+                    moveImagePreview(event);
+                }
+                function hideImagePreview() {
+                    document.getElementById('image-preview-tooltip').style.display = 'none';
+                    document.getElementById('preview-img').src = '';
+                }
+                function moveImagePreview(event) {
+                    const tooltip = document.getElementById('image-preview-tooltip');
+                    if (tooltip.style.display === 'block') {
+                        let x = event.clientX + 15;
+                        let y = event.clientY + 15;
+                        if (x + tooltip.offsetWidth > window.innerWidth) { x = event.clientX - tooltip.offsetWidth - 15; }
+                        if (y + tooltip.offsetHeight > window.innerHeight) { y = event.clientY - tooltip.offsetHeight - 15; }
+                        tooltip.style.left = x + 'px';
+                        tooltip.style.top = y + 'px';
+                    }
+                }
+            <\/script>`;
+
+            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px;}table{border-collapse:collapse;width:100%;margin-top:20px;}th,td{border:1px solid #ddd;padding:8px;text-align:center;}th{background:#333;color:#fff;} a{color:#2980b9; text-decoration:none;} a:hover{text-decoration:underline;}</style></head><body>${tooltipHTML}<h2>${TITRE_PLATEFORME}</h2><h4>${SOUS_TITRE_PLATEFORME}</h4>${fh}${document.getElementById('data-table').outerHTML}${scriptHTML}</body></html>`;
+            
             downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
         }
 
