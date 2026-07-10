@@ -362,7 +362,7 @@
                     <p><strong>C'est l'algorithme géométrique de référence.</strong> Son objectif est de partitionner les entités en $K$ groupes (ici $K=3$) en cherchant mathématiquement le "centre de gravité" moyen des soumissions.</p>
                     <p>Pour cela, l'Intelligence Artificielle cherche à minimiser la variance intra-cluster (l'inertie $J$), c'est-à-dire la somme des distances au carré entre chaque entité $x_i$ et le centroïde $\mu_j$ de son groupe :</p>
                     <div class="text-center mb-3 mt-2">
-                        <span class="math-box"><strong>J = &Sigma; &Sigma; || x<sub>i</sub> - &mu;<sub>j</sub> ||<sup>2</sup></strong></span>
+                        <span class="math-box text-primary"><strong>J = &Sigma; &Sigma; || x<sub>i</sub> - &mu;<sub>j</sub> ||<sup>2</sup></strong></span>
                     </div>
                     <ul class="mb-0">
                         <li><strong>x<sub>i</sub></strong> : Le nombre de soumissions exact d'une DREN, CISCO ou ZAP.</li>
@@ -376,9 +376,18 @@
                     <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#kmeans-zap" type="button">Clustering ZAP</button></li>
                 </ul>
                 <div class="tab-content">
-                    <div class="tab-pane fade show active" id="kmeans-dren"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="kmeansChartDREN"></canvas></div><div id="kmeansListsDREN"></div></div>
-                    <div class="tab-pane fade" id="kmeans-cisco"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="kmeansChartCISCO"></canvas></div><div id="kmeansListsCISCO"></div></div>
-                    <div class="tab-pane fade" id="kmeans-zap"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="kmeansChartZAP"></canvas></div><div id="kmeansListsZAP"></div></div>
+                    <div class="tab-pane fade show active" id="kmeans-dren">
+                        <div id="rules-kmeans-dren"></div>
+                        <div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="kmeansChartDREN"></canvas></div><div id="kmeansListsDREN"></div>
+                    </div>
+                    <div class="tab-pane fade" id="kmeans-cisco">
+                        <div id="rules-kmeans-cisco"></div>
+                        <div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="kmeansChartCISCO"></canvas></div><div id="kmeansListsCISCO"></div>
+                    </div>
+                    <div class="tab-pane fade" id="kmeans-zap">
+                        <div id="rules-kmeans-zap"></div>
+                        <div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="kmeansChartZAP"></canvas></div><div id="kmeansListsZAP"></div>
+                    </div>
                 </div>
             </div>
 
@@ -406,9 +415,18 @@
                     <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#jenks-zap" type="button">Clustering ZAP</button></li>
                 </ul>
                 <div class="tab-content">
-                    <div class="tab-pane fade show active" id="jenks-dren"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="jenksChartDREN"></canvas></div><div id="jenksListsDREN"></div></div>
-                    <div class="tab-pane fade" id="jenks-cisco"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="jenksChartCISCO"></canvas></div><div id="jenksListsCISCO"></div></div>
-                    <div class="tab-pane fade" id="jenks-zap"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="jenksChartZAP"></canvas></div><div id="jenksListsZAP"></div></div>
+                    <div class="tab-pane fade show active" id="jenks-dren">
+                        <div id="rules-jenks-dren"></div>
+                        <div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="jenksChartDREN"></canvas></div><div id="jenksListsDREN"></div>
+                    </div>
+                    <div class="tab-pane fade" id="jenks-cisco">
+                        <div id="rules-jenks-cisco"></div>
+                        <div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="jenksChartCISCO"></canvas></div><div id="jenksListsCISCO"></div>
+                    </div>
+                    <div class="tab-pane fade" id="jenks-zap">
+                        <div id="rules-jenks-zap"></div>
+                        <div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="jenksChartZAP"></canvas></div><div id="jenksListsZAP"></div>
+                    </div>
                 </div>
             </div>
 
@@ -419,15 +437,15 @@
                 </div>
                 <div class="ai-insights shadow-sm mb-4 border-danger" style="border-left-color: rgba(231, 76, 60, 1) !important; background: linear-gradient(135deg, #fdedec 0%, #fadbd8 100%);">
                     <h5 style="color: rgba(231, 76, 60, 1);"><i class="fas fa-search-location"></i> Explicabilité : DBSCAN et détection de Bruit</h5>
-                    <p><strong>L'algorithme de clustering basé sur la densité locale.</strong> Extrêmement puissant, le DBSCAN est imprévisible : il n'est pas bridé par un nombre $K$ imposé. L'IA décide <strong>elle-même</strong> combien de clusters existent réellement, et isole les comportements exceptionnels qu'elle qualifie de "Bruit" (Anomalies en rouge).</p>
+                    <p><strong>L'algorithme basé sur la densité locale.</strong> Extrêmement puissant, le DBSCAN est imprévisible : il n'est pas bridé par un nombre $K$ imposé. L'IA décide <strong>elle-même</strong> combien de clusters existent réellement, et isole les comportements exceptionnels qu'elle qualifie de "Bruit" (Anomalies en rouge).</p>
                     <p>Une entité $x$ déclenche la création d'un cluster uniquement si son voisinage spatial respecte les paramètres de densité de l'algorithme :</p>
                     <div class="text-center mb-3 mt-2">
                         <span class="math-box text-danger"><strong>| N<sub>&epsilon;</sub>(x) | &ge; MinPts</strong></span>
                     </div>
                     <ul class="mb-0">
-                        <li><strong>&epsilon; (Epsilon)</strong> : La distance de tolérance (le "rayon de recherche") calculé dynamiquement à partir de la dispersion des données.</li>
+                        <li><strong>&epsilon; (Epsilon)</strong> : La distance de tolérance (le "rayon de recherche") calculée dynamiquement à partir de la dispersion des données.</li>
                         <li><strong>MinPts</strong> : Le nombre minimal de voisins requis (ici $MinPts = 2$) pour confirmer un comportement de groupe.</li>
-                        <li><em>En pratique :</em> Toute DREN ou CISCO qui n'a aucun voisin statistique dans la limite fixée par &epsilon; est expulsée des statistiques normales et classée en <strong class="text-danger">Anomalie</strong>.</li>
+                        <li><em>En pratique :</em> Toute entité qui n'a aucun voisin statistique dans la limite fixée par &epsilon; est expulsée des statistiques normales et classée en <strong class="text-danger">Anomalie</strong>.</li>
                     </ul>
                 </div>
                 <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
@@ -436,9 +454,18 @@
                     <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#dbscan-zap" type="button">Clustering ZAP</button></li>
                 </ul>
                 <div class="tab-content">
-                    <div class="tab-pane fade show active" id="dbscan-dren"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="dbscanChartDREN"></canvas></div><div id="dbscanListsDREN"></div></div>
-                    <div class="tab-pane fade" id="dbscan-cisco"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="dbscanChartCISCO"></canvas></div><div id="dbscanListsCISCO"></div></div>
-                    <div class="tab-pane fade" id="dbscan-zap"><div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="dbscanChartZAP"></canvas></div><div id="dbscanListsZAP"></div></div>
+                    <div class="tab-pane fade show active" id="dbscan-dren">
+                        <div id="rules-dbscan-dren"></div>
+                        <div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="dbscanChartDREN"></canvas></div><div id="dbscanListsDREN"></div>
+                    </div>
+                    <div class="tab-pane fade" id="dbscan-cisco">
+                        <div id="rules-dbscan-cisco"></div>
+                        <div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="dbscanChartCISCO"></canvas></div><div id="dbscanListsCISCO"></div>
+                    </div>
+                    <div class="tab-pane fade" id="dbscan-zap">
+                        <div id="rules-dbscan-zap"></div>
+                        <div class="analysis-card shadow-sm" style="height: 70vh;"><canvas id="dbscanChartZAP"></canvas></div><div id="dbscanListsZAP"></div>
+                    </div>
                 </div>
             </div>
 
@@ -452,7 +479,6 @@
                     <p>Pour garantir une transparence totale des décisions administratives, cet onglet affiche <strong>le raisonnement complet</strong> de la machine. L'IA combine les statistiques de l'Algorithme de Jenks (le plus précis en 1D) avec les Règles d'Action de l'Expert pour générer son diagnostic final.</p>
                 </div>
                 
-                <!-- NOUVEAU BLOC : EXPLICATIONS ET SEUILS -->
                 <div class="row mb-4">
                     <div class="col-md-6 mb-3 mb-md-0">
                         <div class="card border-expert shadow-sm h-100">
@@ -461,15 +487,15 @@
                                 <ul class="list-group list-group-flush">
                                     <li class="list-group-item py-3">
                                         <strong>SI</strong> [Forte Activité] <i class="fas fa-arrow-right mx-2 text-muted"></i> <strong>ALORS</strong> <span class="badge bg-success">OPTIMAL</span><br>
-                                        <em class="text-muted"><i class="fas fa-comment-dots text-success"></i> "Féliciter et encourager les Responsables"</em>
+                                        <em class="text-muted"><i class="fas fa-comment-dots text-success"></i> "Forte soumission des Formulaires KOBOTOOLBOX. Féliciter et encourager les Responsables ! Les decentes sur terrains auprès des Responsables Locaux peuvent être maintenues afin de garder constant le nombre de soumissions des Formulaires KOBOTOOLBOX"</em>
                                     </li>
                                     <li class="list-group-item py-3">
                                         <strong>SI</strong> [Activité Moyenne] <i class="fas fa-arrow-right mx-2 text-muted"></i> <strong>ALORS</strong> <span class="badge bg-warning text-dark">ATTENTION</span><br>
-                                        <em class="text-muted"><i class="fas fa-comment-dots text-warning"></i> "Soutenir les Responsables avec des Emails d'encouragement"</em>
+                                        <em class="text-muted"><i class="fas fa-comment-dots text-warning"></i> "Soumission Moyenne des Formulaires KOBOTOOLBOX. Soutenir les Responsables avec des Emails d'encouragement ! Les decentes sur terrains auprès des Responsables Locaux doivent être envisagées afin d'augmenter le nombre de soumissions des Formulaires KOBOTOOLBOX"</em>
                                     </li>
                                     <li class="list-group-item py-3">
                                         <strong>SI</strong> [Activité Faible] <i class="fas fa-arrow-right mx-2 text-muted"></i> <strong>ALORS</strong> <span class="badge bg-danger">CRITIQUE</span><br>
-                                        <em class="text-muted"><i class="fas fa-comment-dots text-danger"></i> "Relance immédiate avec des Emails auprès des Responsables requise ou Appels Téléphoniques d'urgence"</em>
+                                        <em class="text-muted"><i class="fas fa-comment-dots text-danger"></i> "Faible soumission des Formulaires KOBOTOOLBOX. Relance immédiate avec des Emails auprès des Responsables Locaux requise ou Appels Téléphoniques d'urgence ! Les decentes sur terrains auprès des Responsables Locaux doivent immédiatement être envisagées de toute urgence afin d'augmenter le nombre de soumissions des Formulaires KOBOTOOLBOX. De plus des Actions de Sensibilisation auprès des Responsables Locaux expliquant l'intérêt de la manipulation de KOBOTOOLBOX doivent être entreprises de toute urgence !"</em>
                                     </li>
                                 </ul>
                             </div>
@@ -487,7 +513,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- FIN NOUVEAU BLOC -->
 
                 <div class="analysis-card shadow-sm">
                     <h5 class="text-secondary mb-3"><i class="fas fa-list-ul"></i> Registre des Diagnostics et Recommandations</h5>
@@ -662,7 +687,7 @@
 
         // ================= IA : DBSCAN 1D =================
         function performDBSCAN(data) {
-            if (data.length === 0) return { assignments: [], numClusters: 0 };
+            if (data.length === 0) return { assignments: [], numClusters: 0, eps: 0 };
             let max = Math.max(...data), min = Math.min(...data);
             let eps = Math.max(1, (max - min) * 0.15); 
             let minPts = 2;
@@ -702,7 +727,7 @@
                     clusterId++;
                 }
             }
-            return { assignments: labels, numClusters: clusterId };
+            return { assignments: labels, numClusters: clusterId, eps: eps };
         }
 
         // ================= MOTEUR D'INFÉRENCE : SYSTÈME EXPERT =================
@@ -732,9 +757,9 @@
                 
                 let br = info.vals;
                 return `<li class="mb-3 pb-2 border-bottom">
-                    <h6 class="fw-bold text-secondary mb-2"><i class="fas fa-sitemap"></i> Seuils ${name} :</h6>
+                    <h6 class="fw-bold text-secondary mb-2"><i class="fas fa-sitemap"></i> Seuils appliqués pour ${name} :</h6>
                     <div class="d-flex flex-wrap gap-2">
-                        <span class="badge bg-primary fs-6 fw-normal text-start" style="line-height:1.4;">Faible<br><strong>${br[0]} à ${br[1]}</strong> soum.</span> 
+                        <span class="badge bg-danger fs-6 fw-normal text-start" style="line-height:1.4;">Faible<br><strong>${br[0]} à ${br[1]}</strong> soum.</span> 
                         <span class="badge bg-warning text-dark fs-6 fw-normal text-start" style="line-height:1.4;">Moyenne<br><strong>${br[1]+1} à ${br[2]}</strong> soum.</span> 
                         <span class="badge bg-success fs-6 fw-normal text-start" style="line-height:1.4;">Forte<br><strong>${br[2]+1} à ${br[3]}</strong> soum.</span>
                     </div>
@@ -764,13 +789,13 @@
                     
                     if (cluster === 0) {
                         status = "CRITIQUE"; badgeClass = "bg-danger";
-                        rec = `Relance immédiate avec des Emails auprès des Responsables requise ou Appels Téléphoniques d'urgence`;
+                        rec = `Faible soumission des Formulaires KOBOTOOLBOX. Relance immédiate avec des Emails auprès des Responsables Locaux requise ou Appels Téléphoniques d'urgence ! Les decentes sur terrains auprès des Responsables Locaux doivent immédiatement être envisagées de toute urgence afin d'augmenter le nombre de soumissions des Formulaires KOBOTOOLBOX. De plus des Actions de Sensibilisation auprès des Responsables Locaux expliquant l'intérêt de la manipulation de KOBOTOOLBOX doivent être entreprises de toute urgence !`;
                     } else if (cluster === 1) {
                         status = "ATTENTION"; badgeClass = "bg-warning text-dark";
-                        rec = `Soutenir les Responsables avec des Emails d'encouragement`;
+                        rec = `Soumission Moyenne des Formulaires KOBOTOOLBOX. Soutenir les Responsables avec des Emails d'encouragement ! Les decentes sur terrains auprès des Responsables Locaux doivent être envisagées afin d'augmenter le nombre de soumissions des Formulaires KOBOTOOLBOX`;
                     } else if (cluster === 2) {
                         status = "OPTIMAL"; badgeClass = "bg-success";
-                        rec = `Féliciter et encourager les Responsables`;
+                        rec = `Forte soumission des Formulaires KOBOTOOLBOX. Féliciter et encourager les Responsables ! Les decentes sur terrains auprès des Responsables Locaux peuvent être maintenues afin de garder constant le nombre de soumissions des Formulaires KOBOTOOLBOX`;
                     }
 
                     expertResults.push({ name, type, count, cluster, status, rec, badgeClass });
@@ -797,7 +822,7 @@
                     tr.append(`<td class="text-center"><span class="badge bg-secondary">${res.type}</span></td>`);
                     tr.append(`<td class="text-center"><span class="badge bg-light text-dark border">${res.count}</span></td>`);
                     tr.append(`<td class="text-center"><span class="badge ${res.badgeClass} p-2">${res.status}</span></td>`);
-                    tr.append(`<td><em>${res.rec}</em></td>`);
+                    tr.append(`<td><em style="font-size: 0.95rem;">${res.rec}</em></td>`);
                     
                     tr.data('search', cleanSpaces(`${res.name} ${res.type} ${res.status} ${res.rec}`).toLowerCase());
                     tbody.append(tr);
@@ -1045,11 +1070,15 @@
         }
 
         // ================= GESTION DES GRAPHIQUES ET DES LISTES DE CLUSTERING =================
-        function renderAlgorithmChart(algo, canvasId, listContainerId, freqData, existingChart, setChartRef) {
+        function renderAlgorithmChart(algo, canvasId, listContainerId, rulesContainerId, freqData, existingChart, setChartRef) {
             if (existingChart) existingChart.destroy();
             
             let entries = Object.entries(freqData).filter(([k,v]) => k !== "Non renseigné");
-            if (entries.length === 0) { document.getElementById(listContainerId).innerHTML = ''; return; }
+            if (entries.length === 0) { 
+                document.getElementById(listContainerId).innerHTML = ''; 
+                document.getElementById(rulesContainerId).innerHTML = '';
+                return; 
+            }
             
             entries.sort((a,b) => a[1] - b[1]); 
             let counts = entries.map(e => e[1]);
@@ -1057,14 +1086,58 @@
             let formattedLabels = labels.map(l => wrapLabel(l, 25)); 
             
             let assignments = [], clusterDefs = {};
+            let rulesHtml = '';
 
-            if (algo === 'kmeans' || algo === 'jenks') {
-                assignments = algo === 'kmeans' ? perform1DKMeans(counts, 3) : performJenks(counts, 3);
+            if (algo === 'kmeans') {
+                assignments = perform1DKMeans(counts, 3);
                 clusterDefs = {
                     0: { title: "Activité Faible", bg: 'rgba(52, 152, 219, 0.7)', border: 'rgba(41, 128, 185, 1)', cardBg: 'bg-primary text-white', badge: 'bg-primary' },
                     1: { title: "Activité Moyenne", bg: 'rgba(243, 156, 18, 0.7)', border: 'rgba(211, 84, 0, 1)', cardBg: 'bg-warning text-dark', badge: 'bg-warning text-dark' },
                     2: { title: "Forte Activité", bg: 'rgba(39, 174, 96, 0.7)', border: 'rgba(46, 204, 113, 1)', cardBg: 'bg-success text-white', badge: 'bg-success' }
                 };
+                
+                // Explicabilité K-Means (Calcul des Min/Max pour afficher les seuils)
+                let c0 = counts.filter((_, i) => assignments[i] === 0);
+                let c1 = counts.filter((_, i) => assignments[i] === 1);
+                let c2 = counts.filter((_, i) => assignments[i] === 2);
+                
+                let min0 = c0.length ? Math.min(...c0) : 0, max0 = c0.length ? Math.max(...c0) : 0;
+                let min1 = c1.length ? Math.min(...c1) : 0, max1 = c1.length ? Math.max(...c1) : 0;
+                let min2 = c2.length ? Math.min(...c2) : 0, max2 = c2.length ? Math.max(...c2) : 0;
+
+                rulesHtml = `<div class="alert alert-info py-2 mb-3 shadow-sm border-info" style="font-size: 0.95rem;">
+                    <strong><i class="fas fa-search"></i> Seuils stricts calculés et appliqués par le K-Means :</strong><br>
+                    <div class="mt-2 d-flex flex-wrap gap-2">
+                        <span class="badge bg-primary fs-6 fw-normal">Faible : de ${min0} à ${max0} soum.</span>
+                        <span class="badge bg-warning text-dark fs-6 fw-normal">Moyenne : de ${min1} à ${max1} soum.</span>
+                        <span class="badge bg-success fs-6 fw-normal">Forte : de ${min2} à ${max2} soum.</span>
+                    </div>
+                </div>`;
+
+            } else if (algo === 'jenks') {
+                assignments = performJenks(counts, 3);
+                clusterDefs = {
+                    0: { title: "Activité Faible", bg: 'rgba(52, 152, 219, 0.7)', border: 'rgba(41, 128, 185, 1)', cardBg: 'bg-primary text-white', badge: 'bg-primary' },
+                    1: { title: "Activité Moyenne", bg: 'rgba(243, 156, 18, 0.7)', border: 'rgba(211, 84, 0, 1)', cardBg: 'bg-warning text-dark', badge: 'bg-warning text-dark' },
+                    2: { title: "Forte Activité", bg: 'rgba(39, 174, 96, 0.7)', border: 'rgba(46, 204, 113, 1)', cardBg: 'bg-success text-white', badge: 'bg-success' }
+                };
+
+                // Explicabilité Jenks
+                let uniqueCounts = [...new Set(counts)];
+                if(uniqueCounts.length > 3) {
+                    let br = getJenksBreaks(counts, 3);
+                    rulesHtml = `<div class="alert alert-success py-2 mb-3 shadow-sm border-success" style="font-size: 0.95rem;">
+                        <strong><i class="fas fa-search"></i> Ruptures naturelles calculées et appliquées par Jenks :</strong><br>
+                        <div class="mt-2 d-flex flex-wrap gap-2">
+                            <span class="badge bg-primary fs-6 fw-normal">Faible : de ${br[0]} à ${br[1]} soum.</span>
+                            <span class="badge bg-warning text-dark fs-6 fw-normal">Moyenne : de ${br[1]+1} à ${br[2]} soum.</span>
+                            <span class="badge bg-success fs-6 fw-normal">Forte : de ${br[2]+1} à ${br[3]} soum.</span>
+                        </div>
+                    </div>`;
+                } else {
+                    rulesHtml = `<div class="alert alert-secondary py-2 mb-3 shadow-sm" style="font-size: 0.95rem;">Données trop homogènes pour définir des ruptures claires.</div>`;
+                }
+
             } else if (algo === 'dbscan') {
                 let res = performDBSCAN(counts);
                 assignments = res.assignments;
@@ -1082,7 +1155,20 @@
                     let p = cp[i % cp.length];
                     clusterDefs[i] = { title: "Groupe " + (i+1), bg: p.bg, border: p.b, cardBg: p.c, badge: p.lb };
                 }
+
+                // Explicabilité DBSCAN
+                rulesHtml = `<div class="alert alert-danger py-2 mb-3 shadow-sm border-danger" style="font-size: 0.95rem;">
+                    <strong><i class="fas fa-search"></i> Règles de Densité appliquées par DBSCAN :</strong><br>
+                    <ul class="mb-0 mt-1">
+                        <li>Rayon de recherche (&epsilon;) calculé : <strong>&plusmn; ${res.eps.toFixed(1)} soumissions</strong></li>
+                        <li>Seuil de validation (MinPts) : <strong>Au moins 2 entités</strong> requises pour former un groupe valide.</li>
+                    </ul>
+                    <em class="mt-1 d-block">Toute entité isolée au-delà de ce rayon est classée en <span class="badge bg-danger">Anomalie (Bruit)</span>.</em>
+                </div>`;
             }
+
+            // Injection des règles HTML
+            document.getElementById(rulesContainerId).innerHTML = rulesHtml;
 
             let bgColors = assignments.map(a => clusterDefs[a].bg);
             let bdColors = assignments.map(a => clusterDefs[a].border);
@@ -1174,17 +1260,17 @@
             };
             popTab('dren-summary-table', freqDren); popTab('cisco-summary-table', freqCisco); popTab('zap-summary-table', freqZap);
 
-            renderAlgorithmChart('kmeans', 'kmeansChartDREN', 'kmeansListsDREN', freqDren, chartsRefs.kmeans.DREN, c => chartsRefs.kmeans.DREN = c);
-            renderAlgorithmChart('kmeans', 'kmeansChartCISCO', 'kmeansListsCISCO', freqCisco, chartsRefs.kmeans.CISCO, c => chartsRefs.kmeans.CISCO = c);
-            renderAlgorithmChart('kmeans', 'kmeansChartZAP', 'kmeansListsZAP', freqZap, chartsRefs.kmeans.ZAP, c => chartsRefs.kmeans.ZAP = c);
+            renderAlgorithmChart('kmeans', 'kmeansChartDREN', 'kmeansListsDREN', 'rules-kmeans-dren', freqDren, chartsRefs.kmeans.DREN, c => chartsRefs.kmeans.DREN = c);
+            renderAlgorithmChart('kmeans', 'kmeansChartCISCO', 'kmeansListsCISCO', 'rules-kmeans-cisco', freqCisco, chartsRefs.kmeans.CISCO, c => chartsRefs.kmeans.CISCO = c);
+            renderAlgorithmChart('kmeans', 'kmeansChartZAP', 'kmeansListsZAP', 'rules-kmeans-zap', freqZap, chartsRefs.kmeans.ZAP, c => chartsRefs.kmeans.ZAP = c);
 
-            renderAlgorithmChart('jenks', 'jenksChartDREN', 'jenksListsDREN', freqDren, chartsRefs.jenks.DREN, c => chartsRefs.jenks.DREN = c);
-            renderAlgorithmChart('jenks', 'jenksChartCISCO', 'jenksListsCISCO', freqCisco, chartsRefs.jenks.CISCO, c => chartsRefs.jenks.CISCO = c);
-            renderAlgorithmChart('jenks', 'jenksChartZAP', 'jenksListsZAP', freqZap, chartsRefs.jenks.ZAP, c => chartsRefs.jenks.ZAP = c);
+            renderAlgorithmChart('jenks', 'jenksChartDREN', 'jenksListsDREN', 'rules-jenks-dren', freqDren, chartsRefs.jenks.DREN, c => chartsRefs.jenks.DREN = c);
+            renderAlgorithmChart('jenks', 'jenksChartCISCO', 'jenksListsCISCO', 'rules-jenks-cisco', freqCisco, chartsRefs.jenks.CISCO, c => chartsRefs.jenks.CISCO = c);
+            renderAlgorithmChart('jenks', 'jenksChartZAP', 'jenksListsZAP', 'rules-jenks-zap', freqZap, chartsRefs.jenks.ZAP, c => chartsRefs.jenks.ZAP = c);
 
-            renderAlgorithmChart('dbscan', 'dbscanChartDREN', 'dbscanListsDREN', freqDren, chartsRefs.dbscan.DREN, c => chartsRefs.dbscan.DREN = c);
-            renderAlgorithmChart('dbscan', 'dbscanChartCISCO', 'dbscanListsCISCO', freqCisco, chartsRefs.dbscan.CISCO, c => chartsRefs.dbscan.CISCO = c);
-            renderAlgorithmChart('dbscan', 'dbscanChartZAP', 'dbscanListsZAP', freqZap, chartsRefs.dbscan.ZAP, c => chartsRefs.dbscan.ZAP = c);
+            renderAlgorithmChart('dbscan', 'dbscanChartDREN', 'dbscanListsDREN', 'rules-dbscan-dren', freqDren, chartsRefs.dbscan.DREN, c => chartsRefs.dbscan.DREN = c);
+            renderAlgorithmChart('dbscan', 'dbscanChartCISCO', 'dbscanListsCISCO', 'rules-dbscan-cisco', freqCisco, chartsRefs.dbscan.CISCO, c => chartsRefs.dbscan.CISCO = c);
+            renderAlgorithmChart('dbscan', 'dbscanChartZAP', 'dbscanListsZAP', 'rules-dbscan-zap', freqZap, chartsRefs.dbscan.ZAP, c => chartsRefs.dbscan.ZAP = c);
 
             runExpertSystem(freqDren, freqCisco, freqZap);
         }
