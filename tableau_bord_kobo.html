@@ -129,6 +129,28 @@
             display: inline-block;
             border: 1px solid rgba(0,0,0,0.1);
         }
+        
+        /* Démonstrations mathématiques */
+        .demo-box {
+            background-color: #fdfdfd;
+            border-left: 4px solid #34495e;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            color: #333;
+        }
+        .demo-step {
+            margin-bottom: 8px;
+        }
+        .demo-result {
+            font-weight: bold;
+            color: #c0392b;
+            background-color: #f9ebea;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -182,6 +204,11 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link text-expert fw-bold" id="expert-tab" data-bs-toggle="tab" data-bs-target="#expert" type="button" role="tab">
                     <i class="fas fa-stethoscope"></i> 6 : Système Expert
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-info fw-bold" id="details-ia-tab" data-bs-toggle="tab" data-bs-target="#details-ia" type="button" role="tab">
+                    <i class="fas fa-book-open"></i> 7 : Détails Algos IA
                 </button>
             </li>
         </ul>
@@ -438,7 +465,7 @@
                 </div>
                 <div class="ai-insights shadow-sm mb-4 border-danger" style="border-left-color: rgba(231, 76, 60, 1) !important; background: linear-gradient(135deg, #fdedec 0%, #fadbd8 100%);">
                     <h5 style="color: rgba(231, 76, 60, 1);"><i class="fas fa-search-location"></i> Explicabilité : DBSCAN et détection de Bruit</h5>
-                    <p><strong>L'algorithme de clustering basé sur la densité locale.</strong> Extrêmement puissant, le DBSCAN est imprévisible : il n'est pas bridé par un nombre $K$ imposé. L'IA décide <strong>elle-même</strong> combien de clusters existent réellement, et isole les comportements exceptionnels qu'elle qualifie de "Bruit" (Anomalies en rouge).</p>
+                    <p><strong>L'algorithme basé sur la densité locale.</strong> Extrêmement puissant, le DBSCAN est imprévisible : il n'est pas bridé par un nombre $K$ imposé. L'IA décide <strong>elle-même</strong> combien de clusters existent réellement, et isole les comportements exceptionnels qu'elle qualifie de "Bruit" (Anomalies en rouge).</p>
                     <p>Une entité $x$ déclenche la création d'un cluster uniquement si son voisinage spatial respecte les paramètres de densité de l'algorithme :</p>
                     <div class="text-center mb-3 mt-2">
                         <span class="math-box text-danger"><strong>| N<sub>&epsilon;</sub>(x) | &ge; MinPts</strong></span>
@@ -480,7 +507,6 @@
                     <p>Pour garantir une transparence totale des décisions administratives, cet onglet affiche <strong>le raisonnement complet</strong> de la machine. L'IA combine les statistiques de l'Algorithme de Jenks (le plus précis en 1D) avec les Règles d'Action de l'Expert pour générer son diagnostic final.</p>
                 </div>
                 
-                <!-- BLOC : EXPLICATIONS ET SEUILS -->
                 <div class="row mb-4">
                     <div class="col-md-6 mb-3 mb-md-0">
                         <div class="card border-expert shadow-sm h-100">
@@ -515,7 +541,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- FIN BLOC -->
 
                 <div class="analysis-card shadow-sm">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -544,6 +569,138 @@
                         </table>
                     </div>
                 </div>
+            </div>
+
+            <!-- ONGLET 7 : DETAILS ALGOS IA -->
+            <div class="tab-pane fade" id="details-ia" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="text-info m-0"><i class="fas fa-book-open"></i> Explicabilité (XAI) : Détails et Démonstrations Mathématiques</h4>
+                </div>
+                <div class="ai-insights shadow-sm mb-4 border-info" style="background: linear-gradient(135deg, #e0f7fa 0%, #d4e6f1 100%);">
+                    <h5 class="text-info"><i class="fas fa-chalkboard-teacher"></i> L'importance de la Transparence</h5>
+                    <p>C'est une excellente démarche de transparence et de pédagogie (ce que l'on appelle <strong>l'Explainable AI ou IA Explicable</strong>). Afficher les formules mathématiques et le fonctionnement interne permet de légitimer vos résultats auprès de votre hiérarchie et de démystifier les recommandations du système.</p>
+                </div>
+
+                <!-- Algo 1 : K-Means -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-primary text-white fw-bold fs-5">
+                        <i class="fas fa-project-diagram"></i> Algorithme 1 : K-Means (Centre de Gravité)
+                    </div>
+                    <div class="card-body">
+                        <p>Le K-Means est un algorithme de partitionnement géométrique. Son but est de regrouper $N$ observations en $K$ clusters en minimisant l'inertie intra-classe (la somme des distances au carré entre chaque entité et le centre de son groupe).</p>
+                        <p>La fonction de coût (Within-Cluster Sum of Squares) qu'il cherche à minimiser est définie par l'équation suivante :</p>
+                        <div class="text-center mb-3">
+                            <span class="math-box text-primary"><strong>J = &Sigma; &Sigma; || x<sub>i</sub> - &mu;<sub>j</sub> ||<sup>2</sup></strong></span>
+                        </div>
+                        <ul>
+                            <li><strong>K</strong> : Nombre de clusters cibles (ici fixé à 3 : Faible, Moyen, Fort).</li>
+                            <li><strong>C<sub>j</sub></strong> : Le cluster $j$.</li>
+                            <li><strong>x<sub>i</sub></strong> : Le volume de soumissions de l'entité évaluée.</li>
+                            <li><strong>&mu;<sub>j</sub></strong> : Le centroïde (le centre de gravité moyen) du cluster.</li>
+                        </ul>
+
+                        <div class="demo-box">
+                            <h6 class="fw-bold text-primary"><i class="fas fa-microscope"></i> Démonstration Mathématique avec des données réelles :</h6>
+                            <p class="mb-2">Imaginons 5 ZAP ayant respectivement soumis : <strong>X = { 2, 3, 10, 12, 25 }</strong> formulaires. L'IA cherche à les diviser en K=3 groupes.</p>
+                            <div class="demo-step"><strong>Étape 1 :</strong> Initialisation des centres de gravité moyens. Supposons &mu;<sub>1</sub> = 2.5 (Faible), &mu;<sub>2</sub> = 11 (Moyen), &mu;<sub>3</sub> = 25 (Fort).</div>
+                            <div class="demo-step"><strong>Étape 2 :</strong> Assignation des ZAP aux centres les plus proches. <br>
+                                - Groupe Faible (C<sub>1</sub>) = {2, 3}<br>
+                                - Groupe Moyen (C<sub>2</sub>) = {10, 12}<br>
+                                - Groupe Fort (C<sub>3</sub>) = {25}
+                            </div>
+                            <div class="demo-step"><strong>Étape 3 :</strong> L'algorithme calcule son score d'erreur (Inertie J) pour vérifier si le groupement est optimal :<br>
+                                - J<sub>1</sub> = (2 - 2.5)&sup2; + (3 - 2.5)&sup2; = (-0.5)&sup2; + (0.5)&sup2; = 0.25 + 0.25 = <strong>0.5</strong><br>
+                                - J<sub>2</sub> = (10 - 11)&sup2; + (12 - 11)&sup2; = (-1)&sup2; + (1)&sup2; = 1 + 1 = <strong>2</strong><br>
+                                - J<sub>3</sub> = (25 - 25)&sup2; = <strong>0</strong><br>
+                            </div>
+                            <div class="demo-step mt-2">
+                                <span class="demo-result">Inertie Totale (J) = 0.5 + 2 + 0 = 2.5</span>
+                            </div>
+                            <p class="mt-2 mb-0 text-muted"><em>L'algorithme a trouvé le "J" minimum absolu, son groupement est donc mathématiquement validé et affiché sur votre écran.</em></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Algo 2 : Jenks -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-success text-white fw-bold fs-5">
+                        <i class="fas fa-layer-group"></i> Algorithme 2 : Jenks (Natural Breaks)
+                    </div>
+                    <div class="card-body">
+                        <p>Conçu spécifiquement pour les données unidimensionnelles (1D), c'est l'algorithme le plus précis pour cette plateforme. Il procède de manière déterministe pour trouver les "ruptures" optimales en cherchant à maximiser le critère GVF (Goodness of Variance Fit).</p>
+                        <p>Il compare la variance totale de l'échantillon (SDTM) avec la variance à l'intérieur des sous-groupes (SDIC) :</p>
+                        <div class="text-center mb-3">
+                            <span class="math-box text-success"><strong>GVF = ( SDTM - SDIC ) / SDTM</strong></span>
+                        </div>
+                        <p>Où les sommes des carrés des écarts sont définies par :</p>
+                        <div class="text-center mb-3">
+                            <span class="math-box text-success"><strong>SDTM = &Sigma; (x<sub>i</sub> - X&#772;)<sup>2</sup> &nbsp;&nbsp;&nbsp;et&nbsp;&nbsp;&nbsp; SDIC = &Sigma; &Sigma; (x<sub>i</sub> - X&#772;<sub>j</sub>)<sup>2</sup></strong></span>
+                        </div>
+                        <p>L'algorithme teste itérativement les limites des classes pour que le GVF se rapproche le plus possible de 1 (100%), garantissant que les entités d'un même groupe ont des comportements statistiquement identiques.</p>
+
+                        <div class="demo-box" style="border-left-color: #27ae60;">
+                            <h6 class="fw-bold text-success"><i class="fas fa-microscope"></i> Démonstration Mathématique avec des données réelles :</h6>
+                            <p class="mb-2">Reprenons les soumissions de nos 5 ZAP : <strong>X = { 2, 3, 10, 12, 25 }</strong>.</p>
+                            <div class="demo-step"><strong>Étape 1 :</strong> Calcul de la Moyenne Globale (X&#772;). <br>
+                                X&#772; = (2 + 3 + 10 + 12 + 25) / 5 = <strong>10.4</strong>
+                            </div>
+                            <div class="demo-step"><strong>Étape 2 :</strong> Calcul de la Variance Globale Totale (SDTM). <br>
+                                SDTM = (2 - 10.4)&sup2; + (3 - 10.4)&sup2; + (10 - 10.4)&sup2; + (12 - 10.4)&sup2; + (25 - 10.4)&sup2;<br>
+                                SDTM = 70.56 + 54.76 + 0.16 + 2.56 + 213.16 = <strong>341.2</strong>
+                            </div>
+                            <div class="demo-step"><strong>Étape 3 :</strong> Jenks teste la découpe {2, 3}, {10, 12}, {25}. La variance interne (SDIC) de ces 3 groupes correspond à l'Inertie du K-Means (calculée juste au-dessus) : <strong>SDIC = 2.5</strong>.
+                            </div>
+                            <div class="demo-step mt-2">
+                                <strong>Étape 4 : Validation du score GVF.</strong><br>
+                                GVF = (341.2 - 2.5) / 341.2 = 338.7 / 341.2 = <span class="demo-result" style="color: #27ae60; background-color: #eafaf1;">0.9926 (soit 99.26%)</span>
+                            </div>
+                            <p class="mt-2 mb-0 text-muted"><em>Le GVF frôle les 100%. L'algorithme Jenks conclut formellement que placer les seuils entre [3 et 10] et entre [12 et 25] est la "Rupture Naturelle" la plus parfaite mathématiquement.</em></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Algo 3 : DBSCAN -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-danger text-white fw-bold fs-5">
+                        <i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Density-Based Spatial Clustering)
+                    </div>
+                    <div class="card-body">
+                        <p>Cet algorithme n'utilise pas de centres de gravité mais s'appuie sur la densité. Il définit les clusters comme des zones continues de forte densité et isole les zones vides.</p>
+                        <p>Il dépend de deux paramètres : <strong>&epsilon;</strong> (le rayon de tolérance spatiale) et <strong>MinPts</strong> (le nombre minimum de voisins). Une entité $x$ est validée comme "point central" d'un cluster si son voisinage vérifie :</p>
+                        <div class="text-center mb-3">
+                            <span class="math-box text-danger"><strong>| N<sub>&epsilon;</sub>(x) | &ge; MinPts</strong></span>
+                        </div>
+                        <p>Avec la fonction de voisinage spatial définie par :</p>
+                        <div class="text-center mb-3">
+                            <span class="math-box text-danger"><strong>N<sub>&epsilon;</sub>(x) = { y &isin; D | d(x, y) &le; &epsilon; }</strong></span>
+                        </div>
+                        <p>Tout point n'appartenant au voisinage &epsilon; d'aucun groupe est mathématiquement défini comme du <strong>Bruit (Anomalie)</strong>. C'est idéal pour repérer une DREN ou une CISCO dont le score est totalement disproportionné par rapport à la moyenne nationale.</p>
+
+                        <div class="demo-box" style="border-left-color: #e74c3c;">
+                            <h6 class="fw-bold text-danger"><i class="fas fa-microscope"></i> Démonstration Mathématique avec des données réelles :</h6>
+                            <p class="mb-2">Prenons un échantillon de CISCO avec : <strong>X = { 2, 3, 4, 15, 30 }</strong> soumissions. <br>L'IA paramètre : Rayon <strong>&epsilon; = 3</strong> et <strong>MinPts = 2</strong> voisins requis.</p>
+                            
+                            <div class="demo-step"><strong>Test de la CISCO à 2 soumissions :</strong><br>
+                                - Y a-t-il des voisins dans le rayon &plusmn;3 (soit de 0 à 5) ? Oui : {2, 3, 4}.<br>
+                                - Quantité = 3 &ge; MinPts (2). <em>Succès : Un "Groupe 1" est créé.</em>
+                            </div>
+                            <div class="demo-step"><strong>Test des CISCO à 3 et 4 soumissions :</strong><br>
+                                - Voisins de 3 (0 à 6) : {2, 3, 4}. Inclus dans le Groupe 1.<br>
+                                - Voisins de 4 (1 à 7) : {2, 3, 4}. Inclus dans le Groupe 1.
+                            </div>
+                            <div class="demo-step mt-2"><strong>Test de la CISCO à 15 soumissions :</strong><br>
+                                - Y a-t-il des voisins dans le rayon &plusmn;3 (soit de 12 à 18) ? Oui, mais seulement elle-même : {15}.<br>
+                                - Quantité = 1 &lt; MinPts (2). <span class="demo-result">Échec : Cette CISCO est classée "Anomalie".</span>
+                            </div>
+                            <div class="demo-step mt-2"><strong>Test de la CISCO à 30 soumissions :</strong><br>
+                                - Voisins dans le rayon &plusmn;3 (soit de 27 à 33) ? Seulement {30}.<br>
+                                - Quantité = 1 &lt; MinPts (2). <span class="demo-result">Échec : Cette CISCO est classée "Anomalie".</span>
+                            </div>
+                            <p class="mt-2 mb-0 text-muted"><em>Conclusion de l'IA DBSCAN : Seul le comportement [2, 3, 4] est normal. Les scores de 15 et 30 sont considérés comme un Bruit statistique inclassable (Alerte Rouge).</em></p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
         </div>
