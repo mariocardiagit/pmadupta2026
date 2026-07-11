@@ -1274,7 +1274,7 @@
         }
 
         function renderTable(data) {
-            const tbody = $('#table-body'), gHeaderTr = $('#table-group-header-row'), sHeaderTr = $('#table-sub-header-row');
+            const tbody = $('#table-body').empty(), gHeaderTr = $('#table-group-header-row').empty(), sHeaderTr = $('#table-sub-header-row').empty();
             if (data.length === 0) {
                 gHeaderTr.append('<th class="group-header-survey">Données</th>'); sHeaderTr.append('<th class="sub-header-survey">Vide</th>');
                 tbody.append('<tr><td class="text-center py-4 text-muted">Base de données vide.</td></tr>'); $('#record-count').text(0); return;
