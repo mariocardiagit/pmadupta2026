@@ -709,7 +709,7 @@
                         <div class="text-center mb-3">
                             <span class="math-box text-danger"><strong>N<sub>&epsilon;</sub>(x) = { y &isin; D | d(x, y) &le; &epsilon; }</strong></span>
                         </div>
-                        <p>Tout point n'appartenant au voisinage &epsilon; d'aucun groupe est mathématiquement défini comme du <strong>Bruit (Anomalie)</strong>. C'est idéal pour repérer une DREN ou une CISCO dont le score est totalement disproportionné par rapport à la moyenne nationale.</p>
+                        <p>Tout point n'appartenant au voisinage &epsilon; d'aucun groupe est mathématiquement défini comme du <strong>Bruit (Anomalie)</strong>. C'est idéal pour repérer une DREN ou une CISCO dont le score est totally disproportionné par rapport à la moyenne nationale.</p>
 
                         <div class="demo-box" style="border-left-color: #e74c3c;">
                             <h6 class="fw-bold text-danger"><i class="fas fa-microscope"></i> Démonstration Mathématique avec des données réelles :</h6>
@@ -782,14 +782,6 @@
                     Le tableau sémantique va d'abord retirer les doublons pour ne garder que 3 phrases (Nettoyer, Laver, Récurer). L'IA va voir qu'elles ont le même sens et va les mettre dans la même thématique. <strong>Le badge affichera alors le chiffre 3</strong> (pour 3 formulations uniques), même s'il y a eu en réalité 10 formulaires soumis.</p>
                 </div>
                 <!-- FIN BLOC D'EXPLICATION -->
-                
-                <div class="ai-insights shadow-sm mb-4 border-semantic" style="background: linear-gradient(135deg, #fdf2e9 0%, #fadbd8 100%);">
-                    <h5 class="text-semantic"><i class="fas fa-language"></i> Traitement du Langage Naturel (NLP)</h5>
-                    <p>Cet algorithme ne compare pas les lettres, mais le <strong>sens caché</strong> des phrases. L'IA (Sentence-BERT) transforme chaque champ texte en un vecteur mathématique. Elle calcule ensuite la <strong>Similarité Cosinus</strong> pour regrouper les éléments qui parlent de la même chose, même s'ils n'utilisent pas les mêmes mots.</p>
-                    <div class="text-center mb-3 mt-2">
-                        <span class="math-box text-semantic"><strong>Sim(A, B) = (A &middot; B) / (||A|| &times; ||B||)</strong></span>
-                    </div>
-                </div>
 
                 <div class="text-center mb-4">
                     <button class="btn btn-lg text-white shadow-sm" style="background-color: #d35400;" onclick="window.runSemanticAnalysis()">
@@ -823,9 +815,18 @@
                             <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-act-zap" type="button">Thématiques ZAP</button></li>
                         </ul>
                         <div class="tab-content">
-                            <div class="tab-pane fade show active" id="sem-act-dren"><div class="row" id="res-act-dren"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
-                            <div class="tab-pane fade" id="sem-act-cisco"><div class="row" id="res-act-cisco"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
-                            <div class="tab-pane fade" id="sem-act-zap"><div class="row" id="res-act-zap"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
+                            <div class="tab-pane fade show active" id="sem-act-dren">
+                                <div class="analysis-card shadow-sm mb-4" style="height: 350px; display: none;" id="chart-container-act-dren"><canvas id="semanticChart-act-dren"></canvas></div>
+                                <div class="row" id="res-act-dren"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div>
+                            </div>
+                            <div class="tab-pane fade" id="sem-act-cisco">
+                                <div class="analysis-card shadow-sm mb-4" style="height: 350px; display: none;" id="chart-container-act-cisco"><canvas id="semanticChart-act-cisco"></canvas></div>
+                                <div class="row" id="res-act-cisco"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div>
+                            </div>
+                            <div class="tab-pane fade" id="sem-act-zap">
+                                <div class="analysis-card shadow-sm mb-4" style="height: 350px; display: none;" id="chart-container-act-zap"><canvas id="semanticChart-act-zap"></canvas></div>
+                                <div class="row" id="res-act-zap"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div>
+                            </div>
                         </div>
                     </div>
 
@@ -837,9 +838,18 @@
                             <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-prod-zap" type="button">Thématiques ZAP</button></li>
                         </ul>
                         <div class="tab-content">
-                            <div class="tab-pane fade show active" id="sem-prod-dren"><div class="row" id="res-prod-dren"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
-                            <div class="tab-pane fade" id="sem-prod-cisco"><div class="row" id="res-prod-cisco"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
-                            <div class="tab-pane fade" id="sem-prod-zap"><div class="row" id="res-prod-zap"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
+                            <div class="tab-pane fade show active" id="sem-prod-dren">
+                                <div class="analysis-card shadow-sm mb-4" style="height: 350px; display: none;" id="chart-container-prod-dren"><canvas id="semanticChart-prod-dren"></canvas></div>
+                                <div class="row" id="res-prod-dren"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div>
+                            </div>
+                            <div class="tab-pane fade" id="sem-prod-cisco">
+                                <div class="analysis-card shadow-sm mb-4" style="height: 350px; display: none;" id="chart-container-prod-cisco"><canvas id="semanticChart-prod-cisco"></canvas></div>
+                                <div class="row" id="res-prod-cisco"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div>
+                            </div>
+                            <div class="tab-pane fade" id="sem-prod-zap">
+                                <div class="analysis-card shadow-sm mb-4" style="height: 350px; display: none;" id="chart-container-prod-zap"><canvas id="semanticChart-prod-zap"></canvas></div>
+                                <div class="row" id="res-prod-zap"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div>
+                            </div>
                         </div>
                     </div>
 
@@ -851,9 +861,18 @@
                             <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sact-zap" type="button">Thématiques ZAP</button></li>
                         </ul>
                         <div class="tab-content">
-                            <div class="tab-pane fade show active" id="sem-sact-dren"><div class="row" id="res-sact-dren"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
-                            <div class="tab-pane fade" id="sem-sact-cisco"><div class="row" id="res-sact-cisco"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
-                            <div class="tab-pane fade" id="sem-sact-zap"><div class="row" id="res-sact-zap"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
+                            <div class="tab-pane fade show active" id="sem-sact-dren">
+                                <div class="analysis-card shadow-sm mb-4" style="height: 350px; display: none;" id="chart-container-sact-dren"><canvas id="semanticChart-sact-dren"></canvas></div>
+                                <div class="row" id="res-sact-dren"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div>
+                            </div>
+                            <div class="tab-pane fade" id="sem-sact-cisco">
+                                <div class="analysis-card shadow-sm mb-4" style="height: 350px; display: none;" id="chart-container-sact-cisco"><canvas id="semanticChart-sact-cisco"></canvas></div>
+                                <div class="row" id="res-sact-cisco"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div>
+                            </div>
+                            <div class="tab-pane fade" id="sem-sact-zap">
+                                <div class="analysis-card shadow-sm mb-4" style="height: 350px; display: none;" id="chart-container-sact-zap"><canvas id="semanticChart-sact-zap"></canvas></div>
+                                <div class="row" id="res-sact-zap"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div>
+                            </div>
                         </div>
                     </div>
 
@@ -865,9 +884,18 @@
                             <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sprod-zap" type="button">Thématiques ZAP</button></li>
                         </ul>
                         <div class="tab-content">
-                            <div class="tab-pane fade show active" id="sem-sprod-dren"><div class="row" id="res-sprod-dren"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
-                            <div class="tab-pane fade" id="sem-sprod-cisco"><div class="row" id="res-sprod-cisco"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
-                            <div class="tab-pane fade" id="sem-sprod-zap"><div class="row" id="res-sprod-zap"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
+                            <div class="tab-pane fade show active" id="sem-sprod-dren">
+                                <div class="analysis-card shadow-sm mb-4" style="height: 350px; display: none;" id="chart-container-sprod-dren"><canvas id="semanticChart-sprod-dren"></canvas></div>
+                                <div class="row" id="res-sprod-dren"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div>
+                            </div>
+                            <div class="tab-pane fade" id="sem-sprod-cisco">
+                                <div class="analysis-card shadow-sm mb-4" style="height: 350px; display: none;" id="chart-container-sprod-cisco"><canvas id="semanticChart-sprod-cisco"></canvas></div>
+                                <div class="row" id="res-sprod-cisco"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div>
+                            </div>
+                            <div class="tab-pane fade" id="sem-sprod-zap">
+                                <div class="analysis-card shadow-sm mb-4" style="height: 350px; display: none;" id="chart-container-sprod-zap"><canvas id="semanticChart-sprod-zap"></canvas></div>
+                                <div class="row" id="res-sprod-zap"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div>
+                            </div>
                         </div>
                     </div>
 
@@ -983,6 +1011,7 @@
     <script>
         // VARIABLE GLOBALE POUR SAUVEGARDER L'ANALYSE SÉMANTIQUE
         let globalSemanticResults = {};
+        let semanticChartsRefs = {};
         
         // EXPLICATION SÉMANTIQUE POUR LES EXPORTS
         const EXPLICATION_SEMANTIQUE = [
@@ -1354,11 +1383,12 @@
                 try {
                     const responseCsv = await fetch("zaps.csv");
                     if (responseCsv.ok) {
-                        (await responseCsv.text()).split('\n').forEach(line => {
+                        (await responseCsv.text()).split('
+').forEach(line => {
                             const cols = line.split(/[,;]/);
                             if(cols.length >= 2) {
-                                const code = String(cols[0]).replace(/["'\r]/g, '').trim().toLowerCase();
-                                const label = String(cols[1]).replace(/["'\r]/g, '').trim();
+                                const code = String(cols[0]).replace(/["']/g, '').trim().toLowerCase();
+                                const label = String(cols[1]).replace(/["']/g, '').trim();
                                 if(code && label && code !== 'name') externalDict[code] = label;
                             }
                         });
@@ -1390,7 +1420,7 @@
             let t = cleanSpaces(text).toLowerCase();
             const corrections = { 'b_n_ficiaire': 'bénéficiaire', 'r_f_rentiel': 'référentiel', 'd_margement': "d'émargement", 'activit_': 'activité', 'num_ro': 'numéro', 'p_dagogique': 'pédagogique', 'g_n_ral': 'général', 'pr_sence': 'présence', 'dipl_me': 'diplôme', 't_l_phone': 'téléphone', 'cr_ation': 'création', 'r_union': 'réunion', 'd_tail': 'détail', 'fr_quence': 'fréquence', 'p_riode': 'période', 'd_but': 'début', 'cl_ture': 'clôture', 'mat_riel': 'matériel', 'r_ponse': 'réponse', 'identit_': 'identité', 'r_gion': 'région', 'd_partement': 'département', '_tablissement': 'établissement', '_cole': 'école', '_l_ve': 'élève', 's_curit_': 'sécurité' };
             for (const [bad, good] of Object.entries(corrections)) t = t.replace(new RegExp(bad, 'g'), good); 
-            t = t.replace(/\b(d|l|qu|s|m|t|n)_/g, "$1'").replace(/_/g, ' ');
+            t = t.replace(/(d|l|qu|s|m|t|n)_/g, "$1'").replace(/_/g, ' ');
             return t.charAt(0).toUpperCase() + t.slice(1);
         }
 
@@ -1838,10 +1868,12 @@
             }; 
         }
         
-        function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous" && f[k] !== "Toutes") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
+        function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous" && f[k] !== "Toutes") t += `- ${k} : ${f[k]}
+`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
         
         function getAnalysisFilters() { return { "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune", "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune", "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune" }; }
-        function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
+        function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}
+`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
 
         // ================= EXPORTS ET PARTAGE =================
         function downloadFile(b, fn) { let a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = fn; a.style.display="none"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
@@ -1854,13 +1886,17 @@
             csv.push(`"--- RESULTATS ---"`);
             $('#data-table tr:visible').each(function() {
                 let r = []; $(this).find('td, th').each(function() {
-                    let cd = cleanSpaces($(this).attr('data-csv') || $(this).text()).replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""');
+                    let cd = cleanSpaces($(this).attr('data-csv') || $(this).text()).replace(/(
+|
+|
+)/gm, '').replace(/"/g, '""');
                     r.push(`"${cd}"`);
                     if ($(this).attr('colspan')) { for (let k = 1; k < parseInt($(this).attr('colspan')); k++) r.push('""'); }
                 });
                 csv.push(r.join(";"));
             });
-            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
+            downloadFile(new Blob(["﻿" + csv.join("
+")], {type: "text/csv;charset=utf-8;"}), fn);
         }
 
         function exportTableToExcel(pfx) {
@@ -1952,7 +1988,8 @@
                 csv.push(`"${tb.t}"`); csv.push(`"Nom";"Soumissions";"Part (%)"`);
                 $(`#${tb.id} tr:visible`).each(function() { let r=[]; $(this).find('td').each(function(i) { r.push(`"${cleanSpaces((i===2)?$(this).find('span').text():$(this).text())}"`); }); if(r.length>0 && r[0]!=='"Aucune donnée trouvée"') csv.push(r.join(";")); }); csv.push("");
             });
-            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), generateFilename(pfx, 'csv'));
+            downloadFile(new Blob(["﻿" + csv.join("
+")], {type: "text/csv;charset=utf-8;"}), generateFilename(pfx, 'csv'));
         }
 
         function exportAnalysisToExcel(pfx) {
@@ -2012,7 +2049,8 @@
                     csv.push(row.join(";"));
                 }
             });
-            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
+            downloadFile(new Blob(["﻿" + csv.join("
+")], {type: "text/csv;charset=utf-8;"}), fn);
         }
 
         function exportExpertToExcel(pfx) {
@@ -2040,43 +2078,100 @@
 
         function sendToGmail() {
             let j = getTableJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON est copié dans votre presse-papiers.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
-                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Rapport - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\nCritères :\n${getFiltersPlainText()}\nNombre : ${$('#record-count').text()}\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
+                alert("✅ SUCCÈS !
+Le texte JSON est copié dans votre presse-papiers.
+Faites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Rapport - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,
+
+Date : ${getFormattedDateTime()}
+Critères :
+${getFiltersPlainText()}
+Nombre : ${$('#record-count').text()}
+
+[ COLLER JSON ICI ]
+
+Cordialement.`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendToWhatsApp() {
             let j = getTableJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON est copié dans le presse-papiers.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
-                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Kobo*\nDate : ${getFormattedDateTime()}\n*Critères :*\n${getFiltersPlainText()}\nNombre : *${$('#record-count').text()}*\n\n[ COLLER JSON ICI ]`)}`, '_blank');
+                alert("✅ SUCCÈS !
+Le texte JSON est copié dans le presse-papiers.
+Faites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Kobo*
+Date : ${getFormattedDateTime()}
+*Critères :*
+${getFiltersPlainText()}
+Nombre : *${$('#record-count').text()}*
+
+[ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendAnalysisToGmail() {
             let j = getAnalysisJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe JSON d'analyse est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
-                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Analyse - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\nCritères :\n${getAnalysisFiltersPlainText()}\nIA :\n${getAiInsightsArray().join('\n')}\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
+                alert("✅ SUCCÈS !
+Le JSON d'analyse est copié.
+Faites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Analyse - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,
+
+Date : ${getFormattedDateTime()}
+Critères :
+${getAnalysisFiltersPlainText()}
+IA :
+${getAiInsightsArray().join('
+')}
+
+[ COLLER JSON ICI ]
+
+Cordialement.`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendAnalysisToWhatsApp() {
             let j = getAnalysisJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe JSON d'analyse est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
-                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Synthèse Kobo*\nDate : ${getFormattedDateTime()}\n*Critères :*\n${getAnalysisFiltersPlainText()}\n*IA :*\n${getAiInsightsArray().join('\n')}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
+                alert("✅ SUCCÈS !
+Le JSON d'analyse est copié.
+Faites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Synthèse Kobo*
+Date : ${getFormattedDateTime()}
+*Critères :*
+${getAnalysisFiltersPlainText()}
+*IA :*
+${getAiInsightsArray().join('
+')}
+
+[ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendExpertToGmail() {
             let j = getExpertJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON des recommandations est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
-                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Recommandations - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous le registre des diagnostics du Système Expert.\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
+                alert("✅ SUCCÈS !
+Le texte JSON des recommandations est copié.
+Faites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Recommandations - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,
+
+Date : ${getFormattedDateTime()}
+
+Veuillez trouver ci-dessous le registre des diagnostics du Système Expert.
+
+[ COLLER JSON ICI ]
+
+Cordialement.`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendExpertToWhatsApp() {
             let j = getExpertJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON des recommandations est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
-                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Recommandations Système Expert*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
+                alert("✅ SUCCÈS !
+Le texte JSON des recommandations est copié.
+Faites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Recommandations Système Expert*
+Date : ${getFormattedDateTime()}
+
+[ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
@@ -2122,7 +2217,8 @@
             data.forEach(row => {
                 csv.push(`"${row.Domaine}";"${row.Niveau}";"${row.Thématique}";"${cleanSpaces(row.Élément).replace(/"/g, '""')}"`);
             });
-            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
+            downloadFile(new Blob(["﻿" + csv.join("
+")], {type: "text/csv;charset=utf-8;"}), fn);
         }
 
         function exportSemanticToExcel(pfx) {
@@ -2220,8 +2316,18 @@
             let j = getSemanticJSONData(); 
             if (!j) return alert("Veuillez d'abord lancer l'analyse sémantique complète.");
             navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON sémantique est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
-                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Analyse Sémantique - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous le registre des regroupements sémantiques.\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
+                alert("✅ SUCCÈS !
+Le texte JSON sémantique est copié.
+Faites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Analyse Sémantique - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,
+
+Date : ${getFormattedDateTime()}
+
+Veuillez trouver ci-dessous le registre des regroupements sémantiques.
+
+[ COLLER JSON ICI ]
+
+Cordialement.`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
@@ -2229,8 +2335,13 @@
             let j = getSemanticJSONData(); 
             if (!j) return alert("Veuillez d'abord lancer l'analyse sémantique complète.");
             navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON sémantique est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
-                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Sémantique SBERT*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
+                alert("✅ SUCCÈS !
+Le texte JSON sémantique est copié.
+Faites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Sémantique SBERT*
+Date : ${getFormattedDateTime()}
+
+[ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
@@ -2294,6 +2405,43 @@
             return clusters;
         }
 
+        function renderSemanticChart(clusters, canvasId, containerId) {
+            if (clusters.length === 0) return;
+            document.getElementById(containerId).style.display = 'block';
+            let ctx = document.getElementById(canvasId).getContext('2d');
+            
+            if (semanticChartsRefs[canvasId]) semanticChartsRefs[canvasId].destroy();
+
+            let labels = clusters.map((_, i) => 'Thématique ' + (i + 1));
+            let data = clusters.map(c => c.items.length);
+            let bgColors = clusters.map(c => c.items.length > 5 ? 'rgba(25, 135, 84, 0.7)' : (c.items.length > 2 ? 'rgba(13, 110, 253, 0.7)' : 'rgba(108, 117, 125, 0.7)'));
+            let bdColors = clusters.map(c => c.items.length > 5 ? 'rgba(25, 135, 84, 1)' : (c.items.length > 2 ? 'rgba(13, 110, 253, 1)' : 'rgba(108, 117, 125, 1)'));
+
+            semanticChartsRefs[canvasId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Formulations uniques par thématique',
+                        data: data,
+                        backgroundColor: bgColors,
+                        borderColor: bdColors,
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Nombre de formulations' }, ticks: { stepSize: 1 } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
         function renderSemanticClusters(clusters, containerId, titlePrefix) {
             let container = document.getElementById(containerId);
             if(clusters.length === 0) {
@@ -2352,18 +2500,18 @@
                 $('#semantic-progress-bar').css('width', '100%').text('Modèle chargé !');
 
                 const semanticTasks = [
-                    { key: 'activiteDren', resId: 'res-act-dren', name: 'Activités DREN' },
-                    { key: 'activiteCisco', resId: 'res-act-cisco', name: 'Activités CISCO' },
-                    { key: 'activiteZap', resId: 'res-act-zap', name: 'Activités ZAP' },
-                    { key: 'produitDren', resId: 'res-prod-dren', name: 'Produits DREN' },
-                    { key: 'produitCisco', resId: 'res-prod-cisco', name: 'Produits CISCO' },
-                    { key: 'produitZap', resId: 'res-prod-zap', name: 'Produits ZAP' },
-                    { key: 'sousActiviteDren', resId: 'res-sact-dren', name: 'Sous-activités DREN' },
-                    { key: 'sousActiviteCisco', resId: 'res-sact-cisco', name: 'Sous-activités CISCO' },
-                    { key: 'sousActiviteZap', resId: 'res-sact-zap', name: 'Sous-activités ZAP' },
-                    { key: 'sousProduitDren', resId: 'res-sprod-dren', name: 'Sous-produits DREN' },
-                    { key: 'sousProduitCisco', resId: 'res-sprod-cisco', name: 'Sous-produits CISCO' },
-                    { key: 'sousProduitZap', resId: 'res-sprod-zap', name: 'Sous-produits ZAP' }
+                    { key: 'activiteDren', resId: 'res-act-dren', chartId: 'semanticChart-act-dren', chartCont: 'chart-container-act-dren', name: 'Activités DREN' },
+                    { key: 'activiteCisco', resId: 'res-act-cisco', chartId: 'semanticChart-act-cisco', chartCont: 'chart-container-act-cisco', name: 'Activités CISCO' },
+                    { key: 'activiteZap', resId: 'res-act-zap', chartId: 'semanticChart-act-zap', chartCont: 'chart-container-act-zap', name: 'Activités ZAP' },
+                    { key: 'produitDren', resId: 'res-prod-dren', chartId: 'semanticChart-prod-dren', chartCont: 'chart-container-prod-dren', name: 'Produits DREN' },
+                    { key: 'produitCisco', resId: 'res-prod-cisco', chartId: 'semanticChart-prod-cisco', chartCont: 'chart-container-prod-cisco', name: 'Produits CISCO' },
+                    { key: 'produitZap', resId: 'res-prod-zap', chartId: 'semanticChart-prod-zap', chartCont: 'chart-container-prod-zap', name: 'Produits ZAP' },
+                    { key: 'sousActiviteDren', resId: 'res-sact-dren', chartId: 'semanticChart-sact-dren', chartCont: 'chart-container-sact-dren', name: 'Sous-activités DREN' },
+                    { key: 'sousActiviteCisco', resId: 'res-sact-cisco', chartId: 'semanticChart-sact-cisco', chartCont: 'chart-container-sact-cisco', name: 'Sous-activités CISCO' },
+                    { key: 'sousActiviteZap', resId: 'res-sact-zap', chartId: 'semanticChart-sact-zap', chartCont: 'chart-container-sact-zap', name: 'Sous-activités ZAP' },
+                    { key: 'sousProduitDren', resId: 'res-sprod-dren', chartId: 'semanticChart-sprod-dren', chartCont: 'chart-container-sprod-dren', name: 'Sous-produits DREN' },
+                    { key: 'sousProduitCisco', resId: 'res-sprod-cisco', chartId: 'semanticChart-sprod-cisco', chartCont: 'chart-container-sprod-cisco', name: 'Sous-produits CISCO' },
+                    { key: 'sousProduitZap', resId: 'res-sprod-zap', chartId: 'semanticChart-sprod-zap', chartCont: 'chart-container-sprod-zap', name: 'Sous-produits ZAP' }
                 ];
 
                 for(let task of semanticTasks) {
@@ -2375,6 +2523,7 @@
                         let clusters = await clusterActivities(dataToProcess, extractor);
                         
                         globalSemanticResults[task.name] = clusters; // Sauvegarde en mémoire pour l'export
+                        renderSemanticChart(clusters, task.chartId, task.chartCont);
                         renderSemanticClusters(clusters, task.resId, task.name);
                     }
                 }
