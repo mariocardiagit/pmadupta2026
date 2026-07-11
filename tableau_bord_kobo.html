@@ -138,6 +138,10 @@
         .text-expert { color: #8e44ad !important; }
         .bg-expert { background-color: #8e44ad !important; color: white; }
         .border-expert { border-color: #8e44ad !important; border-left: 5px solid #8e44ad !important; }
+
+        /* Couleur spécifique pour l'analyse Sémantique */
+        .text-semantic { color: #d35400 !important; }
+        .border-semantic { border-left: 5px solid #d35400 !important; }
         
         /* Formules mathématiques HTML */
         .math-box {
@@ -201,7 +205,7 @@
             </div>
         </div>
 
-        <ul class="nav nav-tabs d-flex justify-content-center" id="dashboardTabs" role="tablist">
+        <ul class="nav nav-tabs d-flex justify-content-center flex-wrap" id="dashboardTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="visualisation-tab" data-bs-toggle="tab" data-bs-target="#visualisation" type="button" role="tab">
                     <i class="fas fa-table"></i> 1 : Visualisation
@@ -235,6 +239,11 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link text-info fw-bold" id="details-ia-tab" data-bs-toggle="tab" data-bs-target="#details-ia" type="button" role="tab">
                     <i class="fas fa-book-open"></i> 7 : Détails Algos IA
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-semantic fw-bold" id="semantic-tab" data-bs-toggle="tab" data-bs-target="#semantic" type="button" role="tab">
+                    <i class="fas fa-brain"></i> 8 : Clustering Sémantique
                 </button>
             </li>
         </ul>
@@ -721,7 +730,7 @@
                 <!-- Algo 3 : DBSCAN -->
                 <div class="card mb-4 shadow-sm">
                     <div class="card-header bg-danger text-white fw-bold fs-5">
-                        <i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Density-Based Spatial Clustering)
+                        <i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Densité et Bruit)
                     </div>
                     <div class="card-body">
                         <p>Cet algorithme n'utilise pas de centres de gravité mais s'appuie sur la densité. Il définit les clusters comme des zones continues de forte densité et isole les zones vides.</p>
@@ -760,6 +769,59 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- ONGLET 8 : CLUSTERING SEMANTIQUE -->
+            <div class="tab-pane fade" id="semantic" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="text-semantic m-0"><i class="fas fa-brain"></i> Algorithme 4 : Analyse Sémantique (SBERT & Similarité Cosinus)</h4>
+                </div>
+                
+                <div class="ai-insights shadow-sm mb-4 border-semantic" style="background: linear-gradient(135deg, #fdf2e9 0%, #fadbd8 100%);">
+                    <h5 class="text-semantic"><i class="fas fa-language"></i> Traitement du Langage Naturel (NLP)</h5>
+                    <p>Cet algorithme ne compare pas les lettres, mais le <strong>sens caché</strong> des phrases. L'IA (Sentence-BERT) transforme chaque activité en un vecteur mathématique. Elle calcule ensuite la <strong>Similarité Cosinus</strong> pour regrouper les activités qui parlent de la même chose, même si elles n'utilisent pas les mêmes mots (ex: "Nettoyer le bus" et "Laver la voiture").</p>
+                    <div class="text-center mb-3 mt-2">
+                        <span class="math-box text-semantic"><strong>Sim(A, B) = (A &middot; B) / (||A|| &times; ||B||)</strong></span>
+                    </div>
+                </div>
+
+                <div class="text-center mb-4">
+                    <button class="btn btn-lg text-white shadow-sm" style="background-color: #d35400;" onclick="window.runSemanticAnalysis()">
+                        <i class="fas fa-play-circle"></i> Démarrer l'Analyse Sémantique
+                    </button>
+                    <p class="text-muted small mt-2"><i class="fas fa-info-circle"></i> Lors du premier lancement, le navigateur téléchargera le modèle IA multilingue (~90 Mo). L'analyse prendra quelques secondes.</p>
+                </div>
+
+                <div id="semantic-progress-container" style="display: none;" class="mb-4">
+                    <h6 id="semantic-status" class="text-semantic text-center mb-2">Chargement du modèle d'IA...</h6>
+                    <div class="progress" style="height: 25px;">
+                        <div id="semantic-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="background-color: #d35400; width: 0%;">0%</div>
+                    </div>
+                </div>
+
+                <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
+                    <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#semantic-dren" type="button">Thématiques DREN</button></li>
+                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#semantic-cisco" type="button">Thématiques CISCO</button></li>
+                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#semantic-zap" type="button">Thématiques ZAP</button></li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="semantic-dren">
+                        <div class="row" id="semantic-dren-results">
+                            <div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement de l'analyse...</div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="semantic-cisco">
+                        <div class="row" id="semantic-cisco-results">
+                            <div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement de l'analyse...</div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="semantic-zap">
+                        <div class="row" id="semantic-zap-results">
+                            <div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement de l'analyse...</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -1866,6 +1928,143 @@
             setupAnalysisTableSearch('search-cisco-table', 'cisco-summary-table');
             setupAnalysisTableSearch('search-zap-table', 'zap-summary-table');
         });
+    </script>
+
+    <!-- Script Module pour l'IA Sémantique (Transformers.js) -->
+    <script type="module">
+        import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.16.0';
+
+        function cosineSimilarity(vecA, vecB) {
+            let dotProduct = 0, normA = 0, normB = 0;
+            for (let i = 0; i < vecA.length; i++) {
+                dotProduct += vecA[i] * vecB[i];
+                normA += vecA[i] * vecA[i];
+                normB += vecB[i] * vecB[i];
+            }
+            if (normA === 0 || normB === 0) return 0;
+            return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+        }
+
+        async function clusterActivities(activities, extractor) {
+            if(activities.length === 0) return [];
+            
+            // Extraction des embeddings pour chaque phrase
+            let output = await extractor(activities, { pooling: 'mean', normalize: true });
+            let embeddings = output.tolist();
+
+            let clusters = [];
+            let threshold = 0.75; // Seuil de similarité cosinus (75%)
+
+            for(let i = 0; i < activities.length; i++) {
+                let assigned = false;
+                for(let c of clusters) {
+                    let sim = cosineSimilarity(embeddings[i], c.centroid);
+                    if(sim > threshold) {
+                        c.items.push(activities[i]);
+                        // Recalcul du centroïde (moyenne)
+                        for(let d=0; d<c.centroid.length; d++) {
+                            c.centroid[d] = (c.centroid[d] * (c.items.length - 1) + embeddings[i][d]) / c.items.length;
+                        }
+                        assigned = true;
+                        break;
+                    }
+                }
+                if(!assigned) {
+                    clusters.push({ centroid: [...embeddings[i]], items: [activities[i]] });
+                }
+            }
+            
+            // Trier les clusters par taille (du plus grand au plus petit)
+            clusters.sort((a,b) => b.items.length - a.items.length);
+            return clusters;
+        }
+
+        function renderSemanticClusters(clusters, containerId, titlePrefix) {
+            let container = document.getElementById(containerId);
+            if(clusters.length === 0) {
+                container.innerHTML = `<div class="col-12 text-center text-muted py-3">Aucune activité trouvée pour ${titlePrefix}.</div>`;
+                return;
+            }
+
+            let html = '';
+            clusters.forEach((c, index) => {
+                let badgeClass = 'bg-secondary';
+                if(c.items.length > 5) badgeClass = 'bg-success';
+                else if(c.items.length > 2) badgeClass = 'bg-primary';
+
+                html += `
+                    <div class="col-md-4 mb-4">
+                        <div class="card shadow-sm h-100 border" style="border-left: 4px solid #d35400;">
+                            <div class="card-header bg-light fw-bold text-semantic d-flex justify-content-between align-items-center">
+                                Thématique ${index + 1}
+                                <span class="badge ${badgeClass} rounded-pill">${c.items.length}</span>
+                            </div>
+                            <ul class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto; font-size: 0.9rem;">
+                `;
+                
+                c.items.forEach(item => {
+                    html += `<li class="list-group-item"><i class="fas fa-angle-right text-muted me-2"></i> ${item}</li>`;
+                });
+                
+                html += `</ul></div></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        window.runSemanticAnalysis = async function() {
+            if(allData.length === 0) {
+                alert("Veuillez d'abord attendre le chargement des données de KoboToolbox.");
+                return;
+            }
+
+            // Récupérer les index dynamiques des colonnes Activités
+            let colDren = baseColsInfo.find(c => c.key === 'activiteDren');
+            let colCisco = baseColsInfo.find(c => c.key === 'activiteCisco');
+            let colZap = baseColsInfo.find(c => c.key === 'activiteZap');
+
+            // Extraction et dédoublonnage strict pour chaque catégorie
+            let actDren = [...new Set(allData.map(r => cleanSpaces(getKoboValue(r, colDren.matches, colDren.ex, colDren.mustMatch))).filter(v => v && v !== 'Non renseigné'))];
+            let actCisco = [...new Set(allData.map(r => cleanSpaces(getKoboValue(r, colCisco.matches, colCisco.ex, colCisco.mustMatch))).filter(v => v && v !== 'Non renseigné'))];
+            let actZap = [...new Set(allData.map(r => cleanSpaces(getKoboValue(r, colZap.matches, colZap.ex, colZap.mustMatch))).filter(v => v && v !== 'Non renseigné'))];
+
+            $('#semantic-progress-container').show();
+            $('#semantic-status').text("Téléchargement et initialisation du modèle IA (SBERT)... Cela peut prendre une minute.");
+            $('#semantic-progress-bar').css('width', '5%').text('5%');
+
+            try {
+                // Utilisation du modèle multilingue léger de Xenova
+                let extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', {
+                    progress_callback: x => {
+                        if (x.status === 'progress') {
+                            let p = Math.round(x.progress);
+                            $('#semantic-progress-bar').css('width', p + '%').text(p + '%');
+                        }
+                    }
+                });
+
+                // Phase 1 : DREN
+                $('#semantic-progress-bar').css('width', '100%').text('Modèle chargé !');
+                $('#semantic-status').text("Analyse sémantique des activités DREN en cours...");
+                let clustersDren = await clusterActivities(actDren, extractor);
+                renderSemanticClusters(clustersDren, 'semantic-dren-results', 'DREN');
+
+                // Phase 2 : CISCO
+                $('#semantic-status').text("Analyse sémantique des activités CISCO en cours...");
+                let clustersCisco = await clusterActivities(actCisco, extractor);
+                renderSemanticClusters(clustersCisco, 'semantic-cisco-results', 'CISCO');
+
+                // Phase 3 : ZAP
+                $('#semantic-status').text("Analyse sémantique des activités ZAP en cours...");
+                let clustersZap = await clusterActivities(actZap, extractor);
+                renderSemanticClusters(clustersZap, 'semantic-zap-results', 'ZAP');
+
+                $('#semantic-status').text("✅ Analyse sémantique terminée avec succès !");
+                setTimeout(() => $('#semantic-progress-container').hide(), 4000);
+
+            } catch(e) {
+                $('#semantic-status').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Erreur lors de l'analyse : ${e.message}</span>`);
+            }
+        };
     </script>
 </body>
 </html>
