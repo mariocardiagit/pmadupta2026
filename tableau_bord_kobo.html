@@ -134,14 +134,13 @@
         .ai-insights p { margin-bottom: 8px; color: #34495e; font-size: 1.05rem; }
         .highlight-val { font-weight: 700; color: #e67e22; }
 
-        /* Couleur spécifique pour le système expert */
+        /* Couleurs spécifiques IA */
         .text-expert { color: #8e44ad !important; }
         .bg-expert { background-color: #8e44ad !important; color: white; }
         .border-expert { border-color: #8e44ad !important; border-left: 5px solid #8e44ad !important; }
-
-        /* Couleur spécifique pour l'analyse Sémantique */
         .text-semantic { color: #d35400 !important; }
         .border-semantic { border-left: 5px solid #d35400 !important; }
+        .text-explication { color: #2c3e50 !important; }
         
         /* Formules mathématiques HTML */
         .math-box {
@@ -206,46 +205,15 @@
         </div>
 
         <ul class="nav nav-tabs d-flex justify-content-center flex-wrap" id="dashboardTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="visualisation-tab" data-bs-toggle="tab" data-bs-target="#visualisation" type="button" role="tab">
-                    <i class="fas fa-table"></i> 1 : Visualisation
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="analyse-tab" data-bs-toggle="tab" data-bs-target="#analyse" type="button" role="tab">
-                    <i class="fas fa-chart-pie"></i> 2 : Analyse
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link text-primary fw-bold" id="clustering-tab" data-bs-toggle="tab" data-bs-target="#clustering" type="button" role="tab">
-                    <i class="fas fa-project-diagram"></i> 3 : K-Means
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link text-success fw-bold" id="jenks-tab" data-bs-toggle="tab" data-bs-target="#jenks" type="button" role="tab">
-                    <i class="fas fa-layer-group"></i> 4 : Alg. Jenks
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link text-danger fw-bold" id="dbscan-tab" data-bs-toggle="tab" data-bs-target="#dbscan" type="button" role="tab">
-                    <i class="fas fa-satellite-dish"></i> 5 : DBSCAN
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link text-expert fw-bold" id="expert-tab" data-bs-toggle="tab" data-bs-target="#expert" type="button" role="tab">
-                    <i class="fas fa-stethoscope"></i> 6 : Système Expert
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link text-info fw-bold" id="details-ia-tab" data-bs-toggle="tab" data-bs-target="#details-ia" type="button" role="tab">
-                    <i class="fas fa-book-open"></i> 7 : Détails Algos IA
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link text-semantic fw-bold" id="semantic-tab" data-bs-toggle="tab" data-bs-target="#semantic" type="button" role="tab">
-                    <i class="fas fa-brain"></i> 8 : Clustering Sémantique
-                </button>
-            </li>
+            <li class="nav-item" role="presentation"><button class="nav-link active" id="visualisation-tab" data-bs-toggle="tab" data-bs-target="#visualisation" type="button" role="tab"><i class="fas fa-table"></i> 1 : Visualisation</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="analyse-tab" data-bs-toggle="tab" data-bs-target="#analyse" type="button" role="tab"><i class="fas fa-chart-pie"></i> 2 : Analyse</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link text-primary fw-bold" id="clustering-tab" data-bs-toggle="tab" data-bs-target="#clustering" type="button" role="tab"><i class="fas fa-project-diagram"></i> 3 : K-Means</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link text-success fw-bold" id="jenks-tab" data-bs-toggle="tab" data-bs-target="#jenks" type="button" role="tab"><i class="fas fa-layer-group"></i> 4 : Alg. Jenks</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link text-danger fw-bold" id="dbscan-tab" data-bs-toggle="tab" data-bs-target="#dbscan" type="button" role="tab"><i class="fas fa-satellite-dish"></i> 5 : DBSCAN</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link text-expert fw-bold" id="expert-tab" data-bs-toggle="tab" data-bs-target="#expert" type="button" role="tab"><i class="fas fa-stethoscope"></i> 6 : Système Expert</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link text-info fw-bold" id="details-ia-tab" data-bs-toggle="tab" data-bs-target="#details-ia" type="button" role="tab"><i class="fas fa-book-open"></i> 7 : Explication K-Means/Jenks/DBSCAN</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link text-semantic fw-bold" id="semantic-tab" data-bs-toggle="tab" data-bs-target="#semantic" type="button" role="tab"><i class="fas fa-brain"></i> 8 : Clustering Sémantique</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link text-explication fw-bold" id="explication-sem-tab" data-bs-toggle="tab" data-bs-target="#explication-sem" type="button" role="tab"><i class="fas fa-graduation-cap"></i> 9 : Explication IA Sémantique</button></li>
         </ul>
 
         <div class="tab-content" id="dashboardTabsContent">
@@ -293,6 +261,7 @@
                             <label class="filter-label text-primary"><i class="fas fa-calendar-check"></i> Date de fin (Soumission)</label>
                             <input type="date" id="filter-date-fin" class="form-control filter-input">
                         </div>
+
                     </div>
                     <div class="mt-3 text-end">
                         <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
@@ -728,7 +697,7 @@
                 <!-- Algo 3 : DBSCAN -->
                 <div class="card mb-4 shadow-sm">
                     <div class="card-header bg-danger text-white fw-bold fs-5">
-                        <i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Density-Based Spatial Clustering)
+                        <i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Densité et Bruit)
                     </div>
                     <div class="card-body">
                         <p>Cet algorithme n'utilise pas de centres de gravité mais s'appuie sur la densité. Il définit les clusters comme des zones continues de forte densité et isole les zones vides.</p>
@@ -777,7 +746,7 @@
                 
                 <div class="ai-insights shadow-sm mb-4 border-semantic" style="background: linear-gradient(135deg, #fdf2e9 0%, #fadbd8 100%);">
                     <h5 class="text-semantic"><i class="fas fa-language"></i> Traitement du Langage Naturel (NLP)</h5>
-                    <p>Cet algorithme ne compare pas les lettres, mais le <strong>sens caché</strong> des phrases. L'IA (Sentence-BERT) transforme chaque activité en un vecteur mathématique. Elle calcule ensuite la <strong>Similarité Cosinus</strong> pour regrouper les textes qui parlent de la même chose, même si elles n'utilisent pas les mêmes mots (ex: "Nettoyer le bus" et "Laver la voiture").</p>
+                    <p>Cet algorithme ne compare pas les lettres, mais le <strong>sens caché</strong> des phrases. L'IA (Sentence-BERT) transforme chaque champ texte en un vecteur mathématique. Elle calcule ensuite la <strong>Similarité Cosinus</strong> pour regrouper les éléments qui parlent de la même chose, même s'ils n'utilisent pas les mêmes mots.</p>
                     <div class="text-center mb-3 mt-2">
                         <span class="math-box text-semantic"><strong>Sim(A, B) = (A &middot; B) / (||A|| &times; ||B||)</strong></span>
                     </div>
@@ -785,9 +754,9 @@
 
                 <div class="text-center mb-4">
                     <button class="btn btn-lg text-white shadow-sm" style="background-color: #d35400;" onclick="window.runSemanticAnalysis()">
-                        <i class="fas fa-play-circle"></i> Démarrer l'Analyse Sémantique (Multi-Champs)
+                        <i class="fas fa-play-circle"></i> Démarrer l'Analyse Sémantique Complète
                     </button>
-                    <p class="text-muted small mt-2"><i class="fas fa-info-circle"></i> Lors du premier lancement, le navigateur téléchargera le modèle IA multilingue (~90 Mo). L'analyse traitera ensuite automatiquement 12 ensembles de données distincts.</p>
+                    <p class="text-muted small mt-2"><i class="fas fa-info-circle"></i> Lors du premier lancement, le navigateur téléchargera le modèle IA multilingue (~90 Mo). L'analyse prendra quelques secondes par catégorie.</p>
                 </div>
 
                 <div id="semantic-progress-container" style="display: none;" class="mb-4">
@@ -797,81 +766,173 @@
                     </div>
                 </div>
 
-                <!-- NAVIGATION NIVEAU 1 : LES 4 CHAMPS D'ACTION -->
-                <ul class="nav nav-tabs mb-4 justify-content-center" id="semanticFieldTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active fw-bold text-semantic" data-bs-toggle="tab" data-bs-target="#sem-act" type="button" role="tab"><i class="fas fa-tasks"></i> Activités</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold text-semantic" data-bs-toggle="tab" data-bs-target="#sem-prod" type="button" role="tab"><i class="fas fa-box"></i> Produits</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold text-semantic" data-bs-toggle="tab" data-bs-target="#sem-sact" type="button" role="tab"><i class="fas fa-list-alt"></i> Sous-activités</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold text-semantic" data-bs-toggle="tab" data-bs-target="#sem-sprod" type="button" role="tab"><i class="fas fa-cubes"></i> Sous-produits</button>
-                    </li>
+                <!-- 4 ONGLETS PRINCIPAUX : DOMAINES D'ACTION -->
+                <ul class="nav nav-tabs mb-4 justify-content-center" id="semanticFieldsTab" role="tablist">
+                    <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#sem-activites" type="button"><i class="fas fa-tasks"></i> Activités</button></li>
+                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#sem-produits" type="button"><i class="fas fa-box"></i> Produits</button></li>
+                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#sem-sous-activites" type="button"><i class="fas fa-stream"></i> Sous-activités</button></li>
+                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#sem-sous-produits" type="button"><i class="fas fa-boxes"></i> Sous-produits</button></li>
                 </ul>
 
-                <div class="tab-content" id="semanticFieldTabsContent">
+                <div class="tab-content" id="semanticFieldsTabContent">
                     
                     <!-- 1. ACTIVITES -->
-                    <div class="tab-pane fade show active" id="sem-act" role="tabpanel">
+                    <div class="tab-pane fade show active" id="sem-activites">
                         <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
                             <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#sem-act-dren" type="button">Thématiques DREN</button></li>
                             <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-act-cisco" type="button">Thématiques CISCO</button></li>
                             <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-act-zap" type="button">Thématiques ZAP</button></li>
                         </ul>
                         <div class="tab-content">
-                            <div class="tab-pane fade show active" id="sem-act-dren"><div class="row" id="semantic-act-dren-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
-                            <div class="tab-pane fade" id="sem-act-cisco"><div class="row" id="semantic-act-cisco-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
-                            <div class="tab-pane fade" id="sem-act-zap"><div class="row" id="semantic-act-zap-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
+                            <div class="tab-pane fade show active" id="sem-act-dren"><div class="row" id="res-act-dren"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
+                            <div class="tab-pane fade" id="sem-act-cisco"><div class="row" id="res-act-cisco"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
+                            <div class="tab-pane fade" id="sem-act-zap"><div class="row" id="res-act-zap"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
                         </div>
                     </div>
 
                     <!-- 2. PRODUITS -->
-                    <div class="tab-pane fade" id="sem-prod" role="tabpanel">
+                    <div class="tab-pane fade" id="sem-produits">
                         <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
                             <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#sem-prod-dren" type="button">Thématiques DREN</button></li>
                             <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-prod-cisco" type="button">Thématiques CISCO</button></li>
                             <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-prod-zap" type="button">Thématiques ZAP</button></li>
                         </ul>
                         <div class="tab-content">
-                            <div class="tab-pane fade show active" id="sem-prod-dren"><div class="row" id="semantic-prod-dren-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
-                            <div class="tab-pane fade" id="sem-prod-cisco"><div class="row" id="semantic-prod-cisco-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
-                            <div class="tab-pane fade" id="sem-prod-zap"><div class="row" id="semantic-prod-zap-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
+                            <div class="tab-pane fade show active" id="sem-prod-dren"><div class="row" id="res-prod-dren"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
+                            <div class="tab-pane fade" id="sem-prod-cisco"><div class="row" id="res-prod-cisco"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
+                            <div class="tab-pane fade" id="sem-prod-zap"><div class="row" id="res-prod-zap"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
                         </div>
                     </div>
 
                     <!-- 3. SOUS-ACTIVITES -->
-                    <div class="tab-pane fade" id="sem-sact" role="tabpanel">
+                    <div class="tab-pane fade" id="sem-sous-activites">
                         <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
                             <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sact-dren" type="button">Thématiques DREN</button></li>
                             <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sact-cisco" type="button">Thématiques CISCO</button></li>
                             <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sact-zap" type="button">Thématiques ZAP</button></li>
                         </ul>
                         <div class="tab-content">
-                            <div class="tab-pane fade show active" id="sem-sact-dren"><div class="row" id="semantic-sact-dren-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
-                            <div class="tab-pane fade" id="sem-sact-cisco"><div class="row" id="semantic-sact-cisco-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
-                            <div class="tab-pane fade" id="sem-sact-zap"><div class="row" id="semantic-sact-zap-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
+                            <div class="tab-pane fade show active" id="sem-sact-dren"><div class="row" id="res-sact-dren"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
+                            <div class="tab-pane fade" id="sem-sact-cisco"><div class="row" id="res-sact-cisco"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
+                            <div class="tab-pane fade" id="sem-sact-zap"><div class="row" id="res-sact-zap"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
                         </div>
                     </div>
 
                     <!-- 4. SOUS-PRODUITS -->
-                    <div class="tab-pane fade" id="sem-sprod" role="tabpanel">
+                    <div class="tab-pane fade" id="sem-sous-produits">
                         <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
                             <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sprod-dren" type="button">Thématiques DREN</button></li>
                             <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sprod-cisco" type="button">Thématiques CISCO</button></li>
                             <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sprod-zap" type="button">Thématiques ZAP</button></li>
                         </ul>
                         <div class="tab-content">
-                            <div class="tab-pane fade show active" id="sem-sprod-dren"><div class="row" id="semantic-sprod-dren-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
-                            <div class="tab-pane fade" id="sem-sprod-cisco"><div class="row" id="semantic-sprod-cisco-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
-                            <div class="tab-pane fade" id="sem-sprod-zap"><div class="row" id="semantic-sprod-zap-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
+                            <div class="tab-pane fade show active" id="sem-sprod-dren"><div class="row" id="res-sprod-dren"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
+                            <div class="tab-pane fade" id="sem-sprod-cisco"><div class="row" id="res-sprod-cisco"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
+                            <div class="tab-pane fade" id="sem-sprod-zap"><div class="row" id="res-sprod-zap"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement...</div></div></div>
                         </div>
                     </div>
 
                 </div>
+            </div>
+
+            <!-- ONGLET 9 : EXPLICATION IA SEMANTIQUE -->
+            <div class="tab-pane fade" id="explication-sem" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="text-explication m-0"><i class="fas fa-graduation-cap"></i> Explicabilité (XAI) : Fonctionnement du Clustering Sémantique</h4>
+                </div>
+                
+                <div class="ai-insights shadow-sm mb-4" style="background: linear-gradient(135deg, #eaeded 0%, #d5dbdb 100%); border-left: 5px solid #2c3e50;">
+                    <h5 class="text-explication"><i class="fas fa-server"></i> Comment l'IA comprend-elle le sens des phrases sans serveur externe ?</h5>
+                    <p>La version actuelle de cette plateforme utilise une architecture <strong>Serverless</strong> innovante via la librairie <em>Transformers.js</em>. Cela permet de faire fonctionner une Intelligence Artificielle de Traitement du Langage Naturel (NLP) directement dans votre navigateur web, garantissant ainsi une confidentialité totale des données administratives.</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header text-white fw-bold fs-5" style="background-color: #2c3e50;">
+                                <i class="fas fa-vector-square"></i> Étape 1 : Le Plongement Lexical (Embeddings)
+                            </div>
+                            <div class="card-body">
+                                <p>L'ordinateur ne comprend pas les lettres. Le modèle d'IA <strong>Sentence-BERT (SBERT)</strong> prend chaque activité rédigée par une DREN, CISCO ou ZAP et la traduit en un vecteur mathématique (un gigantesque tableau de plusieurs centaines de nombres).</p>
+                                <p>L'exploit de cette IA est que les phrases ayant la même signification sémantique sont converties en nombres très similaires, même si elles n'utilisent aucun mot en commun.</p>
+                                <div class="demo-box" style="border-left-color: #2c3e50;">
+                                    <h6 class="fw-bold" style="color: #2c3e50;"><i class="fas fa-microscope"></i> Exemple :</h6>
+                                    <div class="demo-step"> Phrase A : <em>"Nettoyer le bus"</em> &rarr; [0.11, -0.40, 0.89, ...]</div>
+                                    <div class="demo-step"> Phrase B : <em>"Laver la voiture"</em> &rarr; [0.12, -0.45, 0.88, ...]</div>
+                                    <div class="demo-step"> Phrase C : <em>"Rédiger un rapport"</em> &rarr; [-0.99, 0.12, -0.05, ...]</div>
+                                    <p class="mt-2 mb-0 text-muted small">L'IA constate instantanément que les coordonnées géométriques de A et B se ressemblent énormément.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header text-white fw-bold fs-5" style="background-color: #2c3e50;">
+                                <i class="fas fa-ruler-combined"></i> Étape 2 : La Similarité Cosinus
+                            </div>
+                            <div class="card-body">
+                                <p>Pour comparer deux activités, l'algorithme mesure géométriquement l'angle qui sépare leurs deux vecteurs. Plus l'angle est fermé (proche de 0°), plus le sens des phrases est identique.</p>
+                                <div class="text-center mb-3 mt-2">
+                                    <span class="math-box" style="color: #2c3e50; border-color: #2c3e50;"><strong>Sim(A, B) = (A &middot; B) / (||A|| &times; ||B||)</strong></span>
+                                </div>
+                                <p>Cette formule mathématique génère un score de similarité compris entre -1 et 1.</p>
+                                <div class="demo-box" style="border-left-color: #2c3e50;">
+                                    <h6 class="fw-bold" style="color: #2c3e50;"><i class="fas fa-microscope"></i> Exemple :</h6>
+                                    <div class="demo-step">- Similarité Cosinus entre "Nettoyer le bus" et "Laver la voiture" = <span class="demo-result" style="color: #27ae60; background-color: #eafaf1;">0.95 (soit 95% de similitude)</span></div>
+                                    <div class="demo-step">- Similarité Cosinus entre "Nettoyer le bus" et "Rédiger un rapport" = <span class="demo-result" style="color: #c0392b; background-color: #f9ebea;">0.10 (soit 10% de similitude)</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header text-white fw-bold fs-5" style="background-color: #2c3e50;">
+                                <i class="fas fa-project-diagram"></i> Étape 3 : Le Clustering (Regroupement)
+                            </div>
+                            <div class="card-body">
+                                <p>Contrairement au K-Means où l'on doit forcer un nombre de groupes précis, ici le script parcourt toutes les phrases soumises et les rassemble automatiquement en <strong>"Dossiers Thématiques"</strong>.</p>
+                                <p>Dans notre code JavaScript, le seuil de tolérance (Threshold) est fixé à <strong>75%</strong>. Toute phrase partageant plus de 75% de signification sémantique avec le centre d'un groupe existant y est automatiquement intégrée, créant ainsi des catégories homogènes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Avantages et Inconvénients -->
+                <h4 class="text-secondary mt-2 mb-3"><i class="fas fa-balance-scale"></i> Bilan Technologique de cette architecture Locale</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-success shadow-sm h-100">
+                            <div class="card-header bg-success text-white fw-bold"><i class="fas fa-plus-circle"></i> Avantages</div>
+                            <div class="card-body">
+                                <ul class="mb-0">
+                                    <li class="mb-2"><strong>100% Autonome :</strong> Ne dépend d'aucun serveur Python/Django, la page HTML suffit.</li>
+                                    <li class="mb-2"><strong>Confidentialité Absolue :</strong> Les textes des activités DREN/CISCO ne sont jamais envoyés sur internet pour être analysés.</li>
+                                    <li class="mb-2"><strong>Multilingue :</strong> Le modèle MiniLM comprend nativement le français et peut faire des rapprochements de sens multilingues.</li>
+                                    <li><strong>Zéro coût :</strong> Ne nécessite pas d'abonnement à une API d'Intelligence Artificielle cloud.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-danger shadow-sm h-100">
+                            <div class="card-header bg-danger text-white fw-bold"><i class="fas fa-minus-circle"></i> Inconvénients</div>
+                            <div class="card-body">
+                                <ul class="mb-0">
+                                    <li class="mb-2"><strong>Temps de premier chargement :</strong> Lors du tout premier clic, le navigateur doit télécharger le modèle mathématique (~90 Mo), ce qui requiert une bonne connexion.</li>
+                                    <li class="mb-2"><strong>Limites de la RAM :</strong> Si des dizaines de milliers de phrases doivent être analysées en une seule fois, l'ordinateur de l'utilisateur peut manquer de mémoire vive (RAM).</li>
+                                    <li><strong>Moins profond qu'un LLM Géant :</strong> Bien que très performant, ce modèle léger (MiniLM) n'a pas la profondeur sémantique et la compréhension des nuances complexes d'un modèle lourd sur serveur (comme GPT-4).</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
         </div>
@@ -933,13 +994,8 @@
                 let x = event.clientX + 15;
                 let y = event.clientY + 15;
                 
-                // Anti-débordement à droite et en bas
-                if (x + tooltip.offsetWidth > window.innerWidth) {
-                    x = event.clientX - tooltip.offsetWidth - 15;
-                }
-                if (y + tooltip.offsetHeight > window.innerHeight) {
-                    y = event.clientY - tooltip.offsetHeight - 15;
-                }
+                if (x + tooltip.offsetWidth > window.innerWidth) { x = event.clientX - tooltip.offsetWidth - 15; }
+                if (y + tooltip.offsetHeight > window.innerHeight) { y = event.clientY - tooltip.offsetHeight - 15; }
                 
                 tooltip.style.left = x + 'px';
                 tooltip.style.top = y + 'px';
@@ -1004,7 +1060,7 @@
             return assignments.map(a => rankMap[a]);
         }
 
-        // ================= IA : JENKS (NATURAL BREAKS) =================
+        // ================= IA : JENKS =================
         function getJenksBreaks(data, numclass) {
             data = data.slice().sort((a, b) => a - b);
             if (data.length <= numclass) return data;
@@ -2084,38 +2140,34 @@
 
                 $('#semantic-progress-bar').css('width', '100%').text('Modèle chargé !');
 
-                const extractUnique = (key) => {
-                    let col = baseColsInfo.find(c => c.key === key);
-                    return [...new Set(allData.map(r => cleanSpaces(getKoboValue(r, col.matches, col.ex, col.mustMatch))).filter(v => v && v !== 'Non renseigné'))];
-                };
-
-                const tasks = [
-                    { id: 'semantic-act-dren-results', name: 'Activités DREN', data: extractUnique('activiteDren') },
-                    { id: 'semantic-act-cisco-results', name: 'Activités CISCO', data: extractUnique('activiteCisco') },
-                    { id: 'semantic-act-zap-results', name: 'Activités ZAP', data: extractUnique('activiteZap') },
-
-                    { id: 'semantic-prod-dren-results', name: 'Produits DREN', data: extractUnique('produitDren') },
-                    { id: 'semantic-prod-cisco-results', name: 'Produits CISCO', data: extractUnique('produitCisco') },
-                    { id: 'semantic-prod-zap-results', name: 'Produits ZAP', data: extractUnique('produitZap') },
-
-                    { id: 'semantic-sact-dren-results', name: 'Sous-activités DREN', data: extractUnique('sousActiviteDren') },
-                    { id: 'semantic-sact-cisco-results', name: 'Sous-activités CISCO', data: extractUnique('sousActiviteCisco') },
-                    { id: 'semantic-sact-zap-results', name: 'Sous-activités ZAP', data: extractUnique('sousActiviteZap') },
-
-                    { id: 'semantic-sprod-dren-results', name: 'Sous-produits DREN', data: extractUnique('sousProduitDren') },
-                    { id: 'semantic-sprod-cisco-results', name: 'Sous-produits CISCO', data: extractUnique('sousProduitCisco') },
-                    { id: 'semantic-sprod-zap-results', name: 'Sous-produits ZAP', data: extractUnique('sousProduitZap') }
+                const semanticTasks = [
+                    { key: 'activiteDren', resId: 'res-act-dren', name: 'Activités DREN' },
+                    { key: 'activiteCisco', resId: 'res-act-cisco', name: 'Activités CISCO' },
+                    { key: 'activiteZap', resId: 'res-act-zap', name: 'Activités ZAP' },
+                    { key: 'produitDren', resId: 'res-prod-dren', name: 'Produits DREN' },
+                    { key: 'produitCisco', resId: 'res-prod-cisco', name: 'Produits CISCO' },
+                    { key: 'produitZap', resId: 'res-prod-zap', name: 'Produits ZAP' },
+                    { key: 'sousActiviteDren', resId: 'res-sact-dren', name: 'Sous-activités DREN' },
+                    { key: 'sousActiviteCisco', resId: 'res-sact-cisco', name: 'Sous-activités CISCO' },
+                    { key: 'sousActiviteZap', resId: 'res-sact-zap', name: 'Sous-activités ZAP' },
+                    { key: 'sousProduitDren', resId: 'res-sprod-dren', name: 'Sous-produits DREN' },
+                    { key: 'sousProduitCisco', resId: 'res-sprod-cisco', name: 'Sous-produits CISCO' },
+                    { key: 'sousProduitZap', resId: 'res-sprod-zap', name: 'Sous-produits ZAP' }
                 ];
 
-                for (let i = 0; i < tasks.length; i++) {
-                    let t = tasks[i];
-                    $('#semantic-status').text(`Analyse sémantique en cours : ${t.name}... (${i + 1}/${tasks.length})`);
-                    let clusters = await clusterActivities(t.data, extractor);
-                    renderSemanticClusters(clusters, t.id, t.name);
+                for(let task of semanticTasks) {
+                    $('#semantic-status').text(`Analyse sémantique en cours : ${task.name}...`);
+                    
+                    let col = baseColsInfo.find(c => c.key === task.key);
+                    if(col) {
+                        let dataToProcess = [...new Set(allData.map(r => cleanSpaces(getKoboValue(r, col.matches, col.ex, col.mustMatch))).filter(v => v && v !== 'Non renseigné'))];
+                        let clusters = await clusterActivities(dataToProcess, extractor);
+                        renderSemanticClusters(clusters, task.resId, task.name);
+                    }
                 }
 
-                $('#semantic-status').text("✅ Analyse sémantique terminée pour tous les champs !");
-                setTimeout(() => $('#semantic-progress-container').hide(), 4000);
+                $('#semantic-status').text("✅ Analyse sémantique de tous les niveaux terminée avec succès !");
+                setTimeout(() => $('#semantic-progress-container').hide(), 5000);
 
             } catch(e) {
                 $('#semantic-status').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Erreur lors de l'analyse : ${e.message}</span>`);
