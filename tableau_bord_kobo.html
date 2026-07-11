@@ -102,7 +102,7 @@
             background: #fff;
             padding: 5px;
             box-shadow: 0 15px 30px rgba(0,0,0,0.3);
-            pointer-events: none; /* Empêche le curseur d'interagir avec l'infobulle */
+            pointer-events: none;
         }
         #image-preview-tooltip img {
             max-width: 350px;
@@ -284,7 +284,7 @@
                             <input type="text" id="filter-sous-produit" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                         </div>
                         
-                        <!-- NOUVEAUX FILTRES PAR DATE DE SOUMISSION -->
+                        <!-- FILTRES PAR DATE DE SOUMISSION -->
                         <div class="col-md-6 mt-3">
                             <label class="filter-label text-primary"><i class="fas fa-calendar-alt"></i> Date de début (Soumission)</label>
                             <input type="date" id="filter-date-debut" class="form-control filter-input">
@@ -293,8 +293,6 @@
                             <label class="filter-label text-primary"><i class="fas fa-calendar-check"></i> Date de fin (Soumission)</label>
                             <input type="date" id="filter-date-fin" class="form-control filter-input">
                         </div>
-                        <!-- FIN NOUVEAUX FILTRES -->
-
                     </div>
                     <div class="mt-3 text-end">
                         <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
@@ -730,7 +728,7 @@
                 <!-- Algo 3 : DBSCAN -->
                 <div class="card mb-4 shadow-sm">
                     <div class="card-header bg-danger text-white fw-bold fs-5">
-                        <i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Densité et Bruit)
+                        <i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Density-Based Spatial Clustering)
                     </div>
                     <div class="card-body">
                         <p>Cet algorithme n'utilise pas de centres de gravité mais s'appuie sur la densité. Il définit les clusters comme des zones continues de forte densité et isole les zones vides.</p>
@@ -779,7 +777,7 @@
                 
                 <div class="ai-insights shadow-sm mb-4 border-semantic" style="background: linear-gradient(135deg, #fdf2e9 0%, #fadbd8 100%);">
                     <h5 class="text-semantic"><i class="fas fa-language"></i> Traitement du Langage Naturel (NLP)</h5>
-                    <p>Cet algorithme ne compare pas les lettres, mais le <strong>sens caché</strong> des phrases. L'IA (Sentence-BERT) transforme chaque activité en un vecteur mathématique. Elle calcule ensuite la <strong>Similarité Cosinus</strong> pour regrouper les activités qui parlent de la même chose, même si elles n'utilisent pas les mêmes mots (ex: "Nettoyer le bus" et "Laver la voiture").</p>
+                    <p>Cet algorithme ne compare pas les lettres, mais le <strong>sens caché</strong> des phrases. L'IA (Sentence-BERT) transforme chaque activité en un vecteur mathématique. Elle calcule ensuite la <strong>Similarité Cosinus</strong> pour regrouper les textes qui parlent de la même chose, même si elles n'utilisent pas les mêmes mots (ex: "Nettoyer le bus" et "Laver la voiture").</p>
                     <div class="text-center mb-3 mt-2">
                         <span class="math-box text-semantic"><strong>Sim(A, B) = (A &middot; B) / (||A|| &times; ||B||)</strong></span>
                     </div>
@@ -787,9 +785,9 @@
 
                 <div class="text-center mb-4">
                     <button class="btn btn-lg text-white shadow-sm" style="background-color: #d35400;" onclick="window.runSemanticAnalysis()">
-                        <i class="fas fa-play-circle"></i> Démarrer l'Analyse Sémantique
+                        <i class="fas fa-play-circle"></i> Démarrer l'Analyse Sémantique (Multi-Champs)
                     </button>
-                    <p class="text-muted small mt-2"><i class="fas fa-info-circle"></i> Lors du premier lancement, le navigateur téléchargera le modèle IA multilingue (~90 Mo). L'analyse prendra quelques secondes.</p>
+                    <p class="text-muted small mt-2"><i class="fas fa-info-circle"></i> Lors du premier lancement, le navigateur téléchargera le modèle IA multilingue (~90 Mo). L'analyse traitera ensuite automatiquement 12 ensembles de données distincts.</p>
                 </div>
 
                 <div id="semantic-progress-container" style="display: none;" class="mb-4">
@@ -799,28 +797,80 @@
                     </div>
                 </div>
 
-                <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
-                    <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#semantic-dren" type="button">Thématiques DREN</button></li>
-                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#semantic-cisco" type="button">Thématiques CISCO</button></li>
-                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#semantic-zap" type="button">Thématiques ZAP</button></li>
+                <!-- NAVIGATION NIVEAU 1 : LES 4 CHAMPS D'ACTION -->
+                <ul class="nav nav-tabs mb-4 justify-content-center" id="semanticFieldTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold text-semantic" data-bs-toggle="tab" data-bs-target="#sem-act" type="button" role="tab"><i class="fas fa-tasks"></i> Activités</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold text-semantic" data-bs-toggle="tab" data-bs-target="#sem-prod" type="button" role="tab"><i class="fas fa-box"></i> Produits</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold text-semantic" data-bs-toggle="tab" data-bs-target="#sem-sact" type="button" role="tab"><i class="fas fa-list-alt"></i> Sous-activités</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold text-semantic" data-bs-toggle="tab" data-bs-target="#sem-sprod" type="button" role="tab"><i class="fas fa-cubes"></i> Sous-produits</button>
+                    </li>
                 </ul>
 
-                <div class="tab-content">
-                    <div class="tab-pane fade show active" id="semantic-dren">
-                        <div class="row" id="semantic-dren-results">
-                            <div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement de l'analyse...</div>
+                <div class="tab-content" id="semanticFieldTabsContent">
+                    
+                    <!-- 1. ACTIVITES -->
+                    <div class="tab-pane fade show active" id="sem-act" role="tabpanel">
+                        <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
+                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#sem-act-dren" type="button">Thématiques DREN</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-act-cisco" type="button">Thématiques CISCO</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-act-zap" type="button">Thématiques ZAP</button></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="sem-act-dren"><div class="row" id="semantic-act-dren-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
+                            <div class="tab-pane fade" id="sem-act-cisco"><div class="row" id="semantic-act-cisco-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
+                            <div class="tab-pane fade" id="sem-act-zap"><div class="row" id="semantic-act-zap-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="semantic-cisco">
-                        <div class="row" id="semantic-cisco-results">
-                            <div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement de l'analyse...</div>
+
+                    <!-- 2. PRODUITS -->
+                    <div class="tab-pane fade" id="sem-prod" role="tabpanel">
+                        <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
+                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#sem-prod-dren" type="button">Thématiques DREN</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-prod-cisco" type="button">Thématiques CISCO</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-prod-zap" type="button">Thématiques ZAP</button></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="sem-prod-dren"><div class="row" id="semantic-prod-dren-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
+                            <div class="tab-pane fade" id="sem-prod-cisco"><div class="row" id="semantic-prod-cisco-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
+                            <div class="tab-pane fade" id="sem-prod-zap"><div class="row" id="semantic-prod-zap-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="semantic-zap">
-                        <div class="row" id="semantic-zap-results">
-                            <div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente du lancement de l'analyse...</div>
+
+                    <!-- 3. SOUS-ACTIVITES -->
+                    <div class="tab-pane fade" id="sem-sact" role="tabpanel">
+                        <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
+                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sact-dren" type="button">Thématiques DREN</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sact-cisco" type="button">Thématiques CISCO</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sact-zap" type="button">Thématiques ZAP</button></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="sem-sact-dren"><div class="row" id="semantic-sact-dren-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
+                            <div class="tab-pane fade" id="sem-sact-cisco"><div class="row" id="semantic-sact-cisco-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
+                            <div class="tab-pane fade" id="sem-sact-zap"><div class="row" id="semantic-sact-zap-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
                         </div>
                     </div>
+
+                    <!-- 4. SOUS-PRODUITS -->
+                    <div class="tab-pane fade" id="sem-sprod" role="tabpanel">
+                        <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
+                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sprod-dren" type="button">Thématiques DREN</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sprod-cisco" type="button">Thématiques CISCO</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#sem-sprod-zap" type="button">Thématiques ZAP</button></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="sem-sprod-dren"><div class="row" id="semantic-sprod-dren-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
+                            <div class="tab-pane fade" id="sem-sprod-cisco"><div class="row" id="semantic-sprod-cisco-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
+                            <div class="tab-pane fade" id="sem-sprod-zap"><div class="row" id="semantic-sprod-zap-results"><div class="col-12 text-center text-muted py-5"><i class="fas fa-clock fa-2x mb-3"></i><br>En attente de l'analyse...</div></div></div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -1982,7 +2032,7 @@
         function renderSemanticClusters(clusters, containerId, titlePrefix) {
             let container = document.getElementById(containerId);
             if(clusters.length === 0) {
-                container.innerHTML = `<div class="col-12 text-center text-muted py-3">Aucune activité trouvée pour ${titlePrefix}.</div>`;
+                container.innerHTML = `<div class="col-12 text-center text-muted py-3">Aucune donnée trouvée pour ${titlePrefix}.</div>`;
                 return;
             }
 
@@ -2017,16 +2067,6 @@
                 return;
             }
 
-            // Récupérer les index dynamiques des colonnes Activités
-            let colDren = baseColsInfo.find(c => c.key === 'activiteDren');
-            let colCisco = baseColsInfo.find(c => c.key === 'activiteCisco');
-            let colZap = baseColsInfo.find(c => c.key === 'activiteZap');
-
-            // Extraction et dédoublonnage strict pour chaque catégorie
-            let actDren = [...new Set(allData.map(r => cleanSpaces(getKoboValue(r, colDren.matches, colDren.ex, colDren.mustMatch))).filter(v => v && v !== 'Non renseigné'))];
-            let actCisco = [...new Set(allData.map(r => cleanSpaces(getKoboValue(r, colCisco.matches, colCisco.ex, colCisco.mustMatch))).filter(v => v && v !== 'Non renseigné'))];
-            let actZap = [...new Set(allData.map(r => cleanSpaces(getKoboValue(r, colZap.matches, colZap.ex, colZap.mustMatch))).filter(v => v && v !== 'Non renseigné'))];
-
             $('#semantic-progress-container').show();
             $('#semantic-status').text("Téléchargement et initialisation du modèle IA (SBERT)... Cela peut prendre une minute.");
             $('#semantic-progress-bar').css('width', '5%').text('5%');
@@ -2042,23 +2082,39 @@
                     }
                 });
 
-                // Phase 1 : DREN
                 $('#semantic-progress-bar').css('width', '100%').text('Modèle chargé !');
-                $('#semantic-status').text("Analyse sémantique des activités DREN en cours...");
-                let clustersDren = await clusterActivities(actDren, extractor);
-                renderSemanticClusters(clustersDren, 'semantic-dren-results', 'DREN');
 
-                // Phase 2 : CISCO
-                $('#semantic-status').text("Analyse sémantique des activités CISCO en cours...");
-                let clustersCisco = await clusterActivities(actCisco, extractor);
-                renderSemanticClusters(clustersCisco, 'semantic-cisco-results', 'CISCO');
+                const extractUnique = (key) => {
+                    let col = baseColsInfo.find(c => c.key === key);
+                    return [...new Set(allData.map(r => cleanSpaces(getKoboValue(r, col.matches, col.ex, col.mustMatch))).filter(v => v && v !== 'Non renseigné'))];
+                };
 
-                // Phase 3 : ZAP
-                $('#semantic-status').text("Analyse sémantique des activités ZAP en cours...");
-                let clustersZap = await clusterActivities(actZap, extractor);
-                renderSemanticClusters(clustersZap, 'semantic-zap-results', 'ZAP');
+                const tasks = [
+                    { id: 'semantic-act-dren-results', name: 'Activités DREN', data: extractUnique('activiteDren') },
+                    { id: 'semantic-act-cisco-results', name: 'Activités CISCO', data: extractUnique('activiteCisco') },
+                    { id: 'semantic-act-zap-results', name: 'Activités ZAP', data: extractUnique('activiteZap') },
 
-                $('#semantic-status').text("✅ Analyse sémantique terminée avec succès !");
+                    { id: 'semantic-prod-dren-results', name: 'Produits DREN', data: extractUnique('produitDren') },
+                    { id: 'semantic-prod-cisco-results', name: 'Produits CISCO', data: extractUnique('produitCisco') },
+                    { id: 'semantic-prod-zap-results', name: 'Produits ZAP', data: extractUnique('produitZap') },
+
+                    { id: 'semantic-sact-dren-results', name: 'Sous-activités DREN', data: extractUnique('sousActiviteDren') },
+                    { id: 'semantic-sact-cisco-results', name: 'Sous-activités CISCO', data: extractUnique('sousActiviteCisco') },
+                    { id: 'semantic-sact-zap-results', name: 'Sous-activités ZAP', data: extractUnique('sousActiviteZap') },
+
+                    { id: 'semantic-sprod-dren-results', name: 'Sous-produits DREN', data: extractUnique('sousProduitDren') },
+                    { id: 'semantic-sprod-cisco-results', name: 'Sous-produits CISCO', data: extractUnique('sousProduitCisco') },
+                    { id: 'semantic-sprod-zap-results', name: 'Sous-produits ZAP', data: extractUnique('sousProduitZap') }
+                ];
+
+                for (let i = 0; i < tasks.length; i++) {
+                    let t = tasks[i];
+                    $('#semantic-status').text(`Analyse sémantique en cours : ${t.name}... (${i + 1}/${tasks.length})`);
+                    let clusters = await clusterActivities(t.data, extractor);
+                    renderSemanticClusters(clusters, t.id, t.name);
+                }
+
+                $('#semantic-status').text("✅ Analyse sémantique terminée pour tous les champs !");
                 setTimeout(() => $('#semantic-progress-container').hide(), 4000);
 
             } catch(e) {
