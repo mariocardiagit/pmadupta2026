@@ -763,6 +763,25 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- BLOC D'EXPLICATION AJOUTÉ : FORMULATIONS UNIQUES VS VOLUMES -->
+                <div class="alert alert-warning py-3 mb-4 shadow-sm border-warning" style="font-size: 0.95rem;">
+                    <h6 class="fw-bold"><i class="fas fa-info-circle"></i> À propos du chiffre affiché dans les badges (Formulations Uniques)</h6>
+                    <p class="mb-2">Le chiffre affiché à côté de chaque Thématique indique le nombre de <strong>Formulations Uniques</strong>, et non pas le nombre total de soumissions. L'objectif de cet Onglet (Clustering Sémantique) n'est pas de compter les volumes (cela, c'est le rôle des onglets K-Means, Jenks et DBSCAN). Son but est de créer un dictionnaire des thématiques à partir des différentes façons de s'exprimer.</p>
+                    <p class="mb-2">Pour éviter que l'Intelligence Artificielle ne perde du temps et de la mémoire à analyser 100 fois la même phrase si 100 ZAP copient-collent le même texte, le programme effectue un <strong>"Dédoublonnage strict"</strong> avant de lancer l'analyse sémantique :</p>
+                    <ul class="mb-2">
+                        <li><strong>Étape A :</strong> Le système liste toutes les soumissions.</li>
+                        <li><strong>Étape B :</strong> Il retire tous les doublons parfaits. Si deux entités écrivent exactement la même phrase, à la lettre et à la virgule près, l'algorithme n'en garde qu'une seule copie comme "modèle".</li>
+                        <li><strong>Étape C :</strong> L'IA SBERT analyse cette phrase unique et la place dans un "Dossier Thématique".</li>
+                    </ul>
+                    <p class="mb-0"><strong>Un exemple pour bien comprendre la différence :</strong><br>
+                    Imaginons que 10 ZAP différentes saisissent des activités liées au nettoyage, réparties ainsi :<br>
+                    - 5 ZAP écrivent exactement : <em>"Nettoyer le bus"</em><br>
+                    - 3 ZAP écrivent exactement : <em>"Laver le bus"</em><br>
+                    - 2 ZAP écrivent exactement : <em>"Récurer l'autobus"</em><br>
+                    Le tableau sémantique va d'abord retirer les doublons pour ne garder que 3 phrases (Nettoyer, Laver, Récurer). L'IA va voir qu'elles ont le même sens et va les mettre dans la même thématique. <strong>Le badge affichera alors le chiffre 3</strong> (pour 3 formulations uniques), même s'il y a eu en réalité 10 formulaires soumis.</p>
+                </div>
+                <!-- FIN BLOC D'EXPLICATION -->
                 
                 <div class="ai-insights shadow-sm mb-4 border-semantic" style="background: linear-gradient(135deg, #fdf2e9 0%, #fadbd8 100%);">
                     <h5 class="text-semantic"><i class="fas fa-language"></i> Traitement du Langage Naturel (NLP)</h5>
@@ -964,6 +983,19 @@
     <script>
         // VARIABLE GLOBALE POUR SAUVEGARDER L'ANALYSE SÉMANTIQUE
         let globalSemanticResults = {};
+        
+        // EXPLICATION SÉMANTIQUE POUR LES EXPORTS
+        const EXPLICATION_SEMANTIQUE = [
+            "NOTE SUR LES RÉSULTATS (FORMULATIONS UNIQUES VS VOLUMES) :",
+            "Le nombre d'éléments dans chaque thématique indique le nombre de Formulations Uniques, pas le nombre total de soumissions. L'objectif est de créer un dictionnaire thématique.",
+            "Pour optimiser l'IA, le système effectue un dédoublonnage strict avant l'analyse :",
+            "  Étape A : Liste de toutes les soumissions.",
+            "  Étape B : Retrait des doublons parfaits (conservation d'une seule copie modèle si les phrases sont identiques à la virgule près).",
+            "  Étape C : L'IA SBERT analyse ces phrases uniques et les place dans des dossiers thématiques.",
+            "EXEMPLE : Si 10 ZAP saisissent des activités de nettoyage (5 écrivent 'Nettoyer le bus', 3 'Laver le bus', 2 'Récurer l'autobus'),",
+            "le système ne garde que 3 phrases (Nettoyer, Laver, Récurer). L'IA constate qu'elles ont le même sens et les regroupe dans la même thématique.",
+            "La thématique contiendra alors 3 éléments (pour 3 formulations uniques), même s'il y a eu en réalité 10 formulaires soumis."
+        ];
 
         const TITRE_PLATEFORME = "Plateforme de Suivi du Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel (PTA) de l'Année 2026 des Services Techniques Déconcentrés (STD)";
         const SOUS_TITRE_PLATEFORME = "Tableau de Bord : Données & Analytics KoboToolbox";
@@ -2081,8 +2113,12 @@
             let fn = generateFilename(pfx, 'csv'), csv = [], d = getFormattedDateTime();
             csv.push(`"${TITRE_PLATEFORME}"`); csv.push(`"Rapport d'Analyse Sémantique"`); csv.push("");
             csv.push(`"--- METADONNEES D'EXPORT ---"`); csv.push(`"Date d'exportation";"${d}"`); csv.push("");
-            csv.push(`"Domaine";"Niveau";"Thématique";"Élément"`);
             
+            csv.push(`"--- EXPLICATION DE L'ALGORITHME (FORMULATIONS UNIQUES vs VOLUMES) ---"`);
+            EXPLICATION_SEMANTIQUE.forEach(line => csv.push(`"${line.replace(/"/g, '""')}"`));
+            csv.push("");
+            
+            csv.push(`"Domaine";"Niveau";"Thématique";"Élément"`);
             data.forEach(row => {
                 csv.push(`"${row.Domaine}";"${row.Niveau}";"${row.Thématique}";"${cleanSpaces(row.Élément).replace(/"/g, '""')}"`);
             });
@@ -2093,24 +2129,37 @@
             let data = getSemanticExportData();
             if (!data) return alert("Veuillez d'abord lancer l'analyse sémantique complète.");
             
-            let fn = generateFilename(pfx, 'xlsx'), wb = XLSX.utils.book_new(), wsD = [];
+            let fn = generateFilename(pfx, 'xlsx'), wb = XLSX.utils.book_new(), wsD = [], merges = [];
+            
             wsD.push([TITRE_PLATEFORME]); wsD.push(["Rapport d'Analyse Sémantique"]); wsD.push([]);
             wsD.push(["Date d'exportation", getFormattedDateTime()]); wsD.push([]);
-            wsD.push(["Domaine", "Niveau", "Thématique", "Élément"]);
             
+            wsD.push(["--- EXPLICATION DE L'ALGORITHME (FORMULATIONS UNIQUES vs VOLUMES) ---"]);
+            let sR = wsD.length;
+            EXPLICATION_SEMANTIQUE.forEach(line => wsD.push([line]));
+            let eR = wsD.length - 1;
+            wsD.push([]);
+            
+            // Merge les colonnes pour que l'explication soit bien lisible sur Excel
+            for(let r = sR; r <= eR; r++) { merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 3 } }); }
+            
+            wsD.push(["Domaine", "Niveau", "Thématique", "Élément"]);
             data.forEach(row => {
                 wsD.push([row.Domaine, row.Niveau, row.Thématique, row.Élément]);
             });
             
             let ws = XLSX.utils.aoa_to_sheet(wsD);
+            if (merges.length > 0) ws['!merges'] = merges;
             XLSX.utils.book_append_sheet(wb, ws, "Sémantique"); XLSX.writeFile(wb, fn);
         }
 
         function exportSemanticToHTML(pfx) {
             if (Object.keys(globalSemanticResults).length === 0) return alert("Veuillez d'abord lancer l'analyse sémantique complète.");
             
-            let clone = document.getElementById('semanticFieldsTabContent').outerHTML;
-            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><style>body{font-family:sans-serif;padding:20px;} .card{margin-bottom:15px;} .list-group-item{font-size:0.9rem;} .bg-light{background-color:#f8f9fa!important;} .text-semantic{color:#d35400!important;} .border{border:1px solid #dee2e6!important;} .shadow-sm{box-shadow:0 .125rem .25rem rgba(0,0,0,.075)!important;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4>Rapport d'Analyse Sémantique (Généré le ${getFormattedDateTime()})</h4>${clone}</body></html>`;
+            let clone = document.getElementById('semantic').cloneNode(true); 
+            $(clone).find('button, .progress, #semantic-progress-container').remove();
+            
+            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"><style>body{font-family:sans-serif;padding:20px;} .card{margin-bottom:15px;} .list-group-item{font-size:0.9rem;} .bg-light{background-color:#f8f9fa!important;} .text-semantic{color:#d35400!important;} .border{border:1px solid #dee2e6!important;} .shadow-sm{box-shadow:0 .125rem .25rem rgba(0,0,0,.075)!important;} .alert-warning{background-color:#fff3cd; color:#664d03; border-color:#ffecb5; padding:15px; border-radius:5px;} .nav-pills, .nav-tabs {display:none;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4>Rapport d'Analyse Sémantique (Généré le ${getFormattedDateTime()})</h4>${clone.innerHTML}</body></html>`;
             
             downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
         }
@@ -2121,6 +2170,7 @@
                 "titre_plateforme": TITRE_PLATEFORME, 
                 "sous_titre": "Rapport d'Analyse Sémantique", 
                 "date_exportation": getFormattedDateTime(), 
+                "explication_algorithme": EXPLICATION_SEMANTIQUE,
                 "resultats": globalSemanticResults 
             }, null, 2);
         }
