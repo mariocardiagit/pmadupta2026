@@ -1383,8 +1383,7 @@
                 try {
                     const responseCsv = await fetch("zaps.csv");
                     if (responseCsv.ok) {
-                        (await responseCsv.text()).split('
-').forEach(line => {
+                        (await responseCsv.text()).split('\\n').forEach(line => {
                             const cols = line.split(/[,;]/);
                             if(cols.length >= 2) {
                                 const code = String(cols[0]).replace(/["']/g, '').trim().toLowerCase();
@@ -1420,7 +1419,7 @@
             let t = cleanSpaces(text).toLowerCase();
             const corrections = { 'b_n_ficiaire': 'bénéficiaire', 'r_f_rentiel': 'référentiel', 'd_margement': "d'émargement", 'activit_': 'activité', 'num_ro': 'numéro', 'p_dagogique': 'pédagogique', 'g_n_ral': 'général', 'pr_sence': 'présence', 'dipl_me': 'diplôme', 't_l_phone': 'téléphone', 'cr_ation': 'création', 'r_union': 'réunion', 'd_tail': 'détail', 'fr_quence': 'fréquence', 'p_riode': 'période', 'd_but': 'début', 'cl_ture': 'clôture', 'mat_riel': 'matériel', 'r_ponse': 'réponse', 'identit_': 'identité', 'r_gion': 'région', 'd_partement': 'département', '_tablissement': 'établissement', '_cole': 'école', '_l_ve': 'élève', 's_curit_': 'sécurité' };
             for (const [bad, good] of Object.entries(corrections)) t = t.replace(new RegExp(bad, 'g'), good); 
-            t = t.replace(/(d|l|qu|s|m|t|n)_/g, "$1'").replace(/_/g, ' ');
+            t = t.replace(/\b(d|l|qu|s|m|t|n)_/g, "$1'").replace(/_/g, ' ');
             return t.charAt(0).toUpperCase() + t.slice(1);
         }
 
@@ -1691,7 +1690,7 @@
                     <strong><i class="fas fa-search"></i> Règles de Densité appliquées par DBSCAN :</strong><br>
                     <ul class="mb-0 mt-1">
                         <li>Rayon de recherche (&epsilon;) calculé : <strong>&plusmn; ${res.eps.toFixed(1)} soumissions</strong></li>
-                        <li>Seuil de validation (MinPts) : <strong>Au moins 2 entités</strong> requises pour former un groupe valide.</li>
+                        <li>Seuil de validation (MinPts) : <strong>Au moins 2 entités</strong> requises pour forming un groupe valide.</li>
                     </ul>
                     <em class="mt-1 d-block">Toute entité isolée au-delà de ce rayon est classée en <span class="badge bg-danger">Anomalie (Bruit)</span>.</em>
                 </div>`;
@@ -1868,12 +1867,10 @@
             }; 
         }
         
-        function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous" && f[k] !== "Toutes") t += `- ${k} : ${f[k]}
-`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
+        function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous" && f[k] !== "Toutes") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
         
         function getAnalysisFilters() { return { "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune", "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune", "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune" }; }
-        function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}
-`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
+        function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
 
         // ================= EXPORTS ET PARTAGE =================
         function downloadFile(b, fn) { let a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = fn; a.style.display="none"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
@@ -1886,17 +1883,13 @@
             csv.push(`"--- RESULTATS ---"`);
             $('#data-table tr:visible').each(function() {
                 let r = []; $(this).find('td, th').each(function() {
-                    let cd = cleanSpaces($(this).attr('data-csv') || $(this).text()).replace(/(
-|
-|
-)/gm, '').replace(/"/g, '""');
+                    let cd = cleanSpaces($(this).attr('data-csv') || $(this).text()).replace(/(\r\n|\n|\r)/gm, '').replace(/"/g, '""');
                     r.push(`"${cd}"`);
                     if ($(this).attr('colspan')) { for (let k = 1; k < parseInt($(this).attr('colspan')); k++) r.push('""'); }
                 });
                 csv.push(r.join(";"));
             });
-            downloadFile(new Blob(["﻿" + csv.join("
-")], {type: "text/csv;charset=utf-8;"}), fn);
+            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
         }
 
         function exportTableToExcel(pfx) {
@@ -1988,8 +1981,7 @@
                 csv.push(`"${tb.t}"`); csv.push(`"Nom";"Soumissions";"Part (%)"`);
                 $(`#${tb.id} tr:visible`).each(function() { let r=[]; $(this).find('td').each(function(i) { r.push(`"${cleanSpaces((i===2)?$(this).find('span').text():$(this).text())}"`); }); if(r.length>0 && r[0]!=='"Aucune donnée trouvée"') csv.push(r.join(";")); }); csv.push("");
             });
-            downloadFile(new Blob(["﻿" + csv.join("
-")], {type: "text/csv;charset=utf-8;"}), generateFilename(pfx, 'csv'));
+            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), generateFilename(pfx, 'csv'));
         }
 
         function exportAnalysisToExcel(pfx) {
@@ -2049,8 +2041,7 @@
                     csv.push(row.join(";"));
                 }
             });
-            downloadFile(new Blob(["﻿" + csv.join("
-")], {type: "text/csv;charset=utf-8;"}), fn);
+            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
         }
 
         function exportExpertToExcel(pfx) {
@@ -2078,100 +2069,43 @@
 
         function sendToGmail() {
             let j = getTableJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le texte JSON est copié dans votre presse-papiers.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
-                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Rapport - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,
-
-Date : ${getFormattedDateTime()}
-Critères :
-${getFiltersPlainText()}
-Nombre : ${$('#record-count').text()}
-
-[ COLLER JSON ICI ]
-
-Cordialement.`)}`, '_blank');
+                alert("✅ SUCCÈS !\nLe texte JSON est copié dans votre presse-papiers.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Rapport - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\nCritères :\n${getFiltersPlainText()}\nNombre : ${$('#record-count').text()}\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendToWhatsApp() {
             let j = getTableJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le texte JSON est copié dans le presse-papiers.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
-                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Kobo*
-Date : ${getFormattedDateTime()}
-*Critères :*
-${getFiltersPlainText()}
-Nombre : *${$('#record-count').text()}*
-
-[ COLLER JSON ICI ]`)}`, '_blank');
+                alert("✅ SUCCÈS !\nLe texte JSON est copié dans le presse-papiers.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Kobo*\nDate : ${getFormattedDateTime()}\n*Critères :*\n${getFiltersPlainText()}\nNombre : *${$('#record-count').text()}*\n\n[ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendAnalysisToGmail() {
             let j = getAnalysisJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le JSON d'analyse est copié.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
-                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Analyse - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,
-
-Date : ${getFormattedDateTime()}
-Critères :
-${getAnalysisFiltersPlainText()}
-IA :
-${getAiInsightsArray().join('
-')}
-
-[ COLLER JSON ICI ]
-
-Cordialement.`)}`, '_blank');
+                alert("✅ SUCCÈS !\nLe JSON d'analyse est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Analyse - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\nCritères :\n${getAnalysisFiltersPlainText()}\nIA :\n${getAiInsightsArray().join('\n')}\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendAnalysisToWhatsApp() {
             let j = getAnalysisJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le JSON d'analyse est copié.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
-                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Synthèse Kobo*
-Date : ${getFormattedDateTime()}
-*Critères :*
-${getAnalysisFiltersPlainText()}
-*IA :*
-${getAiInsightsArray().join('
-')}
-
-[ COLLER JSON ICI ]`)}`, '_blank');
+                alert("✅ SUCCÈS !\nLe JSON d'analyse est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Synthèse Kobo*\nDate : ${getFormattedDateTime()}\n*Critères :*\n${getAnalysisFiltersPlainText()}\n*IA :*\n${getAiInsightsArray().join('\n')}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendExpertToGmail() {
             let j = getExpertJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le texte JSON des recommandations est copié.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
-                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Recommandations - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,
-
-Date : ${getFormattedDateTime()}
-
-Veuillez trouver ci-dessous le registre des diagnostics du Système Expert.
-
-[ COLLER JSON ICI ]
-
-Cordialement.`)}`, '_blank');
+                alert("✅ SUCCÈS !\nLe texte JSON des recommandations est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Recommandations - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous le registre des diagnostics du Système Expert.\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendExpertToWhatsApp() {
             let j = getExpertJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le texte JSON des recommandations est copié.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
-                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Recommandations Système Expert*
-Date : ${getFormattedDateTime()}
-
-[ COLLER JSON ICI ]`)}`, '_blank');
+                alert("✅ SUCCÈS !\nLe texte JSON des recommandations est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Recommandations Système Expert*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
@@ -2217,8 +2151,7 @@ Date : ${getFormattedDateTime()}
             data.forEach(row => {
                 csv.push(`"${row.Domaine}";"${row.Niveau}";"${row.Thématique}";"${cleanSpaces(row.Élément).replace(/"/g, '""')}"`);
             });
-            downloadFile(new Blob(["﻿" + csv.join("
-")], {type: "text/csv;charset=utf-8;"}), fn);
+            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
         }
 
         function exportSemanticToExcel(pfx) {
@@ -2316,18 +2249,8 @@ Date : ${getFormattedDateTime()}
             let j = getSemanticJSONData(); 
             if (!j) return alert("Veuillez d'abord lancer l'analyse sémantique complète.");
             navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le texte JSON sémantique est copié.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
-                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Analyse Sémantique - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,
-
-Date : ${getFormattedDateTime()}
-
-Veuillez trouver ci-dessous le registre des regroupements sémantiques.
-
-[ COLLER JSON ICI ]
-
-Cordialement.`)}`, '_blank');
+                alert("✅ SUCCÈS !\nLe texte JSON sémantique est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Analyse Sémantique - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous le registre des regroupements sémantiques.\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
@@ -2335,13 +2258,8 @@ Cordialement.`)}`, '_blank');
             let j = getSemanticJSONData(); 
             if (!j) return alert("Veuillez d'abord lancer l'analyse sémantique complète.");
             navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le texte JSON sémantique est copié.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
-                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Sémantique SBERT*
-Date : ${getFormattedDateTime()}
-
-[ COLLER JSON ICI ]`)}`, '_blank');
+                alert("✅ SUCCÈS !\nLe texte JSON sémantique est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Sémantique SBERT*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
