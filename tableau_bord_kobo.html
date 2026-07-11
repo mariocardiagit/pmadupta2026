@@ -274,6 +274,18 @@
                             <label class="filter-label" id="lbl-sous-produit">Sous-produit (Tous niveaux)</label>
                             <input type="text" id="filter-sous-produit" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
                         </div>
+                        
+                        <!-- NOUVEAUX FILTRES PAR DATE DE SOUMISSION -->
+                        <div class="col-md-6 mt-3">
+                            <label class="filter-label text-primary"><i class="fas fa-calendar-alt"></i> Date de début (Soumission)</label>
+                            <input type="date" id="filter-date-debut" class="form-control filter-input">
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <label class="filter-label text-primary"><i class="fas fa-calendar-check"></i> Date de fin (Soumission)</label>
+                            <input type="date" id="filter-date-fin" class="form-control filter-input">
+                        </div>
+                        <!-- FIN NOUVEAUX FILTRES -->
+
                     </div>
                     <div class="mt-3 text-end">
                         <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
@@ -1324,6 +1336,9 @@
                 baseColsInfo.forEach(col => {
                     let val = getKoboValue(row, col.matches, col.ex, col.mustMatch);
                     tr.append($('<td></td>').attr('data-csv', val).text(val)); sData[col.key] = cleanSpaces(String(val)).toLowerCase();
+                    
+                    // Capture submission time for filtering
+                    sData.subDateObj = row['_submission_time'] ? new Date(row['_submission_time']) : null;
                 });
                 exKeys.concat(mtKeys).forEach(key => {
                     let xmlName = key.split('/').pop();
@@ -1545,7 +1560,23 @@
         }
 
         function applyFilters() {
-            const f = { dren: cleanSpaces($('#filter-dren').val()), cisco: cleanSpaces($('#filter-cisco').val()), zap: cleanSpaces($('#filter-zap').val()), act: cleanSpaces($('#filter-activite').val()), prod: cleanSpaces($('#filter-produit').val()), sAct: cleanSpaces($('#filter-sous-activite').val()), sProd: cleanSpaces($('#filter-sous-produit').val()) };
+            const f = { 
+                dren: cleanSpaces($('#filter-dren').val()), 
+                cisco: cleanSpaces($('#filter-cisco').val()), 
+                zap: cleanSpaces($('#filter-zap').val()), 
+                act: cleanSpaces($('#filter-activite').val()), 
+                prod: cleanSpaces($('#filter-produit').val()), 
+                sAct: cleanSpaces($('#filter-sous-activite').val()), 
+                sProd: cleanSpaces($('#filter-sous-produit').val()),
+                dateDebut: $('#filter-date-debut').val(),
+                dateFin: $('#filter-date-fin').val()
+            };
+
+            let dStart = f.dateDebut ? new Date(f.dateDebut) : null;
+            if (dStart) dStart.setHours(0, 0, 0, 0);
+            let dEnd = f.dateFin ? new Date(f.dateFin) : null;
+            if (dEnd) dEnd.setHours(23, 59, 59, 999);
+
             let vC = 0;
             $('#table-body tr').each(function() {
                 const s = $(this).data('search'); if (!s) return; 
@@ -1554,15 +1585,37 @@
                 let mP = fuzzyMatch(f.prod, s.produitDren) || fuzzyMatch(f.prod, s.produitCisco) || fuzzyMatch(f.prod, s.produitZap);
                 let mSA = fuzzyMatch(f.sAct, s.sousActiviteDren) || fuzzyMatch(f.sAct, s.sousActiviteCisco) || fuzzyMatch(f.sAct, s.sousActiviteZap);
                 let mSP = fuzzyMatch(f.sProd, s.sousProduitDren) || fuzzyMatch(f.sProd, s.sousProduitCisco) || fuzzyMatch(f.sProd, s.sousProduitZap);
-                if (mD && mC && mZ && mA && mP && mSA && mSP) { $(this).show(); vC++; } else { $(this).hide(); }
+                
+                let dateMatch = true;
+                if (s.subDateObj) {
+                    if (dStart && s.subDateObj < dStart) dateMatch = false;
+                    if (dEnd && s.subDateObj > dEnd) dateMatch = false;
+                } else if (dStart || dEnd) {
+                    dateMatch = false;
+                }
+
+                if (mD && mC && mZ && mA && mP && mSA && mSP && dateMatch) { $(this).show(); vC++; } else { $(this).hide(); }
             });
             $('#record-count').text(vC);
         }
 
         function clearFilters() { $('.filter-input').val(''); applyFilters(); }
         
-        function getCurrentFilters() { return { "DREN": cleanSpaces($('#filter-dren').val()) || "Tous", "CISCO": cleanSpaces($('#filter-cisco').val()) || "Tous", "ZAP": cleanSpaces($('#filter-zap').val()) || "Tous", "Activité": cleanSpaces($('#filter-activite').val()) || "Tous", "Produit": cleanSpaces($('#filter-produit').val()) || "Tous", "Sous-activité": cleanSpaces($('#filter-sous-activite').val()) || "Tous", "Sous-produit": cleanSpaces($('#filter-sous-produit').val()) || "Tous" }; }
-        function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
+        function getCurrentFilters() { 
+            return { 
+                "DREN": cleanSpaces($('#filter-dren').val()) || "Tous", 
+                "CISCO": cleanSpaces($('#filter-cisco').val()) || "Tous", 
+                "ZAP": cleanSpaces($('#filter-zap').val()) || "Tous", 
+                "Activité": cleanSpaces($('#filter-activite').val()) || "Tous", 
+                "Produit": cleanSpaces($('#filter-produit').val()) || "Tous", 
+                "Sous-activité": cleanSpaces($('#filter-sous-activite').val()) || "Tous", 
+                "Sous-produit": cleanSpaces($('#filter-sous-produit').val()) || "Tous",
+                "Date de début": $('#filter-date-debut').val() || "Toutes",
+                "Date de fin": $('#filter-date-fin').val() || "Toutes"
+            }; 
+        }
+        
+        function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous" && f[k] !== "Toutes") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
         
         function getAnalysisFilters() { return { "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune", "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune", "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune" }; }
         function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
