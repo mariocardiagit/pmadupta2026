@@ -447,7 +447,7 @@
                     </div>
                     <ul class="mb-0">
                         <li><strong>SDTM</strong> : L'écart au carré de chaque entité par rapport à la moyenne globale nationale.</li>
-                        <li><strong>SDIC</strong> : L'écart au carré par rapport à la moyenne de son seul sous-groupe (Faible, Moyen, Fort).</li>
+                        <li><strong>SDIC</strong> : L'écart au carré par rapport to la moyenne de son seul sous-groupe (Faible, Moyen, Fort).</li>
                         <li><em>En pratique :</em> Le système réduit mathématiquement au maximum l'écart à l'intérieur d'un même groupe, tout en maximisant l'écart entre les groupes différents.</li>
                     </ul>
                 </div>
@@ -2377,6 +2377,13 @@ Date : ${getFormattedDateTime()}
             // Extraction des embeddings pour chaque phrase
             let output = await extractor(activities, { pooling: 'mean', normalize: true });
             let embeddings = output.tolist();
+
+            // FIX IMPORTANT: Si l'entité ne possède qu'une seule activité unique, 
+            // Transformers.js renvoie un vecteur 1D au lieu d'une matrice 2D.
+            // Nous le forçons dans un tableau pour éviter un crash silencieux.
+            if (activities.length === 1 && !Array.isArray(embeddings[0])) {
+                embeddings = [embeddings];
+            }
 
             let clusters = [];
             let threshold = 0.75; // Seuil de similarité cosinus (75%)
