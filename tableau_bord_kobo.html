@@ -590,6 +590,8 @@
                                 </ul>
                             </div>
                             <div class="btn-group" role="group">
+                                <button class="btn btn-secondary btn-sm" onclick="scrollExpertLeft()" title="Défiler vers la gauche"><i class="fas fa-arrow-left"></i></button>
+                                <button class="btn btn-secondary btn-sm" onclick="scrollExpertRight()" title="Défiler vers la droite"><i class="fas fa-arrow-right"></i></button>
                                 <button class="btn btn-secondary btn-sm" onclick="scrollExpertUp()" title="Défiler vers le haut"><i class="fas fa-arrow-up"></i></button>
                                 <button class="btn btn-secondary btn-sm" onclick="scrollExpertDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                             </div>
@@ -1143,6 +1145,8 @@
         function scrollTableUp() { document.getElementById('table-scroll-container').scrollBy({ top: -400, behavior: 'smooth' }); }
         function scrollTableDown() { document.getElementById('table-scroll-container').scrollBy({ top: 400, behavior: 'smooth' }); }
         
+        function scrollExpertLeft() { document.getElementById('expert-table-scroll-container').scrollBy({ left: -400, behavior: 'smooth' }); }
+        function scrollExpertRight() { document.getElementById('expert-table-scroll-container').scrollBy({ left: 400, behavior: 'smooth' }); }
         function scrollExpertUp() { document.getElementById('expert-table-scroll-container').scrollBy({ top: -400, behavior: 'smooth' }); }
         function scrollExpertDown() { document.getElementById('expert-table-scroll-container').scrollBy({ top: 400, behavior: 'smooth' }); }
 
