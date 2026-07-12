@@ -1603,6 +1603,7 @@
         }
 
         function findXmlName(row, pk, ex, mk) {
+            if (!row || typeof row !== 'object') return null;
             for (let key of Object.keys(row)) {
                 let parts = key.split('/'), vName = parts[parts.length - 1].toLowerCase();
                 if (ex && ex.some(e => vName.includes(e))) continue;
@@ -1640,6 +1641,10 @@
                 if (!response.ok) throw new Error('Erreur réseau');
                 
                 allData = (await response.json()).results || [];
+                
+                // FIX IMPORTANT : Nettoyage pour éliminer les lignes 'null' ou corrompues renvoyées par Kobo
+                allData = allData.filter(row => row !== null && typeof row === 'object');
+                
                 renderTable(allData);
                 renderAnalysis(allData);
                 
@@ -1682,7 +1687,7 @@
             function formatExtra(val, rowData, xmlName, isRaw) {
                 if (val === null || val === undefined) return '';
                 let tVal = getTranslatedValue(val, xmlName);
-                let parts = Array.isArray(tVal) ? tVal.map(i => typeof i === 'object' ? Object.values(i).join(' | ') : String(i)) : [String(tVal)];
+                let parts = Array.isArray(tVal) ? tVal.map(i => (typeof i === 'object' && i !== null) ? Object.values(i).join(' | ') : String(i)) : [String(tVal)];
                 if(xmlName.includes('ENTITE') || xmlName.includes('OBSERVATIONS')) parts = [...new Set(parts.flatMap(p => p.split(/\s*;\s*/)).filter(Boolean))];
 
                 return cleanSpaces(parts.map(p => {
