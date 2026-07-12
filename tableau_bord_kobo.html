@@ -475,8 +475,26 @@
 
             <!-- ONGLET 5 : DBSCAN -->
             <div class="tab-pane fade" id="dbscan" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                     <h4 class="text-danger m-0"><i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Densité et Bruit)</h4>
+                    <div class="d-flex align-items-center flex-wrap gap-3">
+                        <div class="btn-group shadow-sm">
+                            <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter l'Anomalie</button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" onclick="exportDBSCANToCSV('anomalies_DBSCAN_Soumissions_Kobo_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportDBSCANToExcel('anomalies_DBSCAN_Soumissions_Kobo_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportDBSCANToHTML('anomalies_DBSCAN_Soumissions_Kobo_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer HTML</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportDBSCANToJSONFile('anomalies_DBSCAN_Soumissions_Kobo_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
+                            </ul>
+                        </div>
+                        <div class="btn-group shadow-sm">
+                            <button type="button" class="btn btn-danger btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-share-alt"></i> Partager l'Anomalie</button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" onclick="sendDBSCANToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendDBSCANToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (JSON)</a></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
                 <div class="ai-insights shadow-sm mb-4 border-danger" style="border-left-color: rgba(231, 76, 60, 1) !important; background: linear-gradient(135deg, #fdedec 0%, #fadbd8 100%);">
                     <h5 style="color: rgba(231, 76, 60, 1);"><i class="fas fa-search-location"></i> Explicabilité : DBSCAN et détection de Bruit</h5>
@@ -1085,6 +1103,7 @@
         // VARIABLE GLOBALE POUR SAUVEGARDER L'ANALYSE SÉMANTIQUE
         let globalSemanticResults = {};
         let globalSoumissionsResults = {};
+        let globalDBSCANAnomalies = { DREN: [], CISCO: [], ZAP: [] };
         let semanticChartsRefs = {};
         
         // EXPLICATION SÉMANTIQUE POUR LES EXPORTS
@@ -1840,6 +1859,10 @@
 
             keys.forEach(k => {
                 clusterGroups[k].sort((a, b) => b.count - a.count);
+                if(algo === 'dbscan' && k === -1) {
+                    let lvl = canvasId.includes('DREN') ? 'DREN' : (canvasId.includes('CISCO') ? 'CISCO' : 'ZAP');
+                    globalDBSCANAnomalies[lvl] = clusterGroups[k].map(item => ({name: item.name, count: item.count, level: lvl}));
+                }
                 if(algo === 'dbscan' && k === -1 && clusterGroups[k].length === 0) return;
                 
                 let def = clusterDefs[k];
@@ -2666,6 +2689,134 @@
             html += `</tbody></table></div>`;
             container.innerHTML = html;
         }
+
+        
+
+        // ================= FONCTIONS EXPORT & PARTAGE ANOMALIES DBSCAN (ONGLET 5) =================
+        function getDBSCANExportData() {
+            let flatData = [];
+            ['DREN', 'CISCO', 'ZAP'].forEach(lvl => {
+                if (globalDBSCANAnomalies[lvl]) {
+                    globalDBSCANAnomalies[lvl].forEach(item => {
+                        flatData.push({
+                            "Niveau": lvl,
+                            "Entité": item.name,
+                            "Nombre de Soumissions": item.count,
+                            "Statut": "⚠️ Anomalie de Soumission (Bruit DBSCAN)"
+                        });
+                    });
+                }
+            });
+            return flatData;
+        }
+
+        function exportDBSCANToCSV(pfx) {
+            let data = getDBSCANExportData();
+            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
+            
+            let fn = generateFilename(pfx, 'csv'), csv = [], d = getFormattedDateTime();
+            csv.push(`"${TITRE_PLATEFORME}"`); csv.push(`"Rapport des Anomalies de Soumissions Kobotoolbox (DBSCAN)"`); csv.push("");
+            csv.push(`"--- METADONNEES D'EXPORT ---"`); csv.push(`"Date d'exportation";"${d}"`); csv.push("");
+            
+            csv.push(`"Niveau";"Entité";"Nombre de Soumissions";"Statut"`);
+            data.forEach(row => {
+                csv.push(`"${row.Niveau}";"${cleanSpaces(row['Entité']).replace(/"/g, '""')}";"${row['Nombre de Soumissions']}";"${row.Statut}"`);
+            });
+            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
+        }
+
+        function exportDBSCANToExcel(pfx) {
+            let data = getDBSCANExportData();
+            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
+            
+            let fn = generateFilename(pfx, 'xlsx'), wb = XLSX.utils.book_new(), wsD = [];
+            
+            let titleStyle = { font: { bold: true, sz: 14, color: { rgb: "2C3E50" } } };
+            let subTitleStyle = { font: { bold: true, sz: 12, color: { rgb: "E74C3C" } } };
+            let headerStyle = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "E74C3C" } }, alignment: { horizontal: "center", vertical: "center" } };
+            let alertStyleCenter = { fill: { fgColor: { rgb: "FDEDEC" } }, font: { color: { rgb: "C0392B" }, bold: true }, alignment: { vertical: "center", horizontal: "center" }, border: { top: {style:'thin', color:{rgb:"FADBD8"}}, bottom: {style:'thin', color:{rgb:"FADBD8"}}, left: {style:'thin', color:{rgb:"FADBD8"}}, right: {style:'thin', color:{rgb:"FADBD8"}} } };
+            let normalStyleCenter = { alignment: { vertical: "center", horizontal: "center" } };
+
+            wsD.push([{ v: TITRE_PLATEFORME, s: titleStyle }]); 
+            wsD.push([{ v: "Rapport des Anomalies de Soumissions Kobotoolbox (DBSCAN)", s: subTitleStyle }]); 
+            wsD.push([]);
+            wsD.push([{ v: "Date d'exportation", s: { font: { bold: true } } }, { v: getFormattedDateTime() }]); 
+            wsD.push([]);
+            
+            wsD.push([{v: "Niveau", s: headerStyle}, {v: "Entité", s: headerStyle}, {v: "Nombre de Soumissions", s: headerStyle}, {v: "Statut", s: headerStyle}]);
+            
+            data.forEach(row => {
+                wsD.push([
+                    {v: row.Niveau, s: normalStyleCenter}, 
+                    {v: cleanSpaces(row['Entité']), s: normalStyleCenter}, 
+                    {v: row['Nombre de Soumissions'], s: alertStyleCenter}, 
+                    {v: row.Statut, s: alertStyleCenter}
+                ]);
+            });
+            
+            let ws = XLSX.utils.aoa_to_sheet(wsD);
+            ws['!cols'] = [ {wch: 15}, {wch: 40}, {wch: 25}, {wch: 40} ];
+            XLSX.utils.book_append_sheet(wb, ws, "Anomalies_DBSCAN"); XLSX.writeFile(wb, fn);
+        }
+
+        function exportDBSCANToHTML(pfx) {
+            let data = getDBSCANExportData();
+            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
+            
+            let htmlTable = `<table style="width:100%; border-collapse:collapse; margin-top:20px;">
+                <thead><tr style="background-color:#e74c3c; color:white;">
+                    <th style="padding:10px; border:1px solid #ddd;">Niveau</th>
+                    <th style="padding:10px; border:1px solid #ddd;">Entité</th>
+                    <th style="padding:10px; border:1px solid #ddd;">Nombre de Soumissions</th>
+                    <th style="padding:10px; border:1px solid #ddd;">Statut</th>
+                </tr></thead><tbody>`;
+                
+            data.forEach(row => {
+                htmlTable += `<tr>
+                    <td style="padding:10px; border:1px solid #ddd; text-align:center;">${row.Niveau}</td>
+                    <td style="padding:10px; border:1px solid #ddd;">${row['Entité']}</td>
+                    <td style="padding:10px; border:1px solid #ddd; text-align:center; font-weight:bold; color:#c0392b;">${row['Nombre de Soumissions']}</td>
+                    <td style="padding:10px; border:1px solid #ddd; text-align:center;"><span style="background:#fdedec; color:#c0392b; padding:5px; border-radius:5px;">${row.Statut}</span></td>
+                </tr>`;
+            });
+            htmlTable += `</tbody></table>`;
+
+            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px;background:#f4f7f6;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4 style="color:#e74c3c;">Rapport des Anomalies de Soumissions Kobotoolbox (DBSCAN) - Généré le ${getFormattedDateTime()}</h4>${htmlTable}</body></html>`;
+            downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
+        }
+
+        function exportDBSCANToJSONFile(pfx) { 
+            let data = getDBSCANExportData();
+            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
+            let j = JSON.stringify({ 
+                "titre_plateforme": TITRE_PLATEFORME, 
+                "sous_titre": "Rapport des Anomalies de Soumissions Kobotoolbox (DBSCAN)", 
+                "date_exportation": getFormattedDateTime(), 
+                "resultats": data 
+            }, null, 2);
+            downloadFile(new Blob([j], { type: 'application/json;charset=utf-8;' }), generateFilename(pfx, 'json')); 
+        }
+
+        function sendDBSCANToGmail() {
+            let data = getDBSCANExportData();
+            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
+            let j = JSON.stringify(data, null, 2);
+            navigator.clipboard.writeText(j).then(function() {
+                alert("✅ SUCCÈS !\nLe texte JSON Anomalies est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Anomalies DBSCAN Kobo - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous la liste des anomalies de soumissions (Bruit).\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
+            }).catch(function() { alert("❌ Erreur Presse-papiers."); });
+        }
+
+        function sendDBSCANToWhatsApp() {
+            let data = getDBSCANExportData();
+            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
+            let j = JSON.stringify(data, null, 2);
+            navigator.clipboard.writeText(j).then(function() {
+                alert("✅ SUCCÈS !\nLe texte JSON Anomalies est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                window.open(`https://wa.me/?text=${encodeURIComponent(`🚨 *Anomalies de Soumissions DBSCAN*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
+            }).catch(function() { alert("❌ Erreur Presse-papiers."); });
+        }
+        
 
         window.runSoumissionsAnalysis = async function() {
             if(allData.length === 0) {
