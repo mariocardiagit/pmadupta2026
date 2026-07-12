@@ -214,7 +214,7 @@
             <li class="nav-item" role="presentation"><button class="nav-link text-info fw-bold" id="details-ia-tab" data-bs-toggle="tab" data-bs-target="#details-ia" type="button" role="tab"><i class="fas fa-book-open"></i> 7 : Explication K-Means/Jenks/DBSCAN</button></li>
             <li class="nav-item" role="presentation"><button class="nav-link text-semantic fw-bold" id="semantic-tab" data-bs-toggle="tab" data-bs-target="#semantic" type="button" role="tab"><i class="fas fa-brain"></i> 8 : Clustering Sémantique</button></li>
             <li class="nav-item" role="presentation"><button class="nav-link text-explication fw-bold" id="explication-sem-tab" data-bs-toggle="tab" data-bs-target="#explication-sem" type="button" role="tab"><i class="fas fa-graduation-cap"></i> 9 : Explication IA Sémantique</button></li>
-            <li class="nav-item" role="presentation"><button class="nav-link fw-bold" style="color: #16a085;" id="consolidation-tab" data-bs-toggle="tab" data-bs-target="#consolidation" type="button" role="tab"><i class="fas fa-layer-group"></i> 10 : Consolidation Kobo</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link fw-bold" style="color: #16a085;" id="consolidation-tab" data-bs-toggle="tab" data-bs-target="#consolidation" type="button" role="tab"><i class="fas fa-layer-group"></i> 10 : Nombre Soumissions Kobo</button></li>
         </ul>
 
         <div class="tab-content" id="dashboardTabsContent">
@@ -1010,42 +1010,42 @@
             <!-- ONGLET 10 : CONSOLIDATION KOBO -->
             <div class="tab-pane fade" id="consolidation" role="tabpanel">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="m-0" style="color: #16a085;"><i class="fas fa-layer-group"></i> Onglet 10 : Consolidation Soumission Kobotoolbox</h4>
+                    <h4 class="m-0" style="color: #16a085;"><i class="fas fa-layer-group"></i> Onglet 10 : Nombre Soumissions Kobo</h4>
                     
                     <div class="d-flex align-items-center flex-wrap gap-3">
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter</button>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="exportConsolidationToCSV('consolidation_soumissions_kobo_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportConsolidationToExcel('consolidation_soumissions_kobo_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportConsolidationToHTML('consolidation_soumissions_kobo_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer HTML</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportConsolidationToJSONFile('consolidation_soumissions_kobo_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportSoumissionsToCSV('nombre_soumissions_kobo_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportSoumissionsToExcel('nombre_soumissions_kobo_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportSoumissionsToHTML('nombre_soumissions_kobo_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer HTML</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportSoumissionsToJSONFile('nombre_soumissions_kobo_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
                             </ul>
                         </div>
                         <div class="btn-group shadow-sm">
                             <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-share-alt"></i> Partager</button>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="sendConsolidationToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (JSON)</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="sendConsolidationToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendSoumissionsToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendSoumissionsToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (JSON)</a></li>
                             </ul>
                         </div>
                     </div>
                 </div>
                 
                 <div class="alert py-3 mb-4 shadow-sm" style="background-color: #e8f8f5; border: 1px solid #1abc9c; color: #117a65; font-size: 0.95rem;">
-                    <h6 class="fw-bold"><i class="fas fa-info-circle"></i> À propos de la Consolidation KoboToolbox</h6>
+                    <h6 class="fw-bold"><i class="fas fa-info-circle"></i> À propos des Soumissions KoboToolbox</h6>
                     <p class="mb-0">Cet onglet utilise l'Intelligence Artificielle (SBERT) pour regrouper les activités ayant le même sens, et génère un tableau de synthèse affichant précisément l'<strong>Entité (DREN, CISCO, ZAP)</strong> responsable ainsi que le <strong>Nombre de Soumissions</strong> associées dans KoboToolbox pour chaque formulation textuelle.</p>
                 </div>
 
                 <div class="text-center mb-4">
-                    <button class="btn btn-lg text-white shadow-sm" style="background-color: #16a085;" onclick="window.runConsolidationAnalysis()">
-                        <i class="fas fa-play-circle"></i> Démarrer la Consolidation Sémantique
+                    <button class="btn btn-lg text-white shadow-sm" style="background-color: #16a085;" onclick="window.runSoumissionsAnalysis()">
+                        <i class="fas fa-play-circle"></i> Démarrer l'Analyse des Soumissions
                     </button>
                     <p class="text-muted small mt-2"><i class="fas fa-info-circle"></i> Le traitement IA regroupera les données volumineuses en thématiques claires.</p>
                 </div>
 
                 <div id="cons-progress-container" style="display: none;" class="mb-4">
-                    <h6 id="cons-status" class="text-center mb-2" style="color: #16a085;">Chargement du modèle d'IA et consolidation...</h6>
+                    <h6 id="cons-status" class="text-center mb-2" style="color: #16a085;">Chargement du modèle d'IA et analyse...</h6>
                     <div class="progress" style="height: 25px;">
                         <div id="cons-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="background-color: #16a085; width: 0%;">0%</div>
                     </div>
@@ -1062,9 +1062,9 @@
                     <!-- ACTIVITES -->
                     <div class="tab-pane fade show active" id="cons-activites">
                         <ul class="nav nav-pills mb-4 justify-content-center">
-                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#cons-act-dren">Consolidation DREN</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-act-cisco">Consolidation CISCO</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-act-zap">Consolidation ZAP</button></li>
+                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#cons-act-dren">Soumissions DREN</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-act-cisco">Soumissions CISCO</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-act-zap">Soumissions ZAP</button></li>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane fade show active" id="cons-act-dren"><div id="res-cons-act-dren" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
@@ -1075,9 +1075,9 @@
                     <!-- PRODUITS -->
                     <div class="tab-pane fade" id="cons-produits">
                         <ul class="nav nav-pills mb-4 justify-content-center">
-                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#cons-prod-dren">Consolidation DREN</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-prod-cisco">Consolidation CISCO</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-prod-zap">Consolidation ZAP</button></li>
+                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#cons-prod-dren">Soumissions DREN</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-prod-cisco">Soumissions CISCO</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-prod-zap">Soumissions ZAP</button></li>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane fade show active" id="cons-prod-dren"><div id="res-cons-prod-dren" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
@@ -1088,9 +1088,9 @@
                     <!-- SOUS-ACTIVITES -->
                     <div class="tab-pane fade" id="cons-sous-activites">
                         <ul class="nav nav-pills mb-4 justify-content-center">
-                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sact-dren">Consolidation DREN</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sact-cisco">Consolidation CISCO</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sact-zap">Consolidation ZAP</button></li>
+                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sact-dren">Soumissions DREN</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sact-cisco">Soumissions CISCO</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sact-zap">Soumissions ZAP</button></li>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane fade show active" id="cons-sact-dren"><div id="res-cons-sact-dren" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
@@ -1101,9 +1101,9 @@
                     <!-- SOUS-PRODUITS -->
                     <div class="tab-pane fade" id="cons-sous-produits">
                         <ul class="nav nav-pills mb-4 justify-content-center">
-                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sprod-dren">Consolidation DREN</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sprod-cisco">Consolidation CISCO</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sprod-zap">Consolidation ZAP</button></li>
+                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sprod-dren">Soumissions DREN</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sprod-cisco">Soumissions CISCO</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sprod-zap">Soumissions ZAP</button></li>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane fade show active" id="cons-sprod-dren"><div id="res-cons-sprod-dren" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
@@ -1123,7 +1123,7 @@
     <script>
         // VARIABLE GLOBALE POUR SAUVEGARDER L'ANALYSE SÉMANTIQUE
         let globalSemanticResults = {};
-        let globalConsolidationResults = {};
+        let globalSoumissionsResults = {};
         let semanticChartsRefs = {};
         
         // EXPLICATION SÉMANTIQUE POUR LES EXPORTS
@@ -1140,8 +1140,8 @@
         ];
 
         // EXPLICATION CONSOLIDATION POUR LES EXPORTS
-        const EXPLICATION_CONSOLIDATION = [
-            "NOTE SUR LE RAPPORT DE CONSOLIDATION KOBO :",
+        const EXPLICATION_SOUMISSION = [
+            "NOTE SUR LE RAPPORT DES SOUMISSIONS KOBO :",
             "Ce rapport croise l'analyse sémantique de l'Intelligence Artificielle avec les données quantitatives de KoboToolbox.",
             "1. L'IA regroupe d'abord les formulations similaires dans des 'Thématiques'.",
             "2. Le système calcule ensuite combien de fois chaque formulation exacte a été soumise par chaque entité (DREN, CISCO, ZAP).",
@@ -2237,37 +2237,37 @@
 
         
         // ================= FONCTIONS EXPORT & PARTAGE CONSOLIDATION (ONGLET 10) =================
-        function exportConsolidationToCSV(pfx) {
-            if (Object.keys(globalConsolidationResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
+        function exportSoumissionsToCSV(pfx) {
+            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
             let fn = generateFilename(pfx, 'csv'), csv = [], d = getFormattedDateTime();
-            csv.push(`"${TITRE_PLATEFORME}"`); csv.push(`"Rapport de Consolidation Soumission Kobotoolbox"`); csv.push("");
+            csv.push(`"${TITRE_PLATEFORME}"`); csv.push(`"Rapport des Soumissions Kobotoolbox"`); csv.push("");
             csv.push(`"--- METADONNEES D'EXPORT ---"`); csv.push(`"Date d'exportation";"${d}"`); csv.push("");
             
             csv.push(`"--- EXPLICATION DU RAPPORT DE CONSOLIDATION ---"`);
-            EXPLICATION_CONSOLIDATION.forEach(line => csv.push(`"${line.replace(/"/g, '""')}"`));
+            EXPLICATION_SOUMISSION.forEach(line => csv.push(`"${line.replace(/"/g, '""')}"`));
             csv.push("");
 
             csv.push(`"Domaine";"Niveau";"Thématique";"Formulation (Texte)";"Entité (DREN, CISCO, ZAP)";"Nombre de Soumissions dans Kobotoolbox"`);
             
-            for (let taskName in globalConsolidationResults) {
+            for (let taskName in globalSoumissionsResults) {
                 let parts = taskName.split(' '); 
                 let domaine = parts[0], niveau = parts[1];
-                globalConsolidationResults[taskName].forEach(row => {
+                globalSoumissionsResults[taskName].forEach(row => {
                     csv.push(`"${domaine}";"${niveau}";"${row.theme}";"${cleanSpaces(row.text).replace(/"/g, '""')}";"${row.entity}";"${row.count}"`);
                 });
             }
             downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
         }
 
-        function exportConsolidationToExcel(pfx) {
-            if (Object.keys(globalConsolidationResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
+        function exportSoumissionsToExcel(pfx) {
+            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
             let fn = generateFilename(pfx, 'xlsx'), wb = XLSX.utils.book_new(), wsD = [], merges = [];
-            wsD.push([TITRE_PLATEFORME]); wsD.push(["Rapport de Consolidation Soumission Kobotoolbox"]); wsD.push([]);
+            wsD.push([TITRE_PLATEFORME]); wsD.push(["Rapport des Soumissions Kobotoolbox"]); wsD.push([]);
             wsD.push(["Date d'exportation", getFormattedDateTime()]); wsD.push([]);
             
             wsD.push(["--- EXPLICATION DU RAPPORT DE CONSOLIDATION ---"]);
             let sR = wsD.length;
-            EXPLICATION_CONSOLIDATION.forEach(line => wsD.push([line]));
+            EXPLICATION_SOUMISSION.forEach(line => wsD.push([line]));
             let eR = wsD.length - 1;
             wsD.push([]);
             
@@ -2276,65 +2276,65 @@
 
             wsD.push(["Domaine", "Niveau", "Thématique", "Formulation (Texte)", "Entité (DREN, CISCO, ZAP)", "Nombre de Soumissions dans Kobotoolbox"]);
             
-            for (let taskName in globalConsolidationResults) {
+            for (let taskName in globalSoumissionsResults) {
                 let parts = taskName.split(' '); 
                 let domaine = parts[0], niveau = parts[1];
-                globalConsolidationResults[taskName].forEach(row => {
+                globalSoumissionsResults[taskName].forEach(row => {
                     wsD.push([domaine, niveau, row.theme, cleanSpaces(row.text), row.entity, row.count]);
                 });
             }
             let ws = XLSX.utils.aoa_to_sheet(wsD);
             if (merges.length > 0) ws['!merges'] = merges;
-            XLSX.utils.book_append_sheet(wb, ws, "Consolidation"); XLSX.writeFile(wb, fn);
+            XLSX.utils.book_append_sheet(wb, ws, "Soumissions"); XLSX.writeFile(wb, fn);
         }
 
-        function exportConsolidationToHTML(pfx) {
-            if (Object.keys(globalConsolidationResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
+        function exportSoumissionsToHTML(pfx) {
+            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
             let clone = document.getElementById('consFieldsTabContent').outerHTML;
             
             let explicationHtml = `<div style="background-color:#e8f8f5; color:#117a65; border:1px solid #1abc9c; padding:15px; border-radius:5px; margin-bottom:20px;">`;
-            EXPLICATION_CONSOLIDATION.forEach(line => explicationHtml += `<p style="margin:0 0 5px 0;">${line}</p>`);
+            EXPLICATION_SOUMISSION.forEach(line => explicationHtml += `<p style="margin:0 0 5px 0;">${line}</p>`);
             explicationHtml += `</div>`;
 
-            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><style>body{font-family:sans-serif;padding:20px;background:#f4f7f6;} .table-responsive{margin-bottom:30px;background:#fff;padding:15px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.05);} th{background:#16a085!important;color:#fff!important;} h4{color:#16a085;border-bottom:2px solid #16a085;padding-bottom:10px;margin-top:40px;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4>Rapport de Consolidation (Généré le ${getFormattedDateTime()})</h4>${explicationHtml}${clone}</body></html>`;
+            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><style>body{font-family:sans-serif;padding:20px;background:#f4f7f6;} .table-responsive{margin-bottom:30px;background:#fff;padding:15px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.05);} th{background:#16a085!important;color:#fff!important;} h4{color:#16a085;border-bottom:2px solid #16a085;padding-bottom:10px;margin-top:40px;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4>Rapport des Soumissions (Généré le ${getFormattedDateTime()})</h4>${explicationHtml}${clone}</body></html>`;
             downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
         }
 
-        function exportConsolidationToJSONFile(pfx) { 
-            if (Object.keys(globalConsolidationResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
+        function exportSoumissionsToJSONFile(pfx) { 
+            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
             let j = JSON.stringify({ 
                 "titre_plateforme": TITRE_PLATEFORME, 
                 "sous_titre": "Rapport de Consolidation", 
                 "date_exportation": getFormattedDateTime(), 
-                "explication_algorithme": EXPLICATION_CONSOLIDATION,
-                "resultats": globalConsolidationResults 
+                "explication_algorithme": EXPLICATION_SOUMISSION,
+                "resultats": globalSoumissionsResults 
             }, null, 2);
             downloadFile(new Blob([j], { type: 'application/json;charset=utf-8;' }), generateFilename(pfx, 'json')); 
         }
 
-        function sendConsolidationToGmail() {
-            if (Object.keys(globalConsolidationResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
+        function sendSoumissionsToGmail() {
+            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
             let exportData = {
-                "explication_algorithme": EXPLICATION_CONSOLIDATION,
-                "resultats": globalConsolidationResults
+                "explication_algorithme": EXPLICATION_SOUMISSION,
+                "resultats": globalSoumissionsResults
             };
             let j = JSON.stringify(exportData, null, 2);
             navigator.clipboard.writeText(j).then(function() {
                 alert("✅ SUCCÈS !\nLe texte JSON Consolidation est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
-                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Consolidation Kobo - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous les données consolidées.\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Soumissions Kobo - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous les données de soumissions.\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
-        function sendConsolidationToWhatsApp() {
-            if (Object.keys(globalConsolidationResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
+        function sendSoumissionsToWhatsApp() {
+            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
             let exportData = {
-                "explication_algorithme": EXPLICATION_CONSOLIDATION,
-                "resultats": globalConsolidationResults
+                "explication_algorithme": EXPLICATION_SOUMISSION,
+                "resultats": globalSoumissionsResults
             };
             let j = JSON.stringify(exportData, null, 2);
             navigator.clipboard.writeText(j).then(function() {
                 alert("✅ SUCCÈS !\nLe texte JSON Consolidation est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
-                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Consolidation Kobo*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
+                window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Soumissions Kobo*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
@@ -2629,7 +2629,7 @@
         }
 
         
-        function renderConsolidationTable(data, containerId, title) {
+        function renderSoumissionsTable(data, containerId, title) {
             let container = document.getElementById(containerId);
             if (data.length === 0) {
                 container.innerHTML = `<div class="col-12 text-center text-muted py-5"><i class="fas fa-box-open fa-2x mb-3"></i><br>Aucune donnée pour ${title}</div>`;
@@ -2651,12 +2651,12 @@
             container.innerHTML = html;
         }
 
-        window.runConsolidationAnalysis = async function() {
+        window.runSoumissionsAnalysis = async function() {
             if(allData.length === 0) {
                 alert("Veuillez d'abord attendre le chargement des données de KoboToolbox.");
                 return;
             }
-            globalConsolidationResults = {};
+            globalSoumissionsResults = {};
             $('#cons-progress-container').show();
             $('#cons-status').text("Initialisation de l'IA de consolidation...");
             $('#cons-progress-bar').css('width', '5%').text('5%');
@@ -2689,7 +2689,7 @@
                 ];
 
                 for(let task of consTasks) {
-                    $('#cons-status').text(`Consolidation en cours : ${task.name}...`);
+                    $('#cons-status').text(`Analyse des soumissions en cours : ${task.name}...`);
                     
                     let colText = baseColsInfo.find(c => c.key === task.textKey);
                     let colEntity = baseColsInfo.find(c => c.key === task.entityKey);
@@ -2730,17 +2730,17 @@
                                 return b.count - a.count;
                             });
                             
-                            globalConsolidationResults[task.name] = tableData;
-                            renderConsolidationTable(tableData, task.resId, task.name);
+                            globalSoumissionsResults[task.name] = tableData;
+                            renderSoumissionsTable(tableData, task.resId, task.name);
                         } else {
-                            renderConsolidationTable([], task.resId, task.name);
+                            renderSoumissionsTable([], task.resId, task.name);
                         }
                     }
                 }
-                $('#cons-status').text("✅ Consolidation terminée avec succès !");
+                $('#cons-status').text("✅ Analyse des soumissions terminée avec succès !");
                 setTimeout(() => $('#cons-progress-container').hide(), 5000);
             } catch(e) {
-                $('#cons-status').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Erreur lors de la consolidation : ${e.message}</span>`);
+                $('#cons-status').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Erreur lors de l'analyse : ${e.message}</span>`);
             }
         };
 
