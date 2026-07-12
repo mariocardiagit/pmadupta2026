@@ -1141,15 +1141,16 @@
 
         // EXPLICATION CONSOLIDATION POUR LES EXPORTS
         const EXPLICATION_SOUMISSION = [
-            "NOTE SUR LE RAPPORT DES SOUMISSIONS KOBO :",
-            "Ce rapport croise l'analyse sémantique de l'Intelligence Artificielle avec les données quantitatives de KoboToolbox.",
-            "1. L'IA regroupe d'abord les formulations similaires dans des 'Thématiques'.",
-            "2. Le système calcule ensuite combien de fois chaque formulation exacte a été soumise par chaque entité (DREN, CISCO, ZAP).",
-            "LECTURE DU TABLEAU :",
+            "NOTE SUR LE RAPPORT DE VERIFICATION DES SOUMISSIONS KOBO :",
+            "Ce rapport a pour but principal d'identifier les DOUBLONS de soumissions : c'est-à-dire lorsqu'une même entité a envoyé plusieurs fois exactement la même activité.",
+            "1. L'IA regroupe d'abord les formulations dans des 'Thématiques'.",
+            "2. Le système vérifie ensuite combien de fois une Entité (ex: ZAP MAROANTSETRA) a soumis exactement la même Formulation (Texte).",
+            "LECTURE DU TABLEAU (Trié par Entité façon GROUP BY) :",
             "- 'Thématique' : Le groupe sémantique créé par l'IA.",
             "- 'Formulation (Texte)' : La phrase exacte saisie dans KoboToolbox.",
             "- 'Entité' : La structure administrative responsable de la soumission.",
-            "- 'Nombre de Soumissions' : Le volume réel de formulaires validés sur le serveur pour cette phrase précise."
+            "- 'Occurrences Formulation' : Nombre de fois où cette entité a soumis cette même phrase.",
+            "- 'Statut / Alerte' : POINT DE CONTRÔLE. Si Occurrences = 1, la saisie est CORRECTE. Si Occurrences > 1, il y a un DOUBLON."
         ];
 
         const TITRE_PLATEFORME = "Plateforme de Suivi du Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel (PTA) de l'Année 2026 des Services Techniques Déconcentrés (STD)";
@@ -2243,11 +2244,11 @@
             csv.push(`"${TITRE_PLATEFORME}"`); csv.push(`"Rapport des Soumissions Kobotoolbox"`); csv.push("");
             csv.push(`"--- METADONNEES D'EXPORT ---"`); csv.push(`"Date d'exportation";"${d}"`); csv.push("");
             
-            csv.push(`"--- EXPLICATION DU RAPPORT DE CONSOLIDATION ---"`);
+            csv.push(`"--- EXPLICATION DU RAPPORT DE VERIFICATION DES SOUMISSIONS KOBOTOOLBOX ---"`);
             EXPLICATION_SOUMISSION.forEach(line => csv.push(`"${line.replace(/"/g, '""')}"`));
             csv.push("");
 
-            csv.push(`"Domaine";"Niveau";"Thématique";"Formulation (Texte)";"Entité (DREN, CISCO, ZAP)";"Nombre de Soumissions dans Kobotoolbox"`);
+            csv.push(`"Domaine";"Niveau";"Thématique";"Formulation (Texte)";"Entité (DREN, CISCO, ZAP)";"Occurrences Formulation";"Statut de la Soumission"`);
             
             for (let taskName in globalSoumissionsResults) {
                 let parts = taskName.split(' '); 
@@ -2265,22 +2266,23 @@
             wsD.push([TITRE_PLATEFORME]); wsD.push(["Rapport des Soumissions Kobotoolbox"]); wsD.push([]);
             wsD.push(["Date d'exportation", getFormattedDateTime()]); wsD.push([]);
             
-            wsD.push(["--- EXPLICATION DU RAPPORT DE CONSOLIDATION ---"]);
+            wsD.push(["--- EXPLICATION DU RAPPORT DE VERIFICATION DES SOUMISSIONS KOBOTOOLBOX ---"]);
             let sR = wsD.length;
             EXPLICATION_SOUMISSION.forEach(line => wsD.push([line]));
             let eR = wsD.length - 1;
             wsD.push([]);
             
             // Merge les colonnes pour que l'explication soit bien lisible sur Excel
-            for(let r = sR; r <= eR; r++) { merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 5 } }); }
+            for(let r = sR; r <= eR; r++) { merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 6 } }); }
 
-            wsD.push(["Domaine", "Niveau", "Thématique", "Formulation (Texte)", "Entité (DREN, CISCO, ZAP)", "Nombre de Soumissions dans Kobotoolbox"]);
+            wsD.push(["Domaine", "Niveau", "Thématique", "Formulation (Texte)", "Entité (DREN, CISCO, ZAP)", "Occurrences Formulation", "Statut de la Soumission"]);
             
             for (let taskName in globalSoumissionsResults) {
                 let parts = taskName.split(' '); 
                 let domaine = parts[0], niveau = parts[1];
                 globalSoumissionsResults[taskName].forEach(row => {
-                    wsD.push([domaine, niveau, row.theme, cleanSpaces(row.text), row.entity, row.count]);
+                    let statut = (row.count > 1 && row.entity !== 'Inconnue') ? '⚠️ DOUBLON' : '✅ CORRECT';
+                    wsD.push([domaine, niveau, row.theme, cleanSpaces(row.text), row.entity, row.count, statut]);
                 });
             }
             let ws = XLSX.utils.aoa_to_sheet(wsD);
@@ -2304,7 +2306,7 @@
             if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
             let j = JSON.stringify({ 
                 "titre_plateforme": TITRE_PLATEFORME, 
-                "sous_titre": "Rapport de Consolidation", 
+                "sous_titre": "Rapport de Vérification des Soumissions", 
                 "date_exportation": getFormattedDateTime(), 
                 "explication_algorithme": EXPLICATION_SOUMISSION,
                 "resultats": globalSoumissionsResults 
@@ -2636,14 +2638,20 @@
                 return;
             }
             
-            let html = `<h4 class="mb-3 mt-4" style="color: #16a085;">${title}</h4><div class="table-responsive border"><table class="table table-bordered table-striped table-hover align-middle mb-0"><thead style="background-color: #16a085; color: white; position: sticky; top: 0; z-index: 5;"><tr><th>Thématique</th><th>Formulation (Texte)</th><th>Entité (DREN, CISCO, ZAP)</th><th>Nombre de Soumissions dans Kobotoolbox</th></tr></thead><tbody>`;
+            let html = `<h4 class="mb-3 mt-4" style="color: #16a085;">${title}</h4><div class="table-responsive border"><table class="table table-bordered table-hover align-middle mb-0"><thead style="background-color: #16a085; color: white; position: sticky; top: 0; z-index: 5;"><tr><th>Thématique</th><th>Formulation (Texte)</th><th>Entité (DREN, CISCO, ZAP)</th><th>Occurrences Formulation</th><th>Statut de la Soumission</th></tr></thead><tbody>`;
             
             data.forEach(row => {
-                html += `<tr>
+                // VERIFICATION DES DOUBLONS DE LA MÊME ACTIVITE PAR LA MÊME ENTITE
+                let isDoublon = row.count > 1 && row.entity !== 'Inconnue';
+                let trClass = isDoublon ? 'class="table-warning"' : '';
+                let alertBadge = isDoublon ? `<span class="badge bg-danger shadow-sm"><i class="fas fa-exclamation-triangle"></i> DOUBLON (${row.count} envois)</span>` : `<span class="badge bg-success shadow-sm"><i class="fas fa-check"></i> CORRECT (1 envoi)</span>`;
+                
+                html += `<tr ${trClass}>
                     <td class="text-center"><span class="badge bg-secondary">${row.theme}</span></td>
                     <td>${row.text}</td>
-                    <td class="text-center fw-bold text-secondary">${row.entity}</td>
+                    <td class="text-center fw-bold ${isDoublon ? 'text-danger' : 'text-secondary'}">${row.entity}</td>
                     <td class="text-center"><span class="badge bg-primary fs-6">${row.count}</span></td>
+                    <td class="text-center">${alertBadge}</td>
                 </tr>`;
             });
             
