@@ -2214,7 +2214,7 @@
             EXPLICATION_SOUMISSION.forEach(line => csv.push(`"${line.replace(/"/g, '""')}"`));
             csv.push("");
 
-            csv.push(`"Domaine";"Niveau";"Thématique";"Formulation (Texte)";"Entité (DREN, CISCO, ZAP)";"Occurrences Formulation";"Statut de la Soumission"`);
+            csv.push(`"Domaine";"Niveau";"Thématique";"Formulation (Texte)";"Entité (DREN, CISCO, ZAP)";"Occurrences Formulation";"Statut de la Soumission";"DATE DE SOUMISSION"`);
             
             for (let taskName in globalSoumissionsResults) {
                 let parts = taskName.split(' '); 
@@ -2239,16 +2239,16 @@
             wsD.push([]);
             
             // Merge les colonnes pour que l'explication soit bien lisible sur Excel
-            for(let r = sR; r <= eR; r++) { merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 6 } }); }
+            for(let r = sR; r <= eR; r++) { merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 7 } }); }
 
-            wsD.push(["Domaine", "Niveau", "Thématique", "Formulation (Texte)", "Entité (DREN, CISCO, ZAP)", "Occurrences Formulation", "Statut de la Soumission"]);
+            wsD.push(["Domaine", "Niveau", "Thématique", "Formulation (Texte)", "Entité (DREN, CISCO, ZAP)", "Occurrences Formulation", "Statut de la Soumission", "DATE DE SOUMISSION"]);
             
             for (let taskName in globalSoumissionsResults) {
                 let parts = taskName.split(' '); 
                 let domaine = parts[0], niveau = parts[1];
                 globalSoumissionsResults[taskName].forEach(row => {
                     let statut = (row.count > 1 && row.entity !== 'Inconnue') ? '⚠️ DOUBLON' : '✅ CORRECT';
-                    wsD.push([domaine, niveau, row.theme, cleanSpaces(row.text), row.entity, row.count, statut]);
+                    wsD.push([domaine, niveau, row.theme, cleanSpaces(row.text), row.entity, row.count, statut, row.dates.join(' ; ')]);
                 });
             }
             let ws = XLSX.utils.aoa_to_sheet(wsD);
@@ -2604,7 +2604,7 @@
                 return;
             }
             
-            let html = `<h4 class="mb-3 mt-4" style="color: #16a085;">${title}</h4><div class="table-responsive border"><table class="table table-bordered table-hover align-middle mb-0"><thead style="background-color: #16a085; color: white; position: sticky; top: 0; z-index: 5;"><tr><th>Thématique</th><th>Formulation (Texte)</th><th>Entité (DREN, CISCO, ZAP)</th><th>Occurrences Formulation</th><th>Statut de la Soumission</th></tr></thead><tbody>`;
+            let html = `<h4 class="mb-3 mt-4" style="color: #16a085;">${title}</h4><div class="table-responsive border"><table class="table table-bordered table-hover align-middle mb-0"><thead style="background-color: #16a085; color: white; position: sticky; top: 0; z-index: 5;"><tr><th>Thématique</th><th>Formulation (Texte)</th><th>Entité (DREN, CISCO, ZAP)</th><th>Occurrences Formulation</th><th>Statut de la Soumission</th><th>DATE DE SOUMISSION dans Kobotoolbox</th></tr></thead><tbody>`;
             
             data.forEach(row => {
                 // VERIFICATION DES DOUBLONS DE LA MÊME ACTIVITE PAR LA MÊME ENTITE
@@ -2618,6 +2618,7 @@
                     <td class="text-center fw-bold ${isDoublon ? 'text-danger' : 'text-secondary'}">${row.entity}</td>
                     <td class="text-center"><span class="badge bg-primary fs-6">${row.count}</span></td>
                     <td class="text-center">${alertBadge}</td>
+                    <td class="text-center" style="font-size: 0.85rem;">${row.dates.join(' ; ')}</td>
                 </tr>`;
             });
             
@@ -2676,9 +2677,11 @@
                             
                             if (text && text !== 'Non renseigné') {
                                 let e = (entity && entity !== 'Non renseigné') ? entity : 'Inconnue';
+                                let subDate = r['_submission_time'] ? r['_submission_time'] : 'Date inconnue';
                                 let key = text + "|||" + e;
-                                if (!map[key]) map[key] = { text: text, entity: e, count: 0 };
+                                if (!map[key]) map[key] = { text: text, entity: e, count: 0, dates: [] };
                                 map[key].count++;
+                                map[key].dates.push(subDate);
                             }
                         });
                         
@@ -2694,7 +2697,7 @@
                                 c.items.forEach(txt => {
                                     let matchingItems = items.filter(i => i.text === txt);
                                     matchingItems.forEach(mi => {
-                                        tableData.push({ theme: themeName, text: mi.text, entity: mi.entity, count: mi.count });
+                                        tableData.push({ theme: themeName, text: mi.text, entity: mi.entity, count: mi.count, dates: mi.dates });
                                     });
                                 });
                             });
