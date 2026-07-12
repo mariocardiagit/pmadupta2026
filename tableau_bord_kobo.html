@@ -1139,6 +1139,19 @@
             "La thématique contiendra alors 3 éléments (pour 3 formulations uniques), même s'il y a eu en réalité 10 formulaires soumis."
         ];
 
+        // EXPLICATION CONSOLIDATION POUR LES EXPORTS
+        const EXPLICATION_CONSOLIDATION = [
+            "NOTE SUR LE RAPPORT DE CONSOLIDATION KOBO :",
+            "Ce rapport croise l'analyse sémantique de l'Intelligence Artificielle avec les données quantitatives de KoboToolbox.",
+            "1. L'IA regroupe d'abord les formulations similaires dans des 'Thématiques'.",
+            "2. Le système calcule ensuite combien de fois chaque formulation exacte a été soumise par chaque entité (DREN, CISCO, ZAP).",
+            "LECTURE DU TABLEAU :",
+            "- 'Thématique' : Le groupe sémantique créé par l'IA.",
+            "- 'Formulation (Texte)' : La phrase exacte saisie dans KoboToolbox.",
+            "- 'Entité' : La structure administrative responsable de la soumission.",
+            "- 'Nombre de Soumissions' : Le volume réel de formulaires validés sur le serveur pour cette phrase précise."
+        ];
+
         const TITRE_PLATEFORME = "Plateforme de Suivi du Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel (PTA) de l'Année 2026 des Services Techniques Déconcentrés (STD)";
         const SOUS_TITRE_PLATEFORME = "Tableau de Bord : Données & Analytics KoboToolbox";
 
@@ -2229,6 +2242,11 @@
             let fn = generateFilename(pfx, 'csv'), csv = [], d = getFormattedDateTime();
             csv.push(`"${TITRE_PLATEFORME}"`); csv.push(`"Rapport de Consolidation Soumission Kobotoolbox"`); csv.push("");
             csv.push(`"--- METADONNEES D'EXPORT ---"`); csv.push(`"Date d'exportation";"${d}"`); csv.push("");
+            
+            csv.push(`"--- EXPLICATION DU RAPPORT DE CONSOLIDATION ---"`);
+            EXPLICATION_CONSOLIDATION.forEach(line => csv.push(`"${line.replace(/"/g, '""')}"`));
+            csv.push("");
+
             csv.push(`"Domaine";"Niveau";"Thématique";"Formulation (Texte)";"Entité (DREN, CISCO, ZAP)";"Nombre de Soumissions dans Kobotoolbox"`);
             
             for (let taskName in globalConsolidationResults) {
@@ -2243,9 +2261,19 @@
 
         function exportConsolidationToExcel(pfx) {
             if (Object.keys(globalConsolidationResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
-            let fn = generateFilename(pfx, 'xlsx'), wb = XLSX.utils.book_new(), wsD = [];
+            let fn = generateFilename(pfx, 'xlsx'), wb = XLSX.utils.book_new(), wsD = [], merges = [];
             wsD.push([TITRE_PLATEFORME]); wsD.push(["Rapport de Consolidation Soumission Kobotoolbox"]); wsD.push([]);
             wsD.push(["Date d'exportation", getFormattedDateTime()]); wsD.push([]);
+            
+            wsD.push(["--- EXPLICATION DU RAPPORT DE CONSOLIDATION ---"]);
+            let sR = wsD.length;
+            EXPLICATION_CONSOLIDATION.forEach(line => wsD.push([line]));
+            let eR = wsD.length - 1;
+            wsD.push([]);
+            
+            // Merge les colonnes pour que l'explication soit bien lisible sur Excel
+            for(let r = sR; r <= eR; r++) { merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 5 } }); }
+
             wsD.push(["Domaine", "Niveau", "Thématique", "Formulation (Texte)", "Entité (DREN, CISCO, ZAP)", "Nombre de Soumissions dans Kobotoolbox"]);
             
             for (let taskName in globalConsolidationResults) {
@@ -2256,25 +2284,41 @@
                 });
             }
             let ws = XLSX.utils.aoa_to_sheet(wsD);
+            if (merges.length > 0) ws['!merges'] = merges;
             XLSX.utils.book_append_sheet(wb, ws, "Consolidation"); XLSX.writeFile(wb, fn);
         }
 
         function exportConsolidationToHTML(pfx) {
             if (Object.keys(globalConsolidationResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
-            let clone = document.getElementById('consolidationFieldsTabContent').outerHTML;
-            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><style>body{font-family:sans-serif;padding:20px;background:#f4f7f6;} .table-responsive{margin-bottom:30px;background:#fff;padding:15px;border-radius:8px;} th{background:#16a085!important;color:#fff!important;} h4{color:#16a085;border-bottom:2px solid #16a085;padding-bottom:10px;margin-top:40px;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4>Rapport de Consolidation (Généré le ${getFormattedDateTime()})</h4>${clone}</body></html>`;
+            let clone = document.getElementById('consFieldsTabContent').outerHTML;
+            
+            let explicationHtml = `<div style="background-color:#e8f8f5; color:#117a65; border:1px solid #1abc9c; padding:15px; border-radius:5px; margin-bottom:20px;">`;
+            EXPLICATION_CONSOLIDATION.forEach(line => explicationHtml += `<p style="margin:0 0 5px 0;">${line}</p>`);
+            explicationHtml += `</div>`;
+
+            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><style>body{font-family:sans-serif;padding:20px;background:#f4f7f6;} .table-responsive{margin-bottom:30px;background:#fff;padding:15px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.05);} th{background:#16a085!important;color:#fff!important;} h4{color:#16a085;border-bottom:2px solid #16a085;padding-bottom:10px;margin-top:40px;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4>Rapport de Consolidation (Généré le ${getFormattedDateTime()})</h4>${explicationHtml}${clone}</body></html>`;
             downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
         }
 
         function exportConsolidationToJSONFile(pfx) { 
             if (Object.keys(globalConsolidationResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
-            let j = JSON.stringify({ "titre_plateforme": TITRE_PLATEFORME, "sous_titre": "Rapport de Consolidation", "date_exportation": getFormattedDateTime(), "resultats": globalConsolidationResults }, null, 2);
+            let j = JSON.stringify({ 
+                "titre_plateforme": TITRE_PLATEFORME, 
+                "sous_titre": "Rapport de Consolidation", 
+                "date_exportation": getFormattedDateTime(), 
+                "explication_algorithme": EXPLICATION_CONSOLIDATION,
+                "resultats": globalConsolidationResults 
+            }, null, 2);
             downloadFile(new Blob([j], { type: 'application/json;charset=utf-8;' }), generateFilename(pfx, 'json')); 
         }
 
         function sendConsolidationToGmail() {
             if (Object.keys(globalConsolidationResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
-            let j = JSON.stringify(globalConsolidationResults, null, 2);
+            let exportData = {
+                "explication_algorithme": EXPLICATION_CONSOLIDATION,
+                "resultats": globalConsolidationResults
+            };
+            let j = JSON.stringify(exportData, null, 2);
             navigator.clipboard.writeText(j).then(function() {
                 alert("✅ SUCCÈS !\nLe texte JSON Consolidation est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
                 window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Consolidation Kobo - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous les données consolidées.\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
@@ -2283,7 +2327,11 @@
 
         function sendConsolidationToWhatsApp() {
             if (Object.keys(globalConsolidationResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
-            let j = JSON.stringify(globalConsolidationResults, null, 2);
+            let exportData = {
+                "explication_algorithme": EXPLICATION_CONSOLIDATION,
+                "resultats": globalConsolidationResults
+            };
+            let j = JSON.stringify(exportData, null, 2);
             navigator.clipboard.writeText(j).then(function() {
                 alert("✅ SUCCÈS !\nLe texte JSON Consolidation est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
                 window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Consolidation Kobo*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
