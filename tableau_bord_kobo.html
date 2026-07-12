@@ -2268,40 +2268,52 @@
             downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
         }
 
-        function exportSoumissionsToJSONFile(pfx) { 
-            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
-            let j = JSON.stringify({ 
+        function getSoumissionsJSONData() {
+            if (Object.keys(globalSoumissionsResults).length === 0) return null;
+            
+            let cleanResults = {};
+            for (let taskName in globalSoumissionsResults) {
+                cleanResults[taskName] = globalSoumissionsResults[taskName].map(row => {
+                    return {
+                        "Thematique": row.theme,
+                        "Formulation_Texte": row.text,
+                        "Entite": row.entity,
+                        "Occurrences_Formulation": row.count,
+                        "Statut_Soumission": (row.count > 1 && row.entity !== 'Inconnue') ? '⚠️ DOUBLON' : '✅ CORRECT',
+                        "Dates_Soumission": row.dates.join(' ; ')
+                    };
+                });
+            }
+
+            return JSON.stringify({ 
                 "titre_plateforme": TITRE_PLATEFORME, 
                 "sous_titre": "Rapport de Vérification des Soumissions", 
                 "date_exportation": getFormattedDateTime(), 
                 "explication_algorithme": EXPLICATION_SOUMISSION,
-                "resultats": globalSoumissionsResults 
+                "resultats": cleanResults 
             }, null, 2);
+        }
+
+        function exportSoumissionsToJSONFile(pfx) { 
+            let j = getSoumissionsJSONData();
+            if (!j) return alert("Veuillez d'abord lancer l'analyse complète.");
             downloadFile(new Blob([j], { type: 'application/json;charset=utf-8;' }), generateFilename(pfx, 'json')); 
         }
 
         function sendSoumissionsToGmail() {
-            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
-            let exportData = {
-                "explication_algorithme": EXPLICATION_SOUMISSION,
-                "resultats": globalSoumissionsResults
-            };
-            let j = JSON.stringify(exportData, null, 2);
+            let j = getSoumissionsJSONData();
+            if (!j) return alert("Veuillez d'abord lancer l'analyse complète.");
             navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON Consolidation est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                alert("✅ SUCCÈS !\nLe texte JSON est copié dans le presse-papiers.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
                 window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Soumissions Kobo - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous les données de soumissions.\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendSoumissionsToWhatsApp() {
-            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
-            let exportData = {
-                "explication_algorithme": EXPLICATION_SOUMISSION,
-                "resultats": globalSoumissionsResults
-            };
-            let j = JSON.stringify(exportData, null, 2);
+            let j = getSoumissionsJSONData();
+            if (!j) return alert("Veuillez d'abord lancer l'analyse complète.");
             navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON Consolidation est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                alert("✅ SUCCÈS !\nLe texte JSON est copié dans le presse-papiers.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
                 window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Soumissions Kobo*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
