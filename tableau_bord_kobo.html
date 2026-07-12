@@ -2693,7 +2693,7 @@
         
 
         // ================= FONCTIONS EXPORT & PARTAGE ANOMALIES DBSCAN (ONGLET 5) =================
-        function getDBSCANExportData() {
+        window.getDBSCANExportData = function() {
             let flatData = [];
             ['DREN', 'CISCO', 'ZAP'].forEach(lvl => {
                 if (globalDBSCANAnomalies[lvl]) {
@@ -2710,8 +2710,8 @@
             return flatData;
         }
 
-        function exportDBSCANToCSV(pfx) {
-            let data = getDBSCANExportData();
+        window.exportDBSCANToCSV = function(pfx) {
+            let data = window.getDBSCANExportData();
             if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
             
             let fn = generateFilename(pfx, 'csv'), csv = [], d = getFormattedDateTime();
@@ -2725,8 +2725,8 @@
             downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
         }
 
-        function exportDBSCANToExcel(pfx) {
-            let data = getDBSCANExportData();
+        window.exportDBSCANToExcel = function(pfx) {
+            let data = window.getDBSCANExportData();
             if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
             
             let fn = generateFilename(pfx, 'xlsx'), wb = XLSX.utils.book_new(), wsD = [];
@@ -2759,8 +2759,8 @@
             XLSX.utils.book_append_sheet(wb, ws, "Anomalies_DBSCAN"); XLSX.writeFile(wb, fn);
         }
 
-        function exportDBSCANToHTML(pfx) {
-            let data = getDBSCANExportData();
+        window.exportDBSCANToHTML = function(pfx) {
+            let data = window.getDBSCANExportData();
             if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
             
             let htmlTable = `<table style="width:100%; border-collapse:collapse; margin-top:20px;">
@@ -2785,8 +2785,8 @@
             downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
         }
 
-        function exportDBSCANToJSONFile(pfx) { 
-            let data = getDBSCANExportData();
+        window.exportDBSCANToJSONFile = function(pfx) { 
+            let data = window.getDBSCANExportData();
             if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
             let j = JSON.stringify({ 
                 "titre_plateforme": TITRE_PLATEFORME, 
@@ -2797,8 +2797,8 @@
             downloadFile(new Blob([j], { type: 'application/json;charset=utf-8;' }), generateFilename(pfx, 'json')); 
         }
 
-        function sendDBSCANToGmail() {
-            let data = getDBSCANExportData();
+        window.sendDBSCANToGmail = function() {
+            let data = window.getDBSCANExportData();
             if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
             let j = JSON.stringify(data, null, 2);
             navigator.clipboard.writeText(j).then(function() {
@@ -2807,8 +2807,8 @@
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
-        function sendDBSCANToWhatsApp() {
-            let data = getDBSCANExportData();
+        window.sendDBSCANToWhatsApp = function() {
+            let data = window.getDBSCANExportData();
             if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
             let j = JSON.stringify(data, null, 2);
             navigator.clipboard.writeText(j).then(function() {
