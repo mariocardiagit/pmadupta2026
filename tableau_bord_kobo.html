@@ -1051,67 +1051,28 @@
                     </div>
                 </div>
 
-                <ul class="nav nav-tabs mb-4 justify-content-center" id="consFieldsTab" role="tablist">
-                    <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#cons-activites" type="button"><i class="fas fa-tasks"></i> Activités</button></li>
-                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#cons-produits" type="button"><i class="fas fa-box"></i> Produits</button></li>
-                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#cons-sous-activites" type="button"><i class="fas fa-stream"></i> Sous-activités</button></li>
-                    <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#cons-sous-produits" type="button"><i class="fas fa-boxes"></i> Sous-produits</button></li>
-                </ul>
-
-                <div class="tab-content" id="consFieldsTabContent">
+                <div id="consFieldsContainer" style="display: flex; flex-direction: column; gap: 30px;">
                     <!-- ACTIVITES -->
-                    <div class="tab-pane fade show active" id="cons-activites">
-                        <ul class="nav nav-pills mb-4 justify-content-center">
-                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#cons-act-dren">Soumissions DREN</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-act-cisco">Soumissions CISCO</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-act-zap">Soumissions ZAP</button></li>
-                        </ul>
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="cons-act-dren"><div id="res-cons-act-dren" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
-                            <div class="tab-pane fade" id="cons-act-cisco"><div id="res-cons-act-cisco" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
-                            <div class="tab-pane fade" id="cons-act-zap"><div id="res-cons-act-zap" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
-                        </div>
-                    </div>
+                    <div id="res-cons-act-dren" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Activités DREN : En attente de l'analyse...</div>
+                    <div id="res-cons-act-cisco" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Activités CISCO : En attente de l'analyse...</div>
+                    <div id="res-cons-act-zap" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Activités ZAP : En attente de l'analyse...</div>
+
                     <!-- PRODUITS -->
-                    <div class="tab-pane fade" id="cons-produits">
-                        <ul class="nav nav-pills mb-4 justify-content-center">
-                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#cons-prod-dren">Soumissions DREN</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-prod-cisco">Soumissions CISCO</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-prod-zap">Soumissions ZAP</button></li>
-                        </ul>
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="cons-prod-dren"><div id="res-cons-prod-dren" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
-                            <div class="tab-pane fade" id="cons-prod-cisco"><div id="res-cons-prod-cisco" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
-                            <div class="tab-pane fade" id="cons-prod-zap"><div id="res-cons-prod-zap" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
-                        </div>
-                    </div>
+                    <div id="res-cons-prod-dren" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Produits DREN : En attente de l'analyse...</div>
+                    <div id="res-cons-prod-cisco" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Produits CISCO : En attente de l'analyse...</div>
+                    <div id="res-cons-prod-zap" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Produits ZAP : En attente de l'analyse...</div>
+
                     <!-- SOUS-ACTIVITES -->
-                    <div class="tab-pane fade" id="cons-sous-activites">
-                        <ul class="nav nav-pills mb-4 justify-content-center">
-                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sact-dren">Soumissions DREN</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sact-cisco">Soumissions CISCO</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sact-zap">Soumissions ZAP</button></li>
-                        </ul>
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="cons-sact-dren"><div id="res-cons-sact-dren" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
-                            <div class="tab-pane fade" id="cons-sact-cisco"><div id="res-cons-sact-cisco" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
-                            <div class="tab-pane fade" id="cons-sact-zap"><div id="res-cons-sact-zap" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
-                        </div>
-                    </div>
+                    <div id="res-cons-sact-dren" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-activités DREN : En attente de l'analyse...</div>
+                    <div id="res-cons-sact-cisco" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-activités CISCO : En attente de l'analyse...</div>
+                    <div id="res-cons-sact-zap" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-activités ZAP : En attente de l'analyse...</div>
+
                     <!-- SOUS-PRODUITS -->
-                    <div class="tab-pane fade" id="cons-sous-produits">
-                        <ul class="nav nav-pills mb-4 justify-content-center">
-                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sprod-dren">Soumissions DREN</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sprod-cisco">Soumissions CISCO</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#cons-sprod-zap">Soumissions ZAP</button></li>
-                        </ul>
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="cons-sprod-dren"><div id="res-cons-sprod-dren" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
-                            <div class="tab-pane fade" id="cons-sprod-cisco"><div id="res-cons-sprod-cisco" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
-                            <div class="tab-pane fade" id="cons-sprod-zap"><div id="res-cons-sprod-zap" class="text-center text-muted py-5"><i class="fas fa-table fa-2x mb-3"></i><br>En attente...</div></div>
-                        </div>
-                    </div>
+                    <div id="res-cons-sprod-dren" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-produits DREN : En attente de l'analyse...</div>
+                    <div id="res-cons-sprod-cisco" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-produits CISCO : En attente de l'analyse...</div>
+                    <div id="res-cons-sprod-zap" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-produits ZAP : En attente de l'analyse...</div>
                 </div>
+</div>
             </div>
 
         </div>
@@ -2297,7 +2258,7 @@
 
         function exportSoumissionsToHTML(pfx) {
             if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
-            let clone = document.getElementById('consFieldsTabContent').outerHTML;
+            let clone = document.getElementById('consFieldsContainer').outerHTML;
             
             let explicationHtml = `<div style="background-color:#e8f8f5; color:#117a65; border:1px solid #1abc9c; padding:15px; border-radius:5px; margin-bottom:20px;">`;
             EXPLICATION_SOUMISSION.forEach(line => explicationHtml += `<p style="margin:0 0 5px 0;">${line}</p>`);
