@@ -1022,6 +1022,10 @@
 
             </div>
 
+        </div>
+    </div>
+
+    
             <!-- ONGLET 10 : CONSOLIDATION KOBO -->
             <div class="tab-pane fade" id="consolidation" role="tabpanel">
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -1085,7 +1089,7 @@
                     <!-- SOUS-PRODUITS -->
                     <div id="res-cons-sprod-dren" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-produits DREN : En attente de l'analyse...</div>
                     <div id="res-cons-sprod-cisco" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-produits CISCO : En attente de l'analyse...</div>
-                    <div id="res-cons-sprod-zap" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-produits ZAP : En attente de l'analyse...</div>
+                    <div id="res-cons-sprod-zap" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-produits ZAP : En attente de l'analyse...
                 </div>
             </div>
 
@@ -1162,7 +1166,7 @@
             </div>
 
         </div>
-    </div>
+    
 
     <!-- Scripts Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -2400,25 +2404,42 @@
             downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
         }
 
-        function exportSoumissionsToJSONFile(pfx) { 
-            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
-            let j = JSON.stringify({ 
+        function getSoumissionsJSONData() {
+            if (Object.keys(globalSoumissionsResults).length === 0) return null;
+            
+            let formattedResults = {};
+            for (let taskName in globalSoumissionsResults) {
+                formattedResults[taskName] = globalSoumissionsResults[taskName].map(row => {
+                    let isDoublon = (row.count > 1 && row.entity !== 'Inconnue');
+                    return {
+                        "Thématique": row.theme,
+                        "Formulation (Texte)": row.text,
+                        "Entité (DREN, CISCO, ZAP)": row.entity,
+                        "Occurrences Formulation": row.count,
+                        "Statut de la Soumission": isDoublon ? '⚠️ DOUBLON' : '✅ CORRECT',
+                        "DATE DE SOUMISSION": row.dates
+                    };
+                });
+            }
+
+            return JSON.stringify({ 
                 "titre_plateforme": TITRE_PLATEFORME, 
                 "sous_titre": "Rapport de Vérification des Soumissions", 
                 "date_exportation": getFormattedDateTime(), 
                 "explication_algorithme": EXPLICATION_SOUMISSION,
-                "resultats": globalSoumissionsResults 
+                "resultats": formattedResults 
             }, null, 2);
+        }
+
+        function exportSoumissionsToJSONFile(pfx) { 
+            let j = getSoumissionsJSONData();
+            if (!j) return alert("Veuillez d'abord lancer la consolidation complète.");
             downloadFile(new Blob([j], { type: 'application/json;charset=utf-8;' }), generateFilename(pfx, 'json')); 
         }
 
         function sendSoumissionsToGmail() {
-            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
-            let exportData = {
-                "explication_algorithme": EXPLICATION_SOUMISSION,
-                "resultats": globalSoumissionsResults
-            };
-            let j = JSON.stringify(exportData, null, 2);
+            let j = getSoumissionsJSONData();
+            if (!j) return alert("Veuillez d'abord lancer la consolidation complète.");
             navigator.clipboard.writeText(j).then(function() {
                 alert("✅ SUCCÈS !\nLe texte JSON Consolidation est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
                 window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Soumissions Kobo - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous les données de soumissions.\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
@@ -2426,12 +2447,8 @@
         }
 
         function sendSoumissionsToWhatsApp() {
-            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
-            let exportData = {
-                "explication_algorithme": EXPLICATION_SOUMISSION,
-                "resultats": globalSoumissionsResults
-            };
-            let j = JSON.stringify(exportData, null, 2);
+            let j = getSoumissionsJSONData();
+            if (!j) return alert("Veuillez d'abord lancer la consolidation complète.");
             navigator.clipboard.writeText(j).then(function() {
                 alert("✅ SUCCÈS !\nLe texte JSON Consolidation est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
                 window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Soumissions Kobo*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
