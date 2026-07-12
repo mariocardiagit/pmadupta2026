@@ -11,7 +11,7 @@
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- EXCEL SheetJS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
     <!-- Chart.js (Visualisation IA) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -2227,32 +2227,73 @@
         }
 
         function exportSoumissionsToExcel(pfx) {
-            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
+            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer l'analyse complète.");
             let fn = generateFilename(pfx, 'xlsx'), wb = XLSX.utils.book_new(), wsD = [], merges = [];
-            wsD.push([TITRE_PLATEFORME]); wsD.push(["Rapport des Soumissions Kobotoolbox"]); wsD.push([]);
-            wsD.push(["Date d'exportation", getFormattedDateTime()]); wsD.push([]);
             
-            wsD.push(["--- EXPLICATION DU RAPPORT DE VERIFICATION DES SOUMISSIONS KOBOTOOLBOX ---"]);
+            // DÉFINITION DES STYLES POUR EXCEL (xlsx-js-style)
+            let titleStyle = { font: { bold: true, sz: 14, color: { rgb: "2C3E50" } } };
+            let subTitleStyle = { font: { bold: true, sz: 12, color: { rgb: "7F8C8D" } } };
+            let explicationStyle = { font: { italic: true, color: { rgb: "117A65" } }, alignment: { wrapText: true } };
+            let headerStyle = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "16A085" } }, alignment: { horizontal: "center", vertical: "center" }, border: { top: {style:'thin', color:{auto:1}}, bottom: {style:'thin', color:{auto:1}}, left: {style:'thin', color:{auto:1}}, right: {style:'thin', color:{auto:1}} } };
+            
+            // Style ligne normale
+            let normalStyle = { alignment: { vertical: "center", wrapText: true }, border: { top: {style:'thin', color:{rgb:"E0E0E0"}}, bottom: {style:'thin', color:{rgb:"E0E0E0"}}, left: {style:'thin', color:{rgb:"E0E0E0"}}, right: {style:'thin', color:{rgb:"E0E0E0"}} } };
+            let normalStyleCenter = { alignment: { vertical: "center", horizontal: "center" }, border: normalStyle.border };
+            
+            // Style ligne Alerte Doublon (Fond Jaune, Texte Rouge foncé)
+            let alertStyle = { fill: { fgColor: { rgb: "FFF3CD" } }, font: { color: { rgb: "856404" }, bold: true }, alignment: { vertical: "center", wrapText: true }, border: { top: {style:'thin', color:{rgb:"FFEEBA"}}, bottom: {style:'thin', color:{rgb:"FFEEBA"}}, left: {style:'thin', color:{rgb:"FFEEBA"}}, right: {style:'thin', color:{rgb:"FFEEBA"}} } };
+            let alertStyleCenter = { fill: alertStyle.fill, font: alertStyle.font, alignment: { vertical: "center", horizontal: "center" }, border: alertStyle.border };
+
+            wsD.push([{ v: TITRE_PLATEFORME, s: titleStyle }]); 
+            wsD.push([{ v: "Rapport des Soumissions Kobotoolbox", s: subTitleStyle }]); 
+            wsD.push([]);
+            wsD.push([{ v: "Date d'exportation", s: { font: { bold: true } } }, { v: getFormattedDateTime() }]); 
+            wsD.push([]);
+            
+            wsD.push([{ v: "--- EXPLICATION DU RAPPORT DE VERIFICATION DES SOUMISSIONS KOBOTOOLBOX ---", s: { font: { bold: true, color: { rgb: "117A65" } } } }]);
             let sR = wsD.length;
-            EXPLICATION_SOUMISSION.forEach(line => wsD.push([line]));
+            EXPLICATION_SOUMISSION.forEach(line => wsD.push([{ v: line, s: explicationStyle }]));
             let eR = wsD.length - 1;
             wsD.push([]);
             
             // Merge les colonnes pour que l'explication soit bien lisible sur Excel
+            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } });
+            merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: 7 } });
             for(let r = sR; r <= eR; r++) { merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 7 } }); }
 
-            wsD.push(["Domaine", "Niveau", "Thématique", "Formulation (Texte)", "Entité (DREN, CISCO, ZAP)", "Occurrences Formulation", "Statut de la Soumission", "DATE DE SOUMISSION"]);
+            let headers = ["Domaine", "Niveau", "Thématique", "Formulation (Texte)", "Entité (DREN, CISCO, ZAP)", "Occurrences Formulation", "Statut de la Soumission", "DATE DE SOUMISSION"];
+            wsD.push(headers.map(h => ({ v: h, s: headerStyle })));
             
             for (let taskName in globalSoumissionsResults) {
                 let parts = taskName.split(' '); 
                 let domaine = parts[0], niveau = parts[1];
                 globalSoumissionsResults[taskName].forEach(row => {
-                    let statut = (row.count > 1 && row.entity !== 'Inconnue') ? '⚠️ DOUBLON' : '✅ CORRECT';
-                    wsD.push([domaine, niveau, row.theme, cleanSpaces(row.text), row.entity, row.count, statut, row.dates.join(' ; ')]);
+                    let isDoublon = (row.count > 1 && row.entity !== 'Inconnue');
+                    let statut = isDoublon ? '⚠️ DOUBLON' : '✅ CORRECT';
+                    
+                    let sText = isDoublon ? alertStyle : normalStyle;
+                    let sCenter = isDoublon ? alertStyleCenter : normalStyleCenter;
+
+                    wsD.push([
+                        { v: domaine, s: sCenter },
+                        { v: niveau, s: sCenter },
+                        { v: row.theme, s: sCenter },
+                        { v: cleanSpaces(row.text), s: sText },
+                        { v: row.entity, s: sCenter },
+                        { v: row.count, s: sCenter },
+                        { v: statut, s: sCenter },
+                        { v: row.dates.join(' ; '), s: sText }
+                    ]);
                 });
             }
+            
             let ws = XLSX.utils.aoa_to_sheet(wsD);
             if (merges.length > 0) ws['!merges'] = merges;
+            
+            // Auto-width basique
+            let wscols = [ {wch: 15}, {wch: 10}, {wch: 15}, {wch: 60}, {wch: 30}, {wch: 25}, {wch: 25}, {wch: 35} ];
+            ws['!cols'] = wscols;
+
             XLSX.utils.book_append_sheet(wb, ws, "Soumissions"); XLSX.writeFile(wb, fn);
         }
 
@@ -2268,52 +2309,40 @@
             downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
         }
 
-        function getSoumissionsJSONData() {
-            if (Object.keys(globalSoumissionsResults).length === 0) return null;
-            
-            let cleanResults = {};
-            for (let taskName in globalSoumissionsResults) {
-                cleanResults[taskName] = globalSoumissionsResults[taskName].map(row => {
-                    return {
-                        "Thematique": row.theme,
-                        "Formulation_Texte": row.text,
-                        "Entite": row.entity,
-                        "Occurrences_Formulation": row.count,
-                        "Statut_Soumission": (row.count > 1 && row.entity !== 'Inconnue') ? '⚠️ DOUBLON' : '✅ CORRECT',
-                        "Dates_Soumission": row.dates.join(' ; ')
-                    };
-                });
-            }
-
-            return JSON.stringify({ 
+        function exportSoumissionsToJSONFile(pfx) { 
+            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
+            let j = JSON.stringify({ 
                 "titre_plateforme": TITRE_PLATEFORME, 
                 "sous_titre": "Rapport de Vérification des Soumissions", 
                 "date_exportation": getFormattedDateTime(), 
                 "explication_algorithme": EXPLICATION_SOUMISSION,
-                "resultats": cleanResults 
+                "resultats": globalSoumissionsResults 
             }, null, 2);
-        }
-
-        function exportSoumissionsToJSONFile(pfx) { 
-            let j = getSoumissionsJSONData();
-            if (!j) return alert("Veuillez d'abord lancer l'analyse complète.");
             downloadFile(new Blob([j], { type: 'application/json;charset=utf-8;' }), generateFilename(pfx, 'json')); 
         }
 
         function sendSoumissionsToGmail() {
-            let j = getSoumissionsJSONData();
-            if (!j) return alert("Veuillez d'abord lancer l'analyse complète.");
+            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
+            let exportData = {
+                "explication_algorithme": EXPLICATION_SOUMISSION,
+                "resultats": globalSoumissionsResults
+            };
+            let j = JSON.stringify(exportData, null, 2);
             navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON est copié dans le presse-papiers.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                alert("✅ SUCCÈS !\nLe texte JSON Consolidation est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
                 window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Soumissions Kobo - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous les données de soumissions.\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
         function sendSoumissionsToWhatsApp() {
-            let j = getSoumissionsJSONData();
-            if (!j) return alert("Veuillez d'abord lancer l'analyse complète.");
+            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
+            let exportData = {
+                "explication_algorithme": EXPLICATION_SOUMISSION,
+                "resultats": globalSoumissionsResults
+            };
+            let j = JSON.stringify(exportData, null, 2);
             navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON est copié dans le presse-papiers.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                alert("✅ SUCCÈS !\nLe texte JSON Consolidation est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
                 window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Soumissions Kobo*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
