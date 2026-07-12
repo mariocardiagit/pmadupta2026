@@ -215,6 +215,7 @@
             <li class="nav-item" role="presentation"><button class="nav-link text-semantic fw-bold" id="semantic-tab" data-bs-toggle="tab" data-bs-target="#semantic" type="button" role="tab"><i class="fas fa-brain"></i> 8 : Clustering Sémantique</button></li>
             <li class="nav-item" role="presentation"><button class="nav-link text-explication fw-bold" id="explication-sem-tab" data-bs-toggle="tab" data-bs-target="#explication-sem" type="button" role="tab"><i class="fas fa-graduation-cap"></i> 9 : Explication IA Sémantique</button></li>
             <li class="nav-item" role="presentation"><button class="nav-link fw-bold" style="color: #16a085;" id="consolidation-tab" data-bs-toggle="tab" data-bs-target="#consolidation" type="button" role="tab"><i class="fas fa-layer-group"></i> 10 : Nombre Soumissions Kobo</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link fw-bold text-dark" id="explication-soum-tab" data-bs-toggle="tab" data-bs-target="#explication-soum" type="button" role="tab"><i class="fas fa-chalkboard-teacher"></i> 11 : Explication Soumissions Kobo</button></li>
         </ul>
 
         <div class="tab-content" id="dashboardTabsContent">
@@ -1091,6 +1092,77 @@
                     <div id="res-cons-sprod-zap" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-produits ZAP : En attente de l'analyse...</div>
                 </div>
 </div>
+
+            <!-- ONGLET 11 : EXPLICATION SOUMISSIONS KOBO -->
+            <div class="tab-pane fade" id="explication-soum" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="m-0" style="color: #2c3e50;"><i class="fas fa-chalkboard-teacher"></i> Onglet 11 : Explicabilité (XAI) de la Détection des Doublons</h4>
+                </div>
+                
+                <div class="ai-insights shadow-sm mb-4" style="background: linear-gradient(135deg, #e8f8f5 0%, #d1f2eb 100%); border-left: 5px solid #16a085;">
+                    <h5 style="color: #117a65;"><i class="fas fa-shield-alt"></i> Quel est le but de cette vérification ?</h5>
+                    <p>Cet algorithme a été conçu pour repérer automatiquement les <strong>erreurs de saisie ou les répétitions anormales</strong> dans KoboToolbox. Il ne sanctionne pas une ZAP qui réalise plusieurs activités différentes, mais il alerte immédiatement si une ZAP soumet <strong>exactement la même activité plusieurs fois</strong> (même formulation exacte).</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header text-white fw-bold fs-5" style="background-color: #16a085;">
+                                <i class="fas fa-filter"></i> Étape 1 : Regroupement Sémantique (Filtrage)
+                            </div>
+                            <div class="card-body">
+                                <p>Avant d'analyser les doublons, l'Intelligence Artificielle (SBERT) lit toutes les soumissions et regroupe celles qui parlent du même sujet dans des <strong>Thématiques</strong> (Thématique 1, Thématique 2, etc.). Cela permet de structurer un grand volume de données et de comparer ce qui est comparable.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header text-white fw-bold fs-5" style="background-color: #16a085;">
+                                <i class="fas fa-equals"></i> Étape 2 : L'algorithme de Correspondance Exacte (Strict Matching)
+                            </div>
+                            <div class="card-body">
+                                <p>Une fois les données triées par Thématique, le script crée une "Clé Unique" mathématique pour chaque ligne provenant de KoboToolbox. Cette clé est la fusion de l'Entité et du Texte saisi :</p>
+                                <div class="text-center mb-3 mt-2">
+                                    <span class="math-box" style="color: #16a085; border-color: #16a085;"><strong>Clé Unique = [Entité] + "|||" + [Formulation Exacte]</strong></span>
+                                </div>
+                                <p>Le système compte ensuite le nombre d'apparitions (Occurrences) de cette Clé Unique dans toute la base de données.</p>
+                                
+                                <div class="demo-box" style="border-left-color: #16a085;">
+                                    <h6 class="fw-bold" style="color: #16a085;"><i class="fas fa-microscope"></i> Démonstration Mathématique avec votre exemple :</h6>
+                                    <div class="demo-step"> Soumission 1 : Entité="ZAP MAROANTSETRA", Activité="Mettre en place le reporting"</div>
+                                    <div class="demo-step"> Soumission 2 : Entité="ZAP SOANIERANA IVONGO", Activité="Mettre en place le reporting"</div>
+                                    <div class="demo-step"> Soumission 3 : Entité="ZAP MAROANTSETRA", Activité="Mettre en place le reporting"</div>
+                                    
+                                    <p class="mt-3 mb-1"><strong>Calcul des occurrences par l'Algorithme :</strong></p>
+                                    <ul class="mb-2">
+                                        <li>Clé A : <code>ZAP MAROANTSETRA ||| Mettre en place le reporting</code> &rarr; Comptée <strong class="text-danger">2 fois</strong></li>
+                                        <li>Clé B : <code>ZAP SOANIERANA IVONGO ||| Mettre en place le reporting</code> &rarr; Comptée <strong class="text-success">1 fois</strong></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header text-white fw-bold fs-5" style="background-color: #16a085;">
+                                <i class="fas fa-gavel"></i> Étape 3 : Diagnostic et Extraction Temporelle
+                            </div>
+                            <div class="card-body">
+                                <p>En fonction du nombre calculé à l'Étape 2, le système pose son diagnostic final et extrait l'horodatage exact (<code>_submission_time</code>) du serveur KoboToolbox :</p>
+                                <ul>
+                                    <li class="mb-2"><strong>Si Occurrences = 1 :</strong> L'entrée est jugée saine. Le badge passe au vert <span class="badge bg-success shadow-sm"><i class="fas fa-check"></i> CORRECT (1 envoi)</span> et la date unique de la soumission est affichée.</li>
+                                    <li><strong>Si Occurrences &gt; 1 :</strong> Une anomalie de saisie est confirmée. Le système passe la ligne en jaune, affiche <span class="badge bg-danger shadow-sm"><i class="fas fa-exclamation-triangle"></i> DOUBLON (X envois)</span> et collecte la liste complète de <strong>toutes les dates de ces saisies répétitives</strong> (séparées par un point-virgule) pour vous permettre d'auditer avec précision le travail de l'agent de terrain.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>
