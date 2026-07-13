@@ -448,7 +448,7 @@
                         <span class="math-box text-success"><strong>GVF = ( SDTM - SDIC ) / SDTM</strong></span>
                     </div>
                     <ul class="mb-0">
-                        <li><strong>SDTM</strong> : L'écart au carré de chaque entité par rapport to la moyenne globale nationale.</li>
+                        <li><strong>SDTM</strong> : L'écart au carré de chaque entité par rapport à la moyenne globale nationale.</li>
                         <li><strong>SDIC</strong> : L'écart au carré par rapport to la moyenne de son seul sous-groupe (Faible, Moyen, Fort).</li>
                         <li><em>En pratique :</em> Le système réduit mathématiquement au maximum l'écart à l'intérieur d'un même groupe, tout en maximisant l'écart entre les groupes différents.</li>
                     </ul>
@@ -1022,6 +1022,10 @@
 
             </div>
 
+        </div>
+    </div>
+
+    
             <!-- ONGLET 10 : CONSOLIDATION KOBO -->
             <div class="tab-pane fade" id="consolidation" role="tabpanel">
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -1052,11 +1056,29 @@
                     <p class="mb-0">Cet onglet utilise l'Intelligence Artificielle (SBERT) pour regrouper les activités ayant le même sens, et génère un tableau de synthèse affichant précisément l'<strong>Entité (DREN, CISCO, ZAP)</strong> responsable ainsi que le <strong>Nombre de Soumissions</strong> associées dans KoboToolbox pour chaque formulation textuelle.</p>
                 </div>
 
-                <div class="text-center mb-4">
-                    <button class="btn btn-lg text-white shadow-sm" style="background-color: #16a085;" onclick="window.runSoumissionsAnalysis()">
-                        <i class="fas fa-play-circle"></i> Démarrer l'Analyse des Soumissions
-                    </button>
-                    <p class="text-muted small mt-2"><i class="fas fa-info-circle"></i> Le traitement IA regroupera les données volumineuses en thématiques claires.</p>
+                <div class="filter-card shadow-sm mb-4" style="border-left: 5px solid #16a085;">
+                    <h5 class="mb-3 text-secondary"><i class="fas fa-filter"></i> Filtres des Soumissions Kobo</h5>
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-5">
+                            <label class="filter-label">Rechercher une formulation ou entité</label>
+                            <input type="text" id="search-soumissions-table" class="form-control form-control-sm" placeholder="Ex: Nettoyage, ZAP Ambohimanga..." autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="filter-label d-block">Statut de la Soumission</label>
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check filter-soumissions-radio" name="soumissionStatus" id="status-all" value="all" checked>
+                                <label class="btn btn-outline-secondary btn-sm" for="status-all"><i class="fas fa-list"></i> Tout</label>
+
+                                <input type="radio" class="btn-check filter-soumissions-radio" name="soumissionStatus" id="status-doublon" value="doublon">
+                                <label class="btn btn-outline-danger btn-sm" for="status-doublon"><i class="fas fa-exclamation-triangle"></i> DOUBLON</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <button class="btn btn-sm text-white shadow-sm mt-3" style="background-color: #16a085; width: 100%;" onclick="window.runSoumissionsAnalysis()">
+                                <i class="fas fa-play-circle"></i> Démarrer l'IA de Consolidation
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="cons-progress-container" style="display: none;" class="mb-4">
@@ -1085,7 +1107,7 @@
                     <!-- SOUS-PRODUITS -->
                     <div id="res-cons-sprod-dren" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-produits DREN : En attente de l'analyse...</div>
                     <div id="res-cons-sprod-cisco" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-produits CISCO : En attente de l'analyse...</div>
-                    <div id="res-cons-sprod-zap" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-produits ZAP : En attente de l'analyse...</div>
+                    <div id="res-cons-sprod-zap" class="text-center text-muted py-4 border rounded bg-white shadow-sm"><i class="fas fa-table fa-2x mb-3"></i><br>Sous-produits ZAP : En attente de l'analyse...
                 </div>
             </div>
 
@@ -1162,7 +1184,7 @@
             </div>
 
         </div>
-    </div>
+    
 
     <!-- Scripts Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -2295,43 +2317,98 @@
 
         
         // ================= FONCTIONS EXPORT & PARTAGE CONSOLIDATION (ONGLET 10) =================
+        
+        window.filterSoumissionsTables = function() {
+            let searchText = cleanSpaces($('#search-soumissions-table').val()).toLowerCase();
+            let statusFilter = $('input[name="soumissionStatus"]:checked').val();
+
+            $('#consFieldsContainer table tbody tr').each(function() {
+                let rowText = cleanSpaces($(this).text()).toLowerCase();
+                let isDoublon = $(this).find('.badge.bg-danger').length > 0;
+
+                let textMatch = fuzzyMatch(searchText, rowText);
+                let statusMatch = (statusFilter === 'all') || (statusFilter === 'doublon' && isDoublon);
+
+                if (textMatch && statusMatch) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        };
+
+        function getFilteredSoumissionsData() {
+            let searchText = cleanSpaces($('#search-soumissions-table').val()).toLowerCase();
+            let statusFilter = $('input[name="soumissionStatus"]:checked').val();
+            
+            let filteredResults = {};
+            for (let taskName in globalSoumissionsResults) {
+                let filteredRows = globalSoumissionsResults[taskName].filter(row => {
+                    let isDoublon = (row.count > 1 && row.entity !== 'Inconnue');
+                    let rowText = cleanSpaces(`${row.theme} ${row.text} ${row.entity} ${row.count} ${isDoublon ? 'doublon' : 'correct'}`).toLowerCase();
+                    
+                    let textMatch = fuzzyMatch(searchText, rowText);
+                    let statusMatch = (statusFilter === 'all') || (statusFilter === 'doublon' && isDoublon);
+                    
+                    return textMatch && statusMatch;
+                });
+                
+                if(filteredRows.length > 0) {
+                    filteredResults[taskName] = filteredRows;
+                }
+            }
+            return filteredResults;
+        }
+
+        function getSoumissionsFiltersObj() {
+            return {
+                "Recherche_Texte": $('#search-soumissions-table').val() || "Aucune recherche",
+                "Filtre_Statut": $('input[name="soumissionStatus"]:checked').val() === 'doublon' ? "DOUBLONS uniquement" : "Tout affiché"
+            };
+        }
+
         function exportSoumissionsToCSV(pfx) {
-            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
+            let filteredData = getFilteredSoumissionsData();
+            if (Object.keys(filteredData).length === 0) return alert("Aucune donnée à exporter avec ces filtres ou lancez la consolidation.");
+            
             let fn = generateFilename(pfx, 'csv'), csv = [], d = getFormattedDateTime();
             csv.push(`"${TITRE_PLATEFORME}"`); csv.push(`"Rapport des Soumissions Kobotoolbox"`); csv.push("");
             csv.push(`"--- METADONNEES D'EXPORT ---"`); csv.push(`"Date d'exportation";"${d}"`); csv.push("");
             
-            csv.push(`"--- EXPLICATION DU RAPPORT DE VERIFICATION DES SOUMISSIONS KOBOTOOLBOX ---"`);
+            let filtres = getSoumissionsFiltersObj();
+            csv.push(`"--- CRITERES DE RECHERCHE ET FILTRES ---"`);
+            for(let k in filtres) csv.push(`"${k}";"${filtres[k]}"`);
+            csv.push("");
+            
+            csv.push(`"--- EXPLICATION DU RAPPORT ---"`);
             EXPLICATION_SOUMISSION.forEach(line => csv.push(`"${line.replace(/"/g, '""')}"`));
             csv.push("");
 
             csv.push(`"Domaine";"Niveau";"Thématique";"Formulation (Texte)";"Entité (DREN, CISCO, ZAP)";"Occurrences Formulation";"Statut de la Soumission";"DATE DE SOUMISSION"`);
             
-            for (let taskName in globalSoumissionsResults) {
+            for (let taskName in filteredData) {
                 let parts = taskName.split(' '); 
                 let domaine = parts[0], niveau = parts[1];
-                globalSoumissionsResults[taskName].forEach(row => {
-                    csv.push(`"${domaine}";"${niveau}";"${row.theme}";"${cleanSpaces(row.text).replace(/"/g, '""')}";"${row.entity}";"${row.count}"`);
+                filteredData[taskName].forEach(row => {
+                    let isDoublon = (row.count > 1 && row.entity !== 'Inconnue');
+                    let statut = isDoublon ? '⚠️ DOUBLON' : '✅ CORRECT';
+                    csv.push(`"${domaine}";"${niveau}";"${row.theme}";"${cleanSpaces(row.text).replace(/"/g, '""')}";"${row.entity}";"${row.count}";"${statut}";"${row.dates.join(' ; ')}"`);
                 });
             }
             downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
         }
 
         function exportSoumissionsToExcel(pfx) {
-            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer l'analyse complète.");
+            let filteredData = getFilteredSoumissionsData();
+            if (Object.keys(filteredData).length === 0) return alert("Aucune donnée à exporter avec ces filtres ou lancez l'analyse.");
             let fn = generateFilename(pfx, 'xlsx'), wb = XLSX.utils.book_new(), wsD = [], merges = [];
             
-            // DÉFINITION DES STYLES POUR EXCEL (xlsx-js-style)
             let titleStyle = { font: { bold: true, sz: 14, color: { rgb: "2C3E50" } } };
             let subTitleStyle = { font: { bold: true, sz: 12, color: { rgb: "7F8C8D" } } };
             let explicationStyle = { font: { italic: true, color: { rgb: "117A65" } }, alignment: { wrapText: true } };
             let headerStyle = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "16A085" } }, alignment: { horizontal: "center", vertical: "center" }, border: { top: {style:'thin', color:{auto:1}}, bottom: {style:'thin', color:{auto:1}}, left: {style:'thin', color:{auto:1}}, right: {style:'thin', color:{auto:1}} } };
-            
-            // Style ligne normale
             let normalStyle = { alignment: { vertical: "center", wrapText: true }, border: { top: {style:'thin', color:{rgb:"E0E0E0"}}, bottom: {style:'thin', color:{rgb:"E0E0E0"}}, left: {style:'thin', color:{rgb:"E0E0E0"}}, right: {style:'thin', color:{rgb:"E0E0E0"}} } };
             let normalStyleCenter = { alignment: { vertical: "center", horizontal: "center" }, border: normalStyle.border };
-            
-            // Style ligne Alerte Doublon (Fond Jaune, Texte Rouge foncé)
             let alertStyle = { fill: { fgColor: { rgb: "FFF3CD" } }, font: { color: { rgb: "856404" }, bold: true }, alignment: { vertical: "center", wrapText: true }, border: { top: {style:'thin', color:{rgb:"FFEEBA"}}, bottom: {style:'thin', color:{rgb:"FFEEBA"}}, left: {style:'thin', color:{rgb:"FFEEBA"}}, right: {style:'thin', color:{rgb:"FFEEBA"}} } };
             let alertStyleCenter = { fill: alertStyle.fill, font: alertStyle.font, alignment: { vertical: "center", horizontal: "center" }, border: alertStyle.border };
 
@@ -2341,13 +2418,17 @@
             wsD.push([{ v: "Date d'exportation", s: { font: { bold: true } } }, { v: getFormattedDateTime() }]); 
             wsD.push([]);
             
-            wsD.push([{ v: "--- EXPLICATION DU RAPPORT DE VERIFICATION DES SOUMISSIONS KOBOTOOLBOX ---", s: { font: { bold: true, color: { rgb: "117A65" } } } }]);
+            wsD.push([{ v: "--- CRITERES DE RECHERCHE ET FILTRES ---", s: { font: { bold: true } } }]);
+            let filtres = getSoumissionsFiltersObj();
+            for(let k in filtres) wsD.push([k, filtres[k]]);
+            wsD.push([]);
+
+            wsD.push([{ v: "--- EXPLICATION DU RAPPORT ---", s: { font: { bold: true, color: { rgb: "117A65" } } } }]);
             let sR = wsD.length;
             EXPLICATION_SOUMISSION.forEach(line => wsD.push([{ v: line, s: explicationStyle }]));
             let eR = wsD.length - 1;
             wsD.push([]);
             
-            // Merge les colonnes pour que l'explication soit bien lisible sur Excel
             merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } });
             merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: 7 } });
             for(let r = sR; r <= eR; r++) { merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 7 } }); }
@@ -2355,13 +2436,12 @@
             let headers = ["Domaine", "Niveau", "Thématique", "Formulation (Texte)", "Entité (DREN, CISCO, ZAP)", "Occurrences Formulation", "Statut de la Soumission", "DATE DE SOUMISSION"];
             wsD.push(headers.map(h => ({ v: h, s: headerStyle })));
             
-            for (let taskName in globalSoumissionsResults) {
+            for (let taskName in filteredData) {
                 let parts = taskName.split(' '); 
                 let domaine = parts[0], niveau = parts[1];
-                globalSoumissionsResults[taskName].forEach(row => {
+                filteredData[taskName].forEach(row => {
                     let isDoublon = (row.count > 1 && row.entity !== 'Inconnue');
                     let statut = isDoublon ? '⚠️ DOUBLON' : '✅ CORRECT';
-                    
                     let sText = isDoublon ? alertStyle : normalStyle;
                     let sCenter = isDoublon ? alertStyleCenter : normalStyleCenter;
 
@@ -2380,32 +2460,58 @@
             
             let ws = XLSX.utils.aoa_to_sheet(wsD);
             if (merges.length > 0) ws['!merges'] = merges;
-            
-            // Auto-width basique
-            let wscols = [ {wch: 15}, {wch: 10}, {wch: 15}, {wch: 60}, {wch: 30}, {wch: 25}, {wch: 25}, {wch: 35} ];
-            ws['!cols'] = wscols;
-
+            ws['!cols'] = [ {wch: 15}, {wch: 10}, {wch: 15}, {wch: 60}, {wch: 30}, {wch: 25}, {wch: 25}, {wch: 35} ];
             XLSX.utils.book_append_sheet(wb, ws, "Soumissions"); XLSX.writeFile(wb, fn);
         }
 
         function exportSoumissionsToHTML(pfx) {
-            if (Object.keys(globalSoumissionsResults).length === 0) return alert("Veuillez d'abord lancer la consolidation complète.");
-            let clone = document.getElementById('consFieldsContainer').outerHTML;
+            let filteredData = getFilteredSoumissionsData();
+            if (Object.keys(filteredData).length === 0) return alert("Aucune donnée à exporter avec ces filtres ou lancez la consolidation complète.");
             
+            // Re-render internally logic for HTML export to only include visible items
+            let tablesHtml = "";
+            for (let taskName in filteredData) {
+                let data = filteredData[taskName];
+                tablesHtml += `<h4 style="color: #16a085; margin-top:30px;">${taskName}</h4><table style="width:100%; border-collapse:collapse; margin-bottom:20px;"><thead><tr style="background:#16a085; color:#fff;">`;
+                ["Thématique", "Formulation (Texte)", "Entité", "Occurrences", "Statut", "Dates"].forEach(h => tablesHtml += `<th style="padding:10px; border:1px solid #ddd;">${h}</th>`);
+                tablesHtml += `</tr></thead><tbody>`;
+                data.forEach(row => {
+                    let isDoublon = row.count > 1 && row.entity !== 'Inconnue';
+                    let bg = isDoublon ? '#fff3cd' : '#fff';
+                    let color = isDoublon ? '#856404' : '#333';
+                    let statut = isDoublon ? '⚠️ DOUBLON' : '✅ CORRECT';
+                    tablesHtml += `<tr style="background:${bg}; color:${color}; text-align:center;">`;
+                    tablesHtml += `<td style="padding:8px; border:1px solid #ddd;">${row.theme}</td>`;
+                    tablesHtml += `<td style="padding:8px; border:1px solid #ddd; text-align:left;">${row.text}</td>`;
+                    tablesHtml += `<td style="padding:8px; border:1px solid #ddd; font-weight:bold;">${row.entity}</td>`;
+                    tablesHtml += `<td style="padding:8px; border:1px solid #ddd;">${row.count}</td>`;
+                    tablesHtml += `<td style="padding:8px; border:1px solid #ddd; font-weight:bold;">${statut}</td>`;
+                    tablesHtml += `<td style="padding:8px; border:1px solid #ddd; font-size:0.85em;">${row.dates.join(' ; ')}</td>`;
+                    tablesHtml += `</tr>`;
+                });
+                tablesHtml += `</tbody></table>`;
+            }
+
             let explicationHtml = `<div style="background-color:#e8f8f5; color:#117a65; border:1px solid #1abc9c; padding:15px; border-radius:5px; margin-bottom:20px;">`;
             EXPLICATION_SOUMISSION.forEach(line => explicationHtml += `<p style="margin:0 0 5px 0;">${line}</p>`);
             explicationHtml += `</div>`;
 
-            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><style>body{font-family:sans-serif;padding:20px;background:#f4f7f6;} .table-responsive{margin-bottom:30px;background:#fff;padding:15px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.05);} th{background:#16a085!important;color:#fff!important;} h4{color:#16a085;border-bottom:2px solid #16a085;padding-bottom:10px;margin-top:40px;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4>Rapport des Soumissions (Généré le ${getFormattedDateTime()})</h4>${explicationHtml}${clone}</body></html>`;
+            let filtresHtml = `<div style="background-color:#fdfdfd; border:1px solid #ddd; padding:15px; border-radius:5px; margin-bottom:20px;"><h5>Filtres Appliqués :</h5><ul>`;
+            let f = getSoumissionsFiltersObj();
+            for(let k in f) filtresHtml += `<li><strong>${k} :</strong> ${f[k]}</li>`;
+            filtresHtml += `</ul></div>`;
+
+            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px;background:#f4f7f6;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4>Rapport des Soumissions (Généré le ${getFormattedDateTime()})</h4>${filtresHtml}${explicationHtml}${tablesHtml}</body></html>`;
             downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
         }
 
         function getSoumissionsJSONData() {
-            if (Object.keys(globalSoumissionsResults).length === 0) return null;
+            let filteredData = getFilteredSoumissionsData();
+            if (Object.keys(filteredData).length === 0) return null;
             
             let formattedResults = {};
-            for (let taskName in globalSoumissionsResults) {
-                formattedResults[taskName] = globalSoumissionsResults[taskName].map(row => {
+            for (let taskName in filteredData) {
+                formattedResults[taskName] = filteredData[taskName].map(row => {
                     let isDoublon = (row.count > 1 && row.entity !== 'Inconnue');
                     return {
                         "Thématique": row.theme,
@@ -2422,6 +2528,7 @@
                 "titre_plateforme": TITRE_PLATEFORME, 
                 "sous_titre": "Rapport de Vérification des Soumissions", 
                 "date_exportation": getFormattedDateTime(), 
+                "filtres_appliques": getSoumissionsFiltersObj(),
                 "explication_algorithme": EXPLICATION_SOUMISSION,
                 "resultats": formattedResults 
             }, null, 2);
@@ -2429,13 +2536,13 @@
 
         function exportSoumissionsToJSONFile(pfx) { 
             let j = getSoumissionsJSONData();
-            if (!j) return alert("Veuillez d'abord lancer la consolidation complète.");
+            if (!j) return alert("Aucune donnée à exporter avec ces filtres ou lancez la consolidation complète.");
             downloadFile(new Blob([j], { type: 'application/json;charset=utf-8;' }), generateFilename(pfx, 'json')); 
         }
 
         function sendSoumissionsToGmail() {
             let j = getSoumissionsJSONData();
-            if (!j) return alert("Veuillez d'abord lancer la consolidation complète.");
+            if (!j) return alert("Aucune donnée à exporter avec ces filtres ou lancez la consolidation complète.");
             navigator.clipboard.writeText(j).then(function() {
                 alert("✅ SUCCÈS !\nLe texte JSON Consolidation est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
                 window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Soumissions Kobo - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous les données de soumissions.\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
@@ -2444,14 +2551,14 @@
 
         function sendSoumissionsToWhatsApp() {
             let j = getSoumissionsJSONData();
-            if (!j) return alert("Veuillez d'abord lancer la consolidation complète.");
+            if (!j) return alert("Aucune donnée à exporter avec ces filtres ou lancez la consolidation complète.");
             navigator.clipboard.writeText(j).then(function() {
                 alert("✅ SUCCÈS !\nLe texte JSON Consolidation est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
                 window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Soumissions Kobo*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
-        // ================= FONCTIONS EXPORT & PARTAGE SEMANTIQUE =================
+        // ================= FONCTIONS EXPORT & PARTAGE SEMANTIQUE =================// ================= FONCTIONS EXPORT & PARTAGE SEMANTIQUE =================
         
         function getSemanticExportData() {
             if (Object.keys(globalSemanticResults).length === 0) return null;
@@ -2613,6 +2720,10 @@
             setupAnalysisTableSearch('search-dren-table', 'dren-summary-table');
             setupAnalysisTableSearch('search-cisco-table', 'cisco-summary-table');
             setupAnalysisTableSearch('search-zap-table', 'zap-summary-table');
+            
+            // Listeners pour l'onglet 10
+            $('#search-soumissions-table').on('keyup', window.filterSoumissionsTables);
+            $('.filter-soumissions-radio').on('change', window.filterSoumissionsTables);
         });
     </script>
 
@@ -2988,6 +3099,7 @@
                     }
                 }
                 $('#cons-status').text("✅ Analyse des soumissions terminée avec succès !");
+                window.filterSoumissionsTables(); // Applique le filtre automatiquement après analyse
                 setTimeout(() => $('#cons-progress-container').hide(), 5000);
             } catch(e) {
                 $('#cons-status').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Erreur lors de l'analyse : ${e.message}</span>`);
