@@ -2300,8 +2300,7 @@ Nombre : *${$('#record-count').text()}*
 
         function sendAnalysisToGmail() {
             let j = getAnalysisJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe JSON d'analyse est copié.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                alert("✅ SUCCÈS !\nLe JSON d'analyse est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
                 window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Analyse - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,
 
 Date : ${getFormattedDateTime()}
@@ -2318,8 +2317,7 @@ Cordialement.`)}`, '_blank');
 
         function sendAnalysisToWhatsApp() {
             let j = getAnalysisJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe JSON d'analyse est copié.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                alert("✅ SUCCÈS !\nLe JSON d'analyse est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
                 window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Synthèse Kobo*
 Date : ${getFormattedDateTime()}
 *Critères :*
@@ -2333,8 +2331,7 @@ ${getAiInsightsArray().join('\n')}
 
         function sendExpertToGmail() {
             let j = getExpertJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON des recommandations est copié.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                alert("✅ SUCCÈS !\nLe texte JSON des recommandations est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
                 window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Recommandations - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,
 
 Date : ${getFormattedDateTime()}
@@ -2349,8 +2346,7 @@ Cordialement.`)}`, '_blank');
 
         function sendExpertToWhatsApp() {
             let j = getExpertJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON des recommandations est copié.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                alert("✅ SUCCÈS !\nLe texte JSON des recommandations est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
                 window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Recommandations Système Expert*
 Date : ${getFormattedDateTime()}
 
