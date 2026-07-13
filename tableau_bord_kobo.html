@@ -2096,8 +2096,7 @@
                 });
                 csv.push(r.join(";"));
             });
-            downloadFile(new Blob(["﻿" + csv.join("
-")], {type: "text/csv;charset=utf-8;"}), fn);
+            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
         }
 
         function exportTableToExcel(pfx) {
@@ -2189,8 +2188,7 @@
                 csv.push(`"${tb.t}"`); csv.push(`"Nom";"Soumissions";"Part (%)"`);
                 $(`#${tb.id} tr:visible`).each(function() { let r=[]; $(this).find('td').each(function(i) { r.push(`"${cleanSpaces((i===2)?$(this).find('span').text():$(this).text())}"`); }); if(r.length>0 && r[0]!=='"Aucune donnée trouvée"') csv.push(r.join(";")); }); csv.push("");
             });
-            downloadFile(new Blob(["﻿" + csv.join("
-")], {type: "text/csv;charset=utf-8;"}), generateFilename(pfx, 'csv'));
+            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), generateFilename(pfx, 'csv'));
         }
 
         function exportAnalysisToExcel(pfx) {
@@ -2250,8 +2248,7 @@
                     csv.push(row.join(";"));
                 }
             });
-            downloadFile(new Blob(["﻿" + csv.join("
-")], {type: "text/csv;charset=utf-8;"}), fn);
+            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
         }
 
         function exportExpertToExcel(pfx) {
@@ -2279,9 +2276,7 @@
 
         function sendToGmail() {
             let j = getTableJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le texte JSON est copié dans votre presse-papiers.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                alert("✅ SUCCÈS !\nLe texte JSON est copié dans votre presse-papiers.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
                 window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Rapport - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,
 
 Date : ${getFormattedDateTime()}
@@ -2297,9 +2292,7 @@ Cordialement.`)}`, '_blank');
 
         function sendToWhatsApp() {
             let j = getTableJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le texte JSON est copié dans le presse-papiers.
-Faites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                alert("✅ SUCCÈS !\nLe texte JSON est copié dans le presse-papiers.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
                 window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Rapport Kobo*
 Date : ${getFormattedDateTime()}
 *Critères :*
@@ -2312,8 +2305,7 @@ Nombre : *${$('#record-count').text()}*
 
         function sendAnalysisToGmail() {
             let j = getAnalysisJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le JSON d'analyse est copié.
+                alert("✅ SUCCÈS !\nLe JSON d'analyse est copié.
 Faites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
                 window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Analyse - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,
 
@@ -2321,8 +2313,7 @@ Date : ${getFormattedDateTime()}
 Critères :
 ${getAnalysisFiltersPlainText()}
 IA :
-${getAiInsightsArray().join('
-')}
+${getAiInsightsArray().join('\n')}
 
 [ COLLER JSON ICI ]
 
@@ -2332,16 +2323,14 @@ Cordialement.`)}`, '_blank');
 
         function sendAnalysisToWhatsApp() {
             let j = getAnalysisJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le JSON d'analyse est copié.
+                alert("✅ SUCCÈS !\nLe JSON d'analyse est copié.
 Faites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
                 window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Synthèse Kobo*
 Date : ${getFormattedDateTime()}
 *Critères :*
 ${getAnalysisFiltersPlainText()}
 *IA :*
-${getAiInsightsArray().join('
-')}
+${getAiInsightsArray().join('\n')}
 
 [ COLLER JSON ICI ]`)}`, '_blank');
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
@@ -2349,8 +2338,7 @@ ${getAiInsightsArray().join('
 
         function sendExpertToGmail() {
             let j = getExpertJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le texte JSON des recommandations est copié.
+                alert("✅ SUCCÈS !\nLe texte JSON des recommandations est copié.
 Faites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
                 window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Recommandations - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,
 
@@ -2366,8 +2354,7 @@ Cordialement.`)}`, '_blank');
 
         function sendExpertToWhatsApp() {
             let j = getExpertJSONData(); navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !
-Le texte JSON des recommandations est copié.
+                alert("✅ SUCCÈS !\nLe texte JSON des recommandations est copié.
 Faites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
                 window.open(`https://wa.me/?text=${encodeURIComponent(`📊 *Recommandations Système Expert*
 Date : ${getFormattedDateTime()}
