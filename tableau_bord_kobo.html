@@ -1812,12 +1812,9 @@
                 // --- BOUTON D'EDITION ---
                 let editUrl = '#';
                 let editBtnHtml = '';
-                if (row['_uuid'] && ENKETO_ID) {
-                    editUrl = `https://ee.kobotoolbox.org/edit/${ENKETO_ID}?instance_id=${row['_uuid']}&return_url=false`;
+                if (row['_id']) {
+                    editUrl = `https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data/${row['_id']}/edit/`;
                     editBtnHtml = `<a href="${editUrl}" target="_blank" class="btn btn-warning btn-sm shadow-sm text-dark fw-bold" title="Éditer la soumission sur le serveur KoboToolbox"><i class="fas fa-pencil-alt"></i> Éditer</a>`;
-                } else if (row['_id']) {
-                    editUrl = `https://kf.kobotoolbox.org/#/forms/ath6cv2NrXEUijffeKJqSf/data/table`;
-                    editBtnHtml = `<button onclick="alert(\`Le lien direct de modification n'a pas pu être récupéré.\n\nVous allez être redirigé vers le tableau de données global KoboToolbox.\n👉 Cherchez la ligne avec l'ID suivant : ${row['_id']}\`); window.open('${editUrl}', '_blank');" class="btn btn-warning btn-sm shadow-sm text-dark fw-bold" title="Ouvrir la base de données Kobo"><i class="fas fa-table"></i> Éditer</button>`;
                 } else {
                     editBtnHtml = `<button class="btn btn-secondary btn-sm" disabled>Non dispo.</button>`;
                 }
