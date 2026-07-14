@@ -1305,6 +1305,23 @@
         }
 
         // ================= IA : K-MEANS =================
+        /**
+         * ============================================================================
+         * 🧠 ALGORITHME 1 : K-MEANS (Algorithme de Partitionnement Géométrique)
+         * ============================================================================
+         * Objectif : Regrouper les entités (DREN, CISCO, ZAP) en K groupes (ici 3 : Faible, Moyen, Fort)
+         * en fonction de leur volume de soumissions.
+         * 
+         * Fonctionnement (Optimisé pour 1D) :
+         * 1. Initialisation : Sélectionne K valeurs initiales (Centroïdes) bien espacées.
+         * 2. Assignation : Associe chaque entité au centroïde le plus proche (Distance Euclidienne).
+         * 3. Mise à jour : Recalcule la position du centroïde (Moyenne du groupe).
+         * 4. Boucle : Répète jusqu'à ce que les groupes se stabilisent (Inertie minimale).
+         * 
+         * @param {Array<number>} data - Tableau des volumes de soumissions.
+         * @param {number} k - Nombre de clusters souhaité (ex: 3).
+         * @returns {Array<number>} - Tableau des identifiants de clusters assignés à chaque entité.
+         */
         function perform1DKMeans(data, k) {
             if (data.length === 0) return [];
             let uniqueData = [...new Set(data)].sort((a,b)=>a-b);
@@ -1338,6 +1355,22 @@
         }
 
         // ================= IA : JENKS =================
+        /**
+         * ============================================================================
+         * 🎯 ALGORITHME 2 : JENKS NATURAL BREAKS (Ruptures Naturelles)
+         * ============================================================================
+         * Objectif : Trouver les seuils de découpage optimaux pour des données unidimensionnelles.
+         * Contrairement au K-Means (qui est géométrique et itératif), Jenks est déterministe.
+         * 
+         * Méthode d'Optimisation :
+         * Utilise la Programmation Dynamique pour tester toutes les combinaisons possibles et
+         * maximiser la Qualité d'Ajustement de la Variance (GVF).
+         * Il minimise la variance "Intra-Classe" (SDIC) tout en maximisant la variance "Inter-Classe" (SDAM).
+         * 
+         * @param {Array<number>} data - Tableau trié des volumes de soumissions.
+         * @param {number} numclass - Nombre de classes souhaité (ex: 3).
+         * @returns {Array<number>} - Les limites (seuils) calculées.
+         */
         function getJenksBreaks(data, numclass) {
             data = data.slice().sort((a, b) => a - b);
             if (data.length <= numclass) return data;
@@ -1390,6 +1423,22 @@
         }
 
         // ================= IA : DBSCAN 1D =================
+        /**
+         * ============================================================================
+         * 📡 ALGORITHME 3 : DBSCAN (Clustering Spatial Basé sur la Densité)
+         * ============================================================================
+         * Objectif : Identifier des comportements normaux (groupes denses) et isoler 
+         * les anomalies ou comportements exceptionnels (Bruit).
+         * 
+         * Avantage : Ne nécessite pas de définir le nombre de clusters (K) à l'avance.
+         * 
+         * Paramètres calculés dynamiquement :
+         * - Eps (Epsilon) : Rayon de recherche (tolérance), calculé à 15% de l'amplitude totale.
+         * - MinPts : Nombre minimum de voisins (ici 2) pour former un "groupe valide".
+         * 
+         * @param {Array<number>} data - Tableau des volumes de soumissions.
+         * @returns {Object} - Assignations des clusters (-1 = Anomalie/Bruit).
+         */
         function performDBSCAN(data) {
             if (data.length === 0) return { assignments: [], numClusters: 0, eps: 0 };
             let max = Math.max(...data), min = Math.min(...data);
@@ -1806,15 +1855,23 @@
                 }).join(' ; '));
             }
 
+            // 🚀 OPTIMISATION DES PERFORMANCES (DOM MAPPING)
+            // Utilisation d'un fragment de document ou de chaînes HTML pour accélérer massivement 
+            // le rendu visuel si la base de données Kobo contient des milliers de lignes.
+            let tableRowsHtml = [];
+            
             data.forEach(row => {
                 const tr = $('<tr></tr>'); let sData = {};
                 
                 // --- BOUTON D'EDITION ---
                 let editUrl = '#';
                 let editBtnHtml = '';
-                if (row['_id']) {
-                    editUrl = `https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data/${row['_id']}/edit/`;
+                if (row['_uuid'] && ENKETO_ID) {
+                    editUrl = `https://ee.kobotoolbox.org/edit/${ENKETO_ID}?instance_id=${row['_uuid']}`;
                     editBtnHtml = `<a href="${editUrl}" target="_blank" class="btn btn-warning btn-sm shadow-sm text-dark fw-bold" title="Éditer la soumission sur le serveur KoboToolbox"><i class="fas fa-pencil-alt"></i> Éditer</a>`;
+                } else if (row['_id']) {
+                    editUrl = `https://kf.kobotoolbox.org/#/forms/ath6cv2NrXEUijffeKJqSf/data/table`;
+                    editBtnHtml = `<button onclick="alert(\`Le lien direct de modification n'a pas pu être récupéré.\n\nVous allez être redirigé vers le tableau de données global KoboToolbox.\n👉 Cherchez la ligne avec l'ID suivant : ${row['_id']}\`); window.open('${editUrl}', '_blank');" class="btn btn-warning btn-sm shadow-sm text-dark fw-bold" title="Ouvrir la base de données Kobo"><i class="fas fa-table"></i> Éditer</button>`;
                 } else {
                     editBtnHtml = `<button class="btn btn-secondary btn-sm" disabled>Non dispo.</button>`;
                 }
@@ -2818,6 +2875,26 @@ Date : ${getFormattedDateTime()}
             return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
         }
 
+        /**
+         * ============================================================================
+         * 🧠 ALGORITHME 4 : CLUSTERING SÉMANTIQUE (SBERT & Similarité Cosinus)
+         * ============================================================================
+         * Objectif : Comprendre le SENS des phrases et regrouper les activités similaires, 
+         * même si elles n'utilisent pas les mêmes mots (ex: "Laver voiture" == "Nettoyer auto").
+         * 
+         * Architecture Serverless (Transformers.js) :
+         * Le modèle de NLP (MiniLM) est téléchargé et exécuté localement dans la RAM du navigateur.
+         * 
+         * Étapes :
+         * 1. Plongement Lexical (Embedding) : Transforme chaque phrase en un vecteur de nombres (Dimensions).
+         * 2. Similarité Cosinus : Mesure l'angle géométrique entre deux vecteurs.
+         *    - Plus l'angle est proche de 0°, plus la similarité s'approche de 1 (100%).
+         * 3. Regroupement : Si la similarité dépasse le Seuil (Threshold, ici 75%), on fusionne les phrases.
+         * 
+         * @param {Array<string>} activities - Liste des phrases uniques à analyser.
+         * @param {Function} extractor - Le pipeline AI Transformers.js instancié.
+         * @returns {Array<Object>} - Liste des Dictionnaires Thématiques créés.
+         */
         async function clusterActivities(activities, extractor) {
             if(activities.length === 0) return [];
             
