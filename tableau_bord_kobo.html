@@ -1616,24 +1616,6 @@
             return t.charAt(0).toUpperCase() + t.slice(1);
         }
 
-        function levenshtein(a, b) {
-            if (a.length === 0) return b.length;
-            if (b.length === 0) return a.length;
-            let matrix = [];
-            for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
-            for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
-            for (let i = 1; i <= b.length; i++) {
-                for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                        matrix[i][j] = matrix[i - 1][j - 1];
-                    } else {
-                        matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
-                    }
-                }
-            }
-            return matrix[b.length][a.length];
-        }
-
         function fuzzyMatch(query, target) {
             if (!query) return true; if (!target) return false;
             query = cleanSpaces(query).toLowerCase(); target = cleanSpaces(target).toLowerCase();
@@ -1761,9 +1743,11 @@
 
             let exKeys = Array.from(exSet), mtKeys = Array.from(mtSet);
 
+            gHeaderTr.append(`<th class="group-header-survey" style="background-color: #f39c12 !important;"><i class="fas fa-bolt"></i> Action</th>`);
             if (baseColsInfo.length + exKeys.length > 0) gHeaderTr.append(`<th colspan="${baseColsInfo.length + exKeys.length}" class="group-header-survey"><i class="fas fa-edit"></i> Matrice Complète</th>`);
             if (mtKeys.length > 0) gHeaderTr.append(`<th colspan="${mtKeys.length}" class="group-header-meta"><i class="fas fa-cogs"></i> Métadonnées</th>`);
 
+            sHeaderTr.append(`<th class="sub-header-survey" style="background-color: #e67e22 !important;">Éditer (Kobo)</th>`);
             baseColsInfo.forEach(col => sHeaderTr.append(`<th class="sub-header-survey">${col.label}</th>`));
             exKeys.forEach(key => sHeaderTr.append(`<th class="sub-header-survey">${getTranslatedHeader(key.split('/').pop())}</th>`));
             mtKeys.forEach(key => sHeaderTr.append(`<th class="sub-header-meta">${getTranslatedHeader(key.split('/').pop())}</th>`));
@@ -1801,6 +1785,8 @@
 
             data.forEach(row => {
                 const tr = $('<tr></tr>'); let sData = {};
+                let editUrl = row['_uuid'] ? `https://ee.kobotoolbox.org/edit/ath6cv2NrXEUijffeKJqSf?instance_id=${row['_uuid']}` : '#';
+                tr.append($('<td></td>').attr('data-csv', editUrl).html(`<a href="${editUrl}" target="_blank" class="btn btn-warning btn-sm shadow-sm text-dark fw-bold" title="Éditer la soumission sur le serveur"><i class="fas fa-pencil-alt"></i> Éditer</a>`));
                 baseColsInfo.forEach(col => {
                     let val = getKoboValue(row, col.matches, col.ex, col.mustMatch);
                     tr.append($('<td></td>').attr('data-csv', val).text(val)); sData[col.key] = cleanSpaces(String(val)).toLowerCase();
