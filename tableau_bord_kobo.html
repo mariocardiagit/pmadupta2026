@@ -1724,7 +1724,7 @@
 
             // -- FETCH ENKETO ID POUR L'EDITION --
             try {
-                const metaRes = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf.json'), { cache: 'no-store' });
+                const metaRes = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf.json'), { cache: 'no-store' });
                 if (metaRes.ok) {
                     let mData = await metaRes.json();
                     if (mData && mData.deployment__links && mData.deployment__links.offline_url) {
