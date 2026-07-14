@@ -1813,7 +1813,7 @@
                 let editUrl = '#';
                 let editBtnHtml = '';
                 if (row['_uuid'] && ENKETO_ID) {
-                    editUrl = `https://ee.kobotoolbox.org/edit/${ENKETO_ID}?instance_id=${row['_uuid']}`;
+                    editUrl = `https://ee.kobotoolbox.org/edit/${ENKETO_ID}?instance_id=${row['_uuid']}&return_url=false`;
                     editBtnHtml = `<a href="${editUrl}" target="_blank" class="btn btn-warning btn-sm shadow-sm text-dark fw-bold" title="Éditer la soumission sur le serveur KoboToolbox"><i class="fas fa-pencil-alt"></i> Éditer</a>`;
                 } else if (row['_id']) {
                     editUrl = `https://kf.kobotoolbox.org/#/forms/ath6cv2NrXEUijffeKJqSf/data/table`;
