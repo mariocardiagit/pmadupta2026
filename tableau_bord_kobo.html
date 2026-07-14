@@ -1713,7 +1713,7 @@
             return false;
         }
 
-        let ENKETO_ID = "";
+        let ENKETO_ID = "mkt5zdmf"; // ID injecté en dur d'après votre URL
 
         async function fetchData() {
             $('#loading-box').show(); $('#error-box').hide();
@@ -1722,17 +1722,7 @@
             
             await loadDictionaryAutomatically();
 
-            // -- FETCH ENKETO ID POUR L'EDITION --
-            try {
-                const metaRes = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf.json'), { cache: 'no-store' });
-                if (metaRes.ok) {
-                    let mData = await metaRes.json();
-                    if (mData && mData.deployment__links && mData.deployment__links.offline_url) {
-                        let parts = mData.deployment__links.offline_url.split('/');
-                        ENKETO_ID = parts[parts.length - 1]; 
-                    }
-                }
-            } catch(e) { console.warn("Impossible de récupérer l'ID Enketo", e); }
+            // La requête externe pour l'ID Enketo a été supprimée car l'ID est codé en dur.
 
 
             try {
