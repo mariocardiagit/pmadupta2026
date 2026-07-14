@@ -1616,6 +1616,24 @@
             return t.charAt(0).toUpperCase() + t.slice(1);
         }
 
+        function levenshtein(a, b) {
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+            let matrix = [];
+            for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
+            for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
         function fuzzyMatch(query, target) {
             if (!query) return true; if (!target) return false;
             query = cleanSpaces(query).toLowerCase(); target = cleanSpaces(target).toLowerCase();
@@ -1807,14 +1825,14 @@
                 if (row['_uuid'] && ENKETO_ID) {
                     editUrl = `https://ee.kobotoolbox.org/edit/${ENKETO_ID}?instance_id=${row['_uuid']}`;
                     editBtnHtml = `<a href="${editUrl}" target="_blank" class="btn btn-warning btn-sm shadow-sm text-dark fw-bold" title="Éditer la soumission sur le serveur KoboToolbox"><i class="fas fa-pencil-alt"></i> Éditer</a>`;
-                } else if (row['_uuid']) {
-                    editBtnHtml = `<button onclick="alert('L\'ID Enketo du formulaire n\'a pas pu être récupéré automatiquement. Impossible de générer le lien d\'édition exact.\n\nID Soumission : ${row['_uuid']}');" class="btn btn-warning btn-sm shadow-sm text-dark fw-bold"><i class="fas fa-pencil-alt"></i> Éditer</button>`;
+                } else if (row['_id']) {
+                    editUrl = `https://kf.kobotoolbox.org/#/forms/ath6cv2NrXEUijffeKJqSf/data/table`;
+                    editBtnHtml = `<button onclick="alert(\`Le lien direct de modification n'a pas pu être récupéré.\n\nVous allez être redirigé vers le tableau de données global KoboToolbox.\n👉 Cherchez la ligne avec l'ID suivant : ${row['_id']}\`); window.open('${editUrl}', '_blank');" class="btn btn-warning btn-sm shadow-sm text-dark fw-bold" title="Ouvrir la base de données Kobo"><i class="fas fa-table"></i> Éditer</button>`;
                 } else {
                     editBtnHtml = `<button class="btn btn-secondary btn-sm" disabled>Non dispo.</button>`;
                 }
                 tr.append($('<td></td>').attr('data-csv', editUrl).html(editBtnHtml));
                 // -------------------------
-                
                 baseColsInfo.forEach(col => {
                     let val = getKoboValue(row, col.matches, col.ex, col.mustMatch);
                     tr.append($('<td></td>').attr('data-csv', val).text(val)); sData[col.key] = cleanSpaces(String(val)).toLowerCase();
