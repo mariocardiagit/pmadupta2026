@@ -756,6 +756,22 @@
                     </div>
                 </div>
 
+            
+                <!-- Résumé demandé par l'utilisateur -->
+                <div class="card mb-4 shadow-sm border-dark">
+                    <div class="card-header bg-dark text-white fw-bold fs-5">
+                        <i class="fas fa-layer-group"></i> Récapitulatif des Modèles d'Intelligence Artificielle
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush" style="font-size: 1.05rem;">
+                            <li class="list-group-item py-3"><strong>Algorithme 1 (K-Means) :</strong> Les étapes mathématiques d'assignation Euclidienne et de recalcul des centres de gravité.</li>
+                            <li class="list-group-item py-3"><strong>Algorithme 2 (Jenks) :</strong> L'explication de la minimisation de la variance "Intra-Classe" (SDIC) via la programmation dynamique.</li>
+                            <li class="list-group-item py-3"><strong>Algorithme 3 (DBSCAN) :</strong> La définition des paramètres Epsilon (Rayon de recherche) et MinPts pour isoler les anomalies.</li>
+                            <li class="list-group-item py-3"><strong>Algorithme 4 (SBERT Sémantique) :</strong> La traduction des phrases en "Vecteurs de nombres" et l'utilisation de la "Similarité Cosinus" (avec le seuil de 75% écrit en dur que vous pourrez modifier facilement).</li>
+                        </ul>
+                    </div>
+                </div>
+
             </div>
 
             <!-- ONGLET 8 : CLUSTERING SEMANTIQUE -->
@@ -1863,13 +1879,24 @@
             data.forEach(row => {
                 const tr = $('<tr></tr>'); let sData = {};
                 
+                // --- EXTRACTION ENTITE POUR INFOBULLE ---
+                let colZap = baseColsInfo.find(c => c.key === 'zap');
+                let colCisco = baseColsInfo.find(c => c.key === 'cisco');
+                let colDren = baseColsInfo.find(c => c.key === 'dren');
+                let vZap = cleanSpaces(getKoboValue(row, colZap.matches, colZap.ex, colZap.mustMatch));
+                let vCisco = cleanSpaces(getKoboValue(row, colCisco.matches, colCisco.ex, colCisco.mustMatch));
+                let vDren = cleanSpaces(getKoboValue(row, colDren.matches, colDren.ex, colDren.mustMatch));
+                
+                // On prend l'entité la plus précise disponible (ZAP, sinon CISCO, sinon DREN)
+                let entityName = vZap || vCisco || vDren || "cette soumission";
+                
                 // --- BOUTON D'EDITION ---
                 let editUrl = '#';
                 let editBtnHtml = '';
                 if (row['_id']) {
                     // Utilisation de l'API officielle Kobo pour contourner l'expiration d'Enketo
                     editUrl = `https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data/${row['_id']}/edit/`;
-                    editBtnHtml = `<a href="${editUrl}" target="_blank" class="btn btn-warning btn-sm shadow-sm text-dark fw-bold" title="Éditer la soumission sur le serveur KoboToolbox"><i class="fas fa-pencil-alt"></i> Éditer</a>`;
+                    editBtnHtml = `<a href="${editUrl}" target="_blank" class="btn btn-warning btn-sm shadow-sm text-dark fw-bold" data-bs-toggle="tooltip" data-bs-placement="top" title="Modifier ${entityName.replace(/"/g, '&quot;')} dans KoboToolbox"><i class="fas fa-pencil-alt"></i> Éditer</a>`;
                 } else {
                     editBtnHtml = `<button class="btn btn-secondary btn-sm" disabled>Non dispo.</button>`;
                 }
@@ -1889,6 +1916,7 @@
                 tr.data('search', sData); tbody.append(tr);
             });
             $('#record-count').text(data.length);
+            $('[data-bs-toggle="tooltip"]').tooltip(); // Initialisation des infobulles Bootstrap
         }
 
         // ================= GESTION DES GRAPHIQUES ET DES LISTES DE CLUSTERING =================
