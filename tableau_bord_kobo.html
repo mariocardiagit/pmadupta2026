@@ -1197,8 +1197,10 @@
 
         </div>
     </div>
-
-    <!-- Scripts Bootstrap -->
+	
+	
+	
+<!-- Scripts Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
@@ -1268,7 +1270,6 @@
             { key: 'sousProduitZap', matches: ['sous_produit', 'sous-produit'], mustMatch: ['zap'], ex: [], label: 'Sous-produit de la ZAP', xmlName: '' }
         ];
 
-        // Fonctions de l'infobulle (Tooltip Image)
         function showImagePreview(event, url) {
             const tooltip = document.getElementById('image-preview-tooltip');
             const img = document.getElementById('preview-img');
@@ -1321,24 +1322,6 @@
             return `${prefix}_${ts}_kobo.${extension}`;
         }
 
-        // ================= IA : K-MEANS =================
-        /**
-         * ============================================================================
-         * 🧠 ALGORITHME 1 : K-MEANS (Algorithme de Partitionnement Géométrique)
-         * ============================================================================
-         * Objectif : Regrouper les entités (DREN, CISCO, ZAP) en K groupes (ici 3 : Faible, Moyen, Fort)
-         * en fonction de leur volume de soumissions.
-         * 
-         * Fonctionnement (Optimisé pour 1D) :
-         * 1. Initialisation : Sélectionne K valeurs initiales (Centroïdes) bien espacées.
-         * 2. Assignation : Associe chaque entité au centroïde le plus proche (Distance Euclidienne).
-         * 3. Mise à jour : Recalcule la position du centroïde (Moyenne du groupe).
-         * 4. Boucle : Répète jusqu'à ce que les groupes se stabilisent (Inertie minimale).
-         * 
-         * @param {Array<number>} data - Tableau des volumes de soumissions.
-         * @param {number} k - Nombre de clusters souhaité (ex: 3).
-         * @returns {Array<number>} - Tableau des identifiants de clusters assignés à chaque entité.
-         */
         function perform1DKMeans(data, k) {
             if (data.length === 0) return [];
             let uniqueData = [...new Set(data)].sort((a,b)=>a-b);
@@ -1371,23 +1354,6 @@
             return assignments.map(a => rankMap[a]);
         }
 
-        // ================= IA : JENKS =================
-        /**
-         * ============================================================================
-         * 🎯 ALGORITHME 2 : JENKS NATURAL BREAKS (Ruptures Naturelles)
-         * ============================================================================
-         * Objectif : Trouver les seuils de découpage optimaux pour des données unidimensionnelles.
-         * Contrairement au K-Means (qui est géométrique et itératif), Jenks est déterministe.
-         * 
-         * Méthode d'Optimisation :
-         * Utilise la Programmation Dynamique pour tester toutes les combinaisons possibles et
-         * maximiser la Qualité d'Ajustement de la Variance (GVF).
-         * Il minimise la variance "Intra-Classe" (SDIC) tout en maximisant la variance "Inter-Classe" (SDAM).
-         * 
-         * @param {Array<number>} data - Tableau trié des volumes de soumissions.
-         * @param {number} numclass - Nombre de classes souhaité (ex: 3).
-         * @returns {Array<number>} - Les limites (seuils) calculées.
-         */
         function getJenksBreaks(data, numclass) {
             data = data.slice().sort((a, b) => a - b);
             if (data.length <= numclass) return data;
@@ -1439,23 +1405,6 @@
             });
         }
 
-        // ================= IA : DBSCAN 1D =================
-        /**
-         * ============================================================================
-         * 📡 ALGORITHME 3 : DBSCAN (Clustering Spatial Basé sur la Densité)
-         * ============================================================================
-         * Objectif : Identifier des comportements normaux (groupes denses) et isoler 
-         * les anomalies ou comportements exceptionnels (Bruit).
-         * 
-         * Avantage : Ne nécessite pas de définir le nombre de clusters (K) à l'avance.
-         * 
-         * Paramètres calculés dynamiquement :
-         * - Eps (Epsilon) : Rayon de recherche (tolérance), calculé à 15% de l'amplitude totale.
-         * - MinPts : Nombre minimum de voisins (ici 2) pour former un "groupe valide".
-         * 
-         * @param {Array<number>} data - Tableau des volumes de soumissions.
-         * @returns {Object} - Assignations des clusters (-1 = Anomalie/Bruit).
-         */
         function performDBSCAN(data) {
             if (data.length === 0) return { assignments: [], numClusters: 0, eps: 0 };
             let max = Math.max(...data), min = Math.min(...data);
@@ -1500,7 +1449,6 @@
             return { assignments: labels, numClusters: clusterId, eps: eps };
         }
 
-        // ================= MOTEUR D'INFÉRENCE : SYSTÈME EXPERT =================
         function getClusterMap(freqData, k) {
             let entries = Object.entries(freqData).filter(([key,v]) => key !== "Non renseigné");
             entries.sort((a,b) => a[1] - b[1]);
@@ -1609,7 +1557,6 @@
             });
         });
 
-        // ================= LOGIQUE GENERALE =================
         async function loadDictionaryAutomatically() {
             try {
                 $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire...</span>');
@@ -1779,7 +1726,7 @@
             return false;
         }
 
-        let ENKETO_ID = "mkt5zdmf"; // ID injecté en dur d'après votre URL
+        let ENKETO_ID = "mkt5zdmf"; 
 
         async function fetchData() {
             $('#loading-box').show(); $('#error-box').hide();
@@ -1794,7 +1741,6 @@
                 
                 allData = (await response.json()).results || [];
                 
-                // FIX IMPORTANT : Nettoyage pour éliminer les lignes 'null' ou corrompues renvoyées par Kobo
                 allData = allData.filter(row => row !== null && typeof row === 'object');
                 
                 renderTable(allData);
@@ -1907,7 +1853,6 @@
             $('[data-bs-toggle="tooltip"]').tooltip();
         }
 
-        // ================= GESTION DES GRAPHIQUES ET DES LISTES DE CLUSTERING =================
         function renderAlgorithmChart(algo, canvasId, listContainerId, rulesContainerId, freqData, existingChart, setChartRef) {
             if (existingChart) existingChart.destroy();
             
@@ -2767,7 +2712,6 @@ Date : ${getFormattedDateTime()}
             let eR = wsD.length - 1;
             wsD.push([]);
             
-            // Merge les colonnes pour que l'explication soit bien lisible sur Excel
             for(let r = sR; r <= eR; r++) { merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 3 } }); }
             
             wsD.push(["Domaine", "Niveau", "Thématique", "Élément"]);
@@ -2783,7 +2727,6 @@ Date : ${getFormattedDateTime()}
         function exportSemanticToHTML(pfx) {
             if (Object.keys(globalSemanticResults).length === 0) return alert("Veuillez d'abord lancer l'analyse sémantique complète.");
             
-            // Générer un rapport HTML continu propre, sans les tabs cachées de Bootstrap
             let htmlContent = '';
             for (let taskName in globalSemanticResults) {
                 let clusters = globalSemanticResults[taskName];
@@ -2861,6 +2804,162 @@ Date : ${getFormattedDateTime()}
             }).catch(function() { alert("❌ Erreur Presse-papiers."); });
         }
 
+        // ================= FONCTIONS D'EXPORT DBSCAN MANQUANTES =================
+        
+        window.getDBSCANExportData = function() {
+            let flatData = [];
+            ['DREN', 'CISCO', 'ZAP'].forEach(lvl => {
+                if (globalDBSCANAnomalies[lvl]) {
+                    globalDBSCANAnomalies[lvl].forEach(item => {
+                        flatData.push({
+                            "Niveau": lvl,
+                            "Entité": item.name,
+                            "Nombre de Soumissions": item.count,
+                            "Statut": "⚠️ Anomalie de Soumission (Bruit DBSCAN)"
+                        });
+                    });
+                }
+            });
+            return flatData;
+        }
+
+        window.exportDBSCANToCSV = function(pfx) {
+            let data = window.getDBSCANExportData();
+            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
+            
+            let fn = generateFilename(pfx, 'csv'), csv = [], d = getFormattedDateTime();
+            csv.push(`"${TITRE_PLATEFORME}"`); csv.push(`"Rapport des Anomalies de Soumissions Kobotoolbox (DBSCAN)"`); csv.push("");
+            csv.push(`"--- METADONNEES D'EXPORT ---"`); csv.push(`"Date d'exportation";"${d}"`); csv.push("");
+            
+            csv.push(`"Niveau";"Entité";"Nombre de Soumissions";"Statut"`);
+            data.forEach(row => {
+                csv.push(`"${row.Niveau}";"${cleanSpaces(row['Entité']).replace(/"/g, '""')}";"${row['Nombre de Soumissions']}";"${row.Statut}"`);
+            });
+            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
+        }
+
+        window.exportDBSCANToExcel = function(pfx) {
+            let data = window.getDBSCANExportData();
+            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
+            
+            let fn = generateFilename(pfx, 'xlsx'), wb = XLSX.utils.book_new(), wsD = [];
+            
+            let titleStyle = { font: { bold: true, sz: 14, color: { rgb: "2C3E50" } } };
+            let subTitleStyle = { font: { bold: true, sz: 12, color: { rgb: "E74C3C" } } };
+            let headerStyle = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "E74C3C" } }, alignment: { horizontal: "center", vertical: "center" } };
+            let alertStyleCenter = { fill: { fgColor: { rgb: "FDEDEC" } }, font: { color: { rgb: "C0392B" }, bold: true }, alignment: { vertical: "center", horizontal: "center" }, border: { top: {style:'thin', color:{rgb:"FADBD8"}}, bottom: {style:'thin', color:{rgb:"FADBD8"}}, left: {style:'thin', color:{rgb:"FADBD8"}}, right: {style:'thin', color:{rgb:"FADBD8"}} } };
+            let normalStyleCenter = { alignment: { vertical: "center", horizontal: "center" } };
+
+            wsD.push([{ v: TITRE_PLATEFORME, s: titleStyle }]); 
+            wsD.push([{ v: "Rapport des Anomalies de Soumissions Kobotoolbox (DBSCAN)", s: subTitleStyle }]); 
+            wsD.push([]);
+            wsD.push([{ v: "Date d'exportation", s: { font: { bold: true } } }, { v: getFormattedDateTime() }]); 
+            wsD.push([]);
+            
+            wsD.push([{v: "Niveau", s: headerStyle}, {v: "Entité", s: headerStyle}, {v: "Nombre de Soumissions", s: headerStyle}, {v: "Statut", s: headerStyle}]);
+            
+            data.forEach(row => {
+                wsD.push([
+                    {v: row.Niveau, s: normalStyleCenter}, 
+                    {v: cleanSpaces(row['Entité']), s: normalStyleCenter}, 
+                    {v: row['Nombre de Soumissions'], s: alertStyleCenter}, 
+                    {v: row.Statut, s: alertStyleCenter}
+                ]);
+            });
+            
+            let ws = XLSX.utils.aoa_to_sheet(wsD);
+            ws['!cols'] = [ {wch: 15}, {wch: 40}, {wch: 25}, {wch: 40} ];
+            XLSX.utils.book_append_sheet(wb, ws, "Anomalies_DBSCAN"); XLSX.writeFile(wb, fn);
+        }
+
+        window.exportDBSCANToHTML = function(pfx) {
+            let data = window.getDBSCANExportData();
+            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
+            
+            let htmlTable = `<table style="width:100%; border-collapse:collapse; margin-top:20px;">
+                <thead><tr style="background-color:#e74c3c; color:white;">
+                    <th style="padding:10px; border:1px solid #ddd;">Niveau</th>
+                    <th style="padding:10px; border:1px solid #ddd;">Entité</th>
+                    <th style="padding:10px; border:1px solid #ddd;">Nombre de Soumissions</th>
+                    <th style="padding:10px; border:1px solid #ddd;">Statut</th>
+                </tr></thead><tbody>`;
+                
+            data.forEach(row => {
+                htmlTable += `<tr>
+                    <td style="padding:10px; border:1px solid #ddd; text-align:center;">${row.Niveau}</td>
+                    <td style="padding:10px; border:1px solid #ddd;">${row['Entité']}</td>
+                    <td style="padding:10px; border:1px solid #ddd; text-align:center; font-weight:bold; color:#c0392b;">${row['Nombre de Soumissions']}</td>
+                    <td style="padding:10px; border:1px solid #ddd; text-align:center;"><span style="background:#fdedec; color:#c0392b; padding:5px; border-radius:5px;">${row.Statut}</span></td>
+                </tr>`;
+            });
+            htmlTable += `</tbody></table>`;
+
+            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px;background:#f4f7f6;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4 style="color:#e74c3c;">Rapport des Anomalies de Soumissions Kobotoolbox (DBSCAN) - Généré le ${getFormattedDateTime()}</h4>${htmlTable}</body></html>`;
+            downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
+        }
+
+        window.exportDBSCANToJSONFile = function(pfx) { 
+            let data = window.getDBSCANExportData();
+            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
+            let j = JSON.stringify({ 
+                "titre_plateforme": TITRE_PLATEFORME, 
+                "sous_titre": "Rapport des Anomalies de Soumissions Kobotoolbox (DBSCAN)", 
+                "date_exportation": getFormattedDateTime(), 
+                "resultats": data 
+            }, null, 2);
+            downloadFile(new Blob([j], { type: 'application/json;charset=utf-8;' }), generateFilename(pfx, 'json')); 
+        }
+
+        window.sendDBSCANToGmail = function() {
+            let data = window.getDBSCANExportData();
+            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
+            let j = JSON.stringify(data, null, 2);
+            navigator.clipboard.writeText(j).then(function() {
+                alert("✅ SUCCÈS !\nLe texte JSON Anomalies est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Anomalies DBSCAN Kobo - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous la liste des anomalies de soumissions (Bruit).\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
+            }).catch(function() { alert("❌ Erreur Presse-papiers."); });
+        }
+
+        window.sendDBSCANToWhatsApp = function() {
+            let data = window.getDBSCANExportData();
+            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
+            let j = JSON.stringify(data, null, 2);
+            navigator.clipboard.writeText(j).then(function() {
+                alert("✅ SUCCÈS !\nLe texte JSON Anomalies est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
+                window.open(`https://wa.me/?text=${encodeURIComponent(`🚨 *Anomalies de Soumissions DBSCAN*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
+            }).catch(function() { alert("❌ Erreur Presse-papiers."); });
+        }
+
+        // ================= FONCTION DE RENDU DE TABLEAU SOUMISSIONS =================
+        function renderSoumissionsTable(data, containerId, title) {
+            let container = document.getElementById(containerId);
+            if (data.length === 0) {
+                container.innerHTML = `<div class="col-12 text-center text-muted py-5"><i class="fas fa-box-open fa-2x mb-3"></i><br>Aucune donnée pour ${title}</div>`;
+                return;
+            }
+            
+            let html = `<h4 class="mb-3 mt-4" style="color: #16a085;">${title}</h4><div class="table-responsive border"><table class="table table-bordered table-hover align-middle mb-0"><thead style="background-color: #16a085; color: white; position: sticky; top: 0; z-index: 5;"><tr><th>Thématique</th><th>Formulation (Texte)</th><th>Entité (DREN, CISCO, ZAP)</th><th>Matricule / CIN</th><th>Occurrences Formulation</th><th>Statut de la Soumission</th><th>DATE DE SOUMISSION dans Kobotoolbox</th></tr></thead><tbody>`;
+            
+            data.forEach(row => {
+                let isDoublon = row.count > 1 && row.entity !== 'Inconnue';
+                let trClass = isDoublon ? 'class="table-warning"' : '';
+                let alertBadge = isDoublon ? `<span class="badge bg-danger shadow-sm"><i class="fas fa-exclamation-triangle"></i> DOUBLON (${row.count} envois)</span>` : `<span class="badge bg-success shadow-sm"><i class="fas fa-check"></i> CORRECT (1 envoi)</span>`;
+                
+                html += `<tr ${trClass}>
+                    <td class="text-center"><span class="badge bg-secondary">${row.theme}</span></td>
+                    <td class="text-start">${row.text}</td>
+                    <td class="text-center fw-bold ${isDoublon ? 'text-danger' : 'text-secondary'}">${row.entity}</td>
+                    <td class="text-center"><span class="badge bg-info text-dark">${row.matricule}</span></td>
+                    <td class="text-center"><span class="badge bg-primary fs-6">${row.count}</span></td>
+                    <td class="text-center">${alertBadge}</td>
+                    <td class="text-center" style="font-size: 0.85rem;">${row.dates.join(' ; ')}</td>
+                </tr>`;
+            });
+            
+            html += `</tbody></table></div>`;
+            container.innerHTML = html;
+        }
+
         $(document).ready(function() {
             fetchData();
             let typingTimer;
@@ -2876,7 +2975,10 @@ Date : ${getFormattedDateTime()}
         });
     </script>
 
-    <!-- Script Module pour l'IA Sémantique (Transformers.js) -->
+
+
+
+<!-- Script Module pour l'IA Sémantique (Transformers.js) -->
     <script type="module">
         import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.16.0';
 
@@ -2891,26 +2993,6 @@ Date : ${getFormattedDateTime()}
             return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
         }
 
-        /**
-         * ============================================================================
-         * 🧠 ALGORITHME 4 : CLUSTERING SÉMANTIQUE (SBERT & Similarité Cosinus)
-         * ============================================================================
-         * Objectif : Comprendre le SENS des phrases et regrouper les activités similaires, 
-         * même si elles n'utilisent pas les mêmes mots (ex: "Laver voiture" == "Nettoyer auto").
-         * 
-         * Architecture Serverless (Transformers.js) :
-         * Le modèle de NLP (MiniLM) est téléchargé et exécuté localement dans la RAM du navigateur.
-         * 
-         * Étapes :
-         * 1. Plongement Lexical (Embedding) : Transforme chaque phrase en un vecteur de nombres (Dimensions).
-         * 2. Similarité Cosinus : Mesure l'angle géométrique entre deux vecteurs.
-         *    - Plus l'angle est proche de 0°, plus la similarité s'approche de 1 (100%).
-         * 3. Regroupement : Si la similarité dépasse le Seuil (Threshold, ici 75%), on fusionne les phrases.
-         * 
-         * @param {Array<string>} activities - Liste des phrases uniques à analyser.
-         * @param {Function} extractor - Le pipeline AI Transformers.js instancié.
-         * @returns {Array<Object>} - Liste des Dictionnaires Thématiques créés.
-         */
         async function clusterActivities(activities, extractor) {
             if(activities.length === 0) return [];
             
@@ -2918,15 +3000,12 @@ Date : ${getFormattedDateTime()}
             let output = await extractor(activities, { pooling: 'mean', normalize: true });
             let embeddings = output.tolist();
 
-            // FIX IMPORTANT: Si l'entité ne possède qu'une seule activité unique, 
-            // Transformers.js renvoie un vecteur 1D au lieu d'une matrice 2D.
-            // Nous le forçons dans un tableau pour éviter un crash silencieux.
             if (activities.length === 1 && !Array.isArray(embeddings[0])) {
                 embeddings = [embeddings];
             }
 
             let clusters = [];
-            let threshold = 0.75; // Seuil de similarité cosinus (75%)
+            let threshold = 0.75; 
 
             for(let i = 0; i < activities.length; i++) {
                 let assigned = false;
@@ -2934,7 +3013,6 @@ Date : ${getFormattedDateTime()}
                     let sim = cosineSimilarity(embeddings[i], c.centroid);
                     if(sim > threshold) {
                         c.items.push(activities[i]);
-                        // Recalcul du centroïde (moyenne)
                         for(let d=0; d<c.centroid.length; d++) {
                             c.centroid[d] = (c.centroid[d] * (c.items.length - 1) + embeddings[i][d]) / c.items.length;
                         }
@@ -2947,7 +3025,6 @@ Date : ${getFormattedDateTime()}
                 }
             }
             
-            // Trier les clusters par taille (du plus grand au plus petit)
             clusters.sort((a,b) => b.items.length - a.items.length);
             return clusters;
         }
@@ -3021,43 +3098,6 @@ Date : ${getFormattedDateTime()}
             container.innerHTML = html;
         }
 
-
-
-// ==========================================
-        // FONCTION MANQUANTE À COLLER ICI
-        // ==========================================
-        function renderSoumissionsTable(data, containerId, title) {
-            let container = document.getElementById(containerId);
-            if (data.length === 0) {
-                container.innerHTML = `<div class="col-12 text-center text-muted py-5"><i class="fas fa-box-open fa-2x mb-3"></i><br>Aucune donnée pour ${title}</div>`;
-                return;
-            }
-            
-            let html = `<h4 class="mb-3 mt-4" style="color: #16a085;">${title}</h4><div class="table-responsive border"><table class="table table-bordered table-hover align-middle mb-0"><thead style="background-color: #16a085; color: white; position: sticky; top: 0; z-index: 5;"><tr><th>Thématique</th><th>Formulation (Texte)</th><th>Entité (DREN, CISCO, ZAP)</th><th>Matricule / CIN</th><th>Occurrences Formulation</th><th>Statut de la Soumission</th><th>DATE DE SOUMISSION dans Kobotoolbox</th></tr></thead><tbody>`;
-            
-            data.forEach(row => {
-                let isDoublon = row.count > 1 && row.entity !== 'Inconnue';
-                let trClass = isDoublon ? 'class="table-warning"' : '';
-                let alertBadge = isDoublon ? `<span class="badge bg-danger shadow-sm"><i class="fas fa-exclamation-triangle"></i> DOUBLON (${row.count} envois)</span>` : `<span class="badge bg-success shadow-sm"><i class="fas fa-check"></i> CORRECT (1 envoi)</span>`;
-                
-                html += `<tr ${trClass}>
-                    <td class="text-center"><span class="badge bg-secondary">${row.theme}</span></td>
-                    <td class="text-start">${row.text}</td>
-                    <td class="text-center fw-bold ${isDoublon ? 'text-danger' : 'text-secondary'}">${row.entity}</td>
-                    <td class="text-center"><span class="badge bg-info text-dark">${row.matricule}</span></td>
-                    <td class="text-center"><span class="badge bg-primary fs-6">${row.count}</span></td>
-                    <td class="text-center">${alertBadge}</td>
-                    <td class="text-center" style="font-size: 0.85rem;">${row.dates.join(' ; ')}</td>
-                </tr>`;
-            });
-            
-            html += `</tbody></table></div>`;
-            container.innerHTML = html;
-        }
-        // ==========================================
-
-        
-        
         window.runSoumissionsAnalysis = async function() {
             if(allData.length === 0) {
                 alert("Veuillez d'abord attendre le chargement des données de KoboToolbox.");
@@ -3234,4 +3274,4 @@ Date : ${getFormattedDateTime()}
         };
     </script>
 </body>
-</html>
+</html>	
