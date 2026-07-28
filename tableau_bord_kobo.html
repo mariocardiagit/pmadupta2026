@@ -399,6 +399,7 @@
 			
 			
 			
+			
 <!-- ONGLET 3 : K-MEANS -->
             <div class="tab-pane fade" id="clustering" role="tabpanel">
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -1208,6 +1209,7 @@
 
 
 
+
 <script>
         // VARIABLE GLOBALE POUR SAUVEGARDER L'ANALYSE SÉMANTIQUE
         let globalSemanticResults = {};
@@ -1275,40 +1277,66 @@
             { key: 'sousProduitZap', matches: ['sous_produit', 'sous-produit'], mustMatch: ['zap'], ex: [], label: 'Sous-produit de la ZAP', xmlName: '' }
         ];
 
-        // ================= FONCTION D'EXTRACTION NETTE DU MATRICULE =================
+        // ================= FONCTION D'EXTRACTION NETTE DU MATRICULE / CIN =================
         function extractMatricules(row) {
             let mats = [];
+            
+            // Filtre strict (Regex) : Valide uniquement 6 ou 12 chiffres
+            const validateID = (val) => {
+                if (!val) return null;
+                // On retire les espaces ou tirets éventuels saisis par l'utilisateur
+                let cleanVal = String(val).replace(/[\s.-]/g, ''); 
+                if (/^\d{6}$/.test(cleanVal) || /^\d{12}$/.test(cleanVal)) {
+                    return cleanVal;
+                }
+                return null;
+            };
+
             for (let key in row) {
+                // 1. CORRECTION MAJEURE : On IGNORE les métadonnées internes de Kobo 
+                // (comme _attachments qui contient les images "image/jpeg")
+                if (key.startsWith('_')) continue;
+
                 let val = row[key];
+                
                 if (Array.isArray(val)) {
-                    // C'est un groupe répété (Repeat Group Kobo) comme "personnes"
+                    // 2. Traitement des "Repeat Groups" (Listes de présences Kobo)
                     val.forEach(item => {
                         if (typeof item === 'object' && item !== null) {
                             let foundMat = false;
+                            
+                            // A) On cherche d'abord dans une colonne explicitement nommée matricule/cin
                             for (let subKey in item) {
                                 let lowSub = subKey.toLowerCase();
-                                // Si Kobo nomme explicitement la sous-colonne "matricule" ou "cin"
                                 if (lowSub.includes('matricule') || lowSub.includes('cin')) {
-                                    mats.push(String(item[subKey]).trim());
-                                    foundMat = true;
+                                    let validId = validateID(item[subKey]);
+                                    if (validId) { 
+                                        mats.push(validId); 
+                                        foundMat = true; 
+                                    }
                                 }
                             }
-                            // Sinon, on prend directement la 2ème valeur (comme dans votre exemple "1 | 852149 | Nom")
+                            
+                            // B) Si non trouvé par le nom, on scanne les valeurs elles-mêmes à la recherche de 6 ou 12 chiffres
                             if (!foundMat) {
-                                let values = Object.values(item);
-                                if (values.length >= 2) mats.push(String(values[1]).trim());
+                                Object.values(item).forEach(v => {
+                                    let validId = validateID(v);
+                                    if (validId) mats.push(validId);
+                                });
                             }
                         }
                     });
                 } else if (typeof val === 'string' || typeof val === 'number') {
-                    // C'est un champ classique
+                    // 3. Traitement des champs normaux hors Repeat Group
                     let lowKey = key.toLowerCase();
                     if (lowKey.endsWith('/matricule') || lowKey.endsWith('/cin') || lowKey.includes('numero_matricule_ou_cin')) {
-                        mats.push(String(val).trim());
+                        let validId = validateID(val);
+                        if (validId) mats.push(validId);
                     }
                 }
             }
-            // On enlève les doublons internes et on assemble avec un point-virgule si plusieurs personnes
+            
+            // 4. On enlève les doublons internes et on assemble avec un point-virgule si plusieurs personnes
             return [...new Set(mats)].filter(Boolean).join(' ; ');
         }
 
@@ -1604,7 +1632,6 @@
             });
         });
 
-        // ================= LOGIQUE GENERALE =================
         async function loadDictionaryAutomatically() {
             try {
                 $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire...</span>');
@@ -3024,6 +3051,7 @@ Date : ${getFormattedDateTime()}
             $('.filter-soumissions-radio').on('change', window.filterSoumissionsTables);
         });
     </script>
+
 
 
 
