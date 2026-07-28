@@ -1131,7 +1131,7 @@
                 
                 <div class="ai-insights shadow-sm mb-4" style="background: linear-gradient(135deg, #e8f8f5 0%, #d1f2eb 100%); border-left: 5px solid #16a085;">
                     <h5 style="color: #117a65;"><i class="fas fa-shield-alt"></i> Quel est le but de cette vérification ?</h5>
-                    <p>Cet algorithme a été conçu pour repérer automatiquement les <strong>erreurs de saisie ou les répétitions anormales</strong> dans KoboToolbox. Il ne sanctionne pas une ZAP qui réalise plusieurs activités différentes, mais il alerte immédiatement si une ZAP soumet <strong>exactement la même activité plusieurs fois</strong> (même formulation exacte).</p>
+                    <p>Cet algorithme a été conçu pour repérer automatiquement les <strong>erreurs de saisie ou les répétitions anormales</strong> dans KoboToolbox. Il ne sanctionne pas une ZAP qui réalise plusieurs activités différentes, mais il alerte immédiatement si une ZAP soumet <strong>exactement la même activité plusieurs fois par le même agent (même Matricule)</strong>.</p>
                 </div>
 
                 <div class="row">
@@ -1154,22 +1154,22 @@
                                 <i class="fas fa-equals"></i> Étape 2 : L'algorithme de Correspondance Exacte (Strict Matching)
                             </div>
                             <div class="card-body">
-                                <p>Une fois les données triées par Thématique, le script crée une "Clé Unique" mathématique pour chaque ligne provenant de KoboToolbox. Cette clé est la fusion de l'Entité et du Texte saisi :</p>
+                                <p>Une fois les données triées par Thématique, le script crée une "Clé Unique" mathématique pour chaque ligne provenant de KoboToolbox. Cette clé est la fusion de l'Entité, du Texte saisi, et de la Signature Complète de l'enregistrement :</p>
                                 <div class="text-center mb-3 mt-2">
-                                    <span class="math-box" style="color: #16a085; border-color: #16a085;"><strong>Clé Unique = [Entité] + "|||" + [Formulation Exacte]</strong></span>
+                                    <span class="math-box" style="color: #16a085; border-color: #16a085;"><strong>Clé Unique = [Entité] + "|||" + [Formulation] + "|||" + [Signature: DREN+CISCO+ZAP+Act+Prod+SAct+Matricule]</strong></span>
                                 </div>
-                                <p>Le système compte ensuite le nombre d'apparitions (Occurrences) de cette Clé Unique dans toute la base de données.</p>
+                                <p>Le système compte ensuite le nombre d'apparitions (Occurrences) de cette Clé Unique (qui s'assure que le <strong>numéro matricule</strong> est identique) dans toute la base de données.</p>
                                 
                                 <div class="demo-box" style="border-left-color: #16a085;">
-                                    <h6 class="fw-bold" style="color: #16a085;"><i class="fas fa-microscope"></i> Démonstration Mathématique avec votre exemple :</h6>
-                                    <div class="demo-step"> Soumission 1 : Entité="ZAP MAROANTSETRA", Activité="Mettre en place le reporting"</div>
-                                    <div class="demo-step"> Soumission 2 : Entité="ZAP SOANIERANA IVONGO", Activité="Mettre en place le reporting"</div>
-                                    <div class="demo-step"> Soumission 3 : Entité="ZAP MAROANTSETRA", Activité="Mettre en place le reporting"</div>
+                                    <h6 class="fw-bold" style="color: #16a085;"><i class="fas fa-microscope"></i> Démonstration Mathématique :</h6>
+                                    <div class="demo-step"> Soumission 1 : Entité="ZAP AMBOHIDRATRIMO", Activité="Redynamiser l'encadrement", Matricule="853120"</div>
+                                    <div class="demo-step"> Soumission 2 : Entité="ZAP AMBOHIDRATRIMO", Activité="Redynamiser l'encadrement", Matricule="853120"</div>
+                                    <div class="demo-step"> Soumission 3 : Entité="ZAP AMBOHIDRATRIMO", Activité="Redynamiser l'encadrement", Matricule="853121"</div>
                                     
                                     <p class="mt-3 mb-1"><strong>Calcul des occurrences par l'Algorithme :</strong></p>
                                     <ul class="mb-2">
-                                        <li>Clé A : <code>ZAP MAROANTSETRA ||| Mettre en place le reporting</code> &rarr; Comptée <strong class="text-danger">2 fois</strong></li>
-                                        <li>Clé B : <code>ZAP SOANIERANA IVONGO ||| Mettre en place le reporting</code> &rarr; Comptée <strong class="text-success">1 fois</strong></li>
+                                        <li>Clé A : <code>... ||| Redynamiser l'encadrement ||| ... ||| 853120</code> &rarr; Comptée <strong class="text-danger">2 fois (DOUBLON)</strong></li>
+                                        <li>Clé B : <code>... ||| Redynamiser l'encadrement ||| ... ||| 853121</code> &rarr; Comptée <strong class="text-success">1 fois (CORRECT)</strong></li>
                                     </ul>
                                 </div>
                             </div>
@@ -1187,7 +1187,7 @@
                                 <p>En fonction du nombre calculé à l'Étape 2, le système pose son diagnostic final et extrait l'horodatage exact (<code>_submission_time</code>) du serveur KoboToolbox :</p>
                                 <ul>
                                     <li class="mb-2"><strong>Si Occurrences = 1 :</strong> L'entrée est jugée saine. Le badge passe au vert <span class="badge bg-success shadow-sm"><i class="fas fa-check"></i> CORRECT (1 envoi)</span> et la date unique de la soumission est affichée.</li>
-                                    <li><strong>Si Occurrences &gt; 1 :</strong> Une anomalie de saisie est confirmée. Le système passe la ligne en jaune, affiche <span class="badge bg-danger shadow-sm"><i class="fas fa-exclamation-triangle"></i> DOUBLON (X envois)</span> et collecte la liste complète de <strong>toutes les dates de ces saisies répétitives</strong> (séparées par un point-virgule) pour vous permettre d'auditer avec précision le travail de l'agent de terrain.</li>
+                                    <li><strong>Si Occurrences &gt; 1 :</strong> Une anomalie de saisie est confirmée. Le système passe la ligne en jaune, affiche <span class="badge bg-danger shadow-sm"><i class="fas fa-exclamation-triangle"></i> DOUBLON (X envois)</span> et collecte la liste complète de <strong>toutes les dates de ces saisies répétitives</strong> pour vous permettre d'auditer avec précision le travail de l'agent.</li>
                                 </ul>
                             </div>
                         </div>
@@ -1224,15 +1224,16 @@
         // EXPLICATION CONSOLIDATION POUR LES EXPORTS
         const EXPLICATION_SOUMISSION = [
             "NOTE SUR LE RAPPORT DE VERIFICATION DES SOUMISSIONS KOBO :",
-            "Ce rapport a pour but principal d'identifier les DOUBLONS de soumissions : c'est-à-dire lorsqu'une même entité a envoyé plusieurs fois exactement la même activité.",
+            "Ce rapport a pour but d'identifier les DOUBLONS d'enregistrements : c'est-à-dire lorsqu'une même Entité soumet plusieurs fois exactement la même tâche, avec le même numéro matricule.",
             "1. L'IA regroupe d'abord les formulations dans des 'Thématiques'.",
-            "2. Le système vérifie ensuite combien de fois une Entité (ex: ZAP MAROANTSETRA) a soumis exactement la même Formulation (Texte).",
-            "LECTURE DU TABLEAU (Trié par Entité façon GROUP BY) :",
+            "2. Le système calcule une 'Signature Complète' stricte : DREN + CISCO + ZAP + Activité + Produit + Sous-activité + Matricule.",
+            "LECTURE DU TABLEAU :",
             "- 'Thématique' : Le groupe sémantique créé par l'IA.",
             "- 'Formulation (Texte)' : La phrase exacte saisie dans KoboToolbox.",
-            "- 'Entité' : La structure administrative responsable de la soumission.",
-            "- 'Occurrences Formulation' : Nombre de fois où cette entité a soumis cette même phrase.",
-            "- 'Statut / Alerte' : POINT DE CONTRÔLE. Si Occurrences = 1, la saisie est CORRECTE. Si Occurrences > 1, il y a un DOUBLON."
+            "- 'Entité' : La structure administrative responsable.",
+            "- 'Matricule / CIN' : L'identifiant de l'agent qui a soumis le formulaire.",
+            "- 'Occurrences Formulation' : Nombre de fois où cette signature stricte a été envoyée.",
+            "- 'Statut / Alerte' : Si Occurrences = 1, la saisie est CORRECTE. Si > 1, il y a un DOUBLON d'enregistrement."
         ];
 
         const TITRE_PLATEFORME = "Plateforme de Suivi du Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel (PTA) de l'Année 2026 des Services Techniques Déconcentrés (STD)";
@@ -1724,7 +1725,7 @@
 
         function getTranslatedHeader(xmlName) {
             let key = String(xmlName).toLowerCase();
-            const exactMatches = { 'vi_r_f_rentiel_standard_des_pr': "VI. Référentiel standard des preuves par type d'activité", 'date_enq': "Date de suivi", 'nombre_personnes': "Combien de personnes souhaitez-vous enregistrer ?", 'personnes': "Personne (Nom et Prénom puis ORDRE DE MISSION)", 'liste_b_n_ficiaires': "Liste des bénéficiaires", 'liste_d_margement': "Liste d'émargement" };
+            const exactMatches = { 'vi_r_f_rentiel_standard_des_pr': "VI. Référentiel standard des preuves par type d'activité", 'date_enq': "Date de suivi", 'nombre_personnes': "Combien de personnes souhaitez-vous enregistrer ?", 'personnes': "Personne (Matricule, Nom et Prénom puis ORDRE DE MISSION)", 'liste_b_n_ficiaires': "Liste des bénéficiaires", 'liste_d_margement': "Liste d'émargement" };
             if (exactMatches[key]) return exactMatches[key];
             return smartKoboAutoCorrect(xmlName);
         }
@@ -1786,9 +1787,6 @@
             $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Collecte en cours...</span>');
             
             await loadDictionaryAutomatically();
-
-            // La requête externe pour l'ID Enketo a été supprimée car l'ID est codé en dur.
-
 
             try {
                 const response = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime()), { cache: 'no-store' });
@@ -1853,14 +1851,12 @@
                         if (att && att.download_url) {
                             if (isRaw) return att.download_url;
                             
-                            // Détection si c'est une image (pour afficher ou non l'infobulle)
                             let isImage = ((att.mimetype && att.mimetype.startsWith('image/')) || (att.filename && att.filename.match(/\.(jpeg|jpg|png|gif)$/i)));
                             
                             if (currentImageMode === 'image' && isImage) {
                                 return `<a href="${att.download_url}" target="_blank"><img src="${att.download_url}" class="table-img"></a>`;
                             }
                             
-                            // Ajout des événements d'infobulle si c'est une image
                             let hoverAttrs = isImage ? `onmouseover="showImagePreview(event, '${att.download_url}')" onmouseout="hideImagePreview()" onmousemove="moveImagePreview(event)"` : '';
                             
                             return `<a href="${att.download_url}" target="_blank" class="text-primary text-decoration-underline" ${hoverAttrs}><i class="fas fa-link"></i> Lien</a>`;
@@ -1871,15 +1867,11 @@
                 }).join(' ; '));
             }
 
-            // 🚀 OPTIMISATION DES PERFORMANCES (DOM MAPPING)
-            // Utilisation d'un fragment de document ou de chaînes HTML pour accélérer massivement 
-            // le rendu visuel si la base de données Kobo contient des milliers de lignes.
             let tableRowsHtml = [];
             
             data.forEach(row => {
                 const tr = $('<tr></tr>'); let sData = {};
                 
-                // --- EXTRACTION ENTITE POUR INFOBULLE ---
                 let colZap = baseColsInfo.find(c => c.key === 'zap');
                 let colCisco = baseColsInfo.find(c => c.key === 'cisco');
                 let colDren = baseColsInfo.find(c => c.key === 'dren');
@@ -1887,26 +1879,22 @@
                 let vCisco = cleanSpaces(getKoboValue(row, colCisco.matches, colCisco.ex, colCisco.mustMatch));
                 let vDren = cleanSpaces(getKoboValue(row, colDren.matches, colDren.ex, colDren.mustMatch));
                 
-                // On prend l'entité la plus précise disponible (ZAP, sinon CISCO, sinon DREN)
                 let entityName = vZap || vCisco || vDren || "cette soumission";
                 
-                // --- BOUTON D'EDITION ---
                 let editUrl = '#';
                 let editBtnHtml = '';
                 if (row['_id']) {
-                    // Utilisation de l'API officielle Kobo pour contourner l'expiration d'Enketo
                     editUrl = `https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data/${row['_id']}/edit/`;
                     editBtnHtml = `<a href="${editUrl}" target="_blank" class="btn btn-warning btn-sm shadow-sm text-dark fw-bold" data-bs-toggle="tooltip" data-bs-placement="top" title="Modifier ${entityName.replace(/"/g, '&quot;')} dans KoboToolbox"><i class="fas fa-pencil-alt"></i> Éditer</a>`;
                 } else {
                     editBtnHtml = `<button class="btn btn-secondary btn-sm" disabled>Non dispo.</button>`;
                 }
                 tr.append($('<td></td>').attr('data-csv', editUrl).html(editBtnHtml));
-                // -------------------------
+                
                 baseColsInfo.forEach(col => {
                     let val = getKoboValue(row, col.matches, col.ex, col.mustMatch);
                     tr.append($('<td></td>').attr('data-csv', val).text(val)); sData[col.key] = cleanSpaces(String(val)).toLowerCase();
                     
-                    // Capture submission time for filtering
                     sData.subDateObj = row['_submission_time'] ? new Date(row['_submission_time']) : null;
                 });
                 exKeys.concat(mtKeys).forEach(key => {
@@ -1916,7 +1904,7 @@
                 tr.data('search', sData); tbody.append(tr);
             });
             $('#record-count').text(data.length);
-            $('[data-bs-toggle="tooltip"]').tooltip(); // Initialisation des infobulles Bootstrap
+            $('[data-bs-toggle="tooltip"]').tooltip();
         }
 
         // ================= GESTION DES GRAPHIQUES ET DES LISTES DE CLUSTERING =================
@@ -2504,7 +2492,7 @@ Date : ${getFormattedDateTime()}
             for (let taskName in globalSoumissionsResults) {
                 let filteredRows = globalSoumissionsResults[taskName].filter(row => {
                     let isDoublon = (row.count > 1 && row.entity !== 'Inconnue');
-                    let rowText = cleanSpaces(`${row.theme} ${row.text} ${row.entity} ${row.count} ${isDoublon ? 'doublon' : 'correct'}`).toLowerCase();
+                    let rowText = cleanSpaces(`${row.theme} ${row.text} ${row.entity} ${row.matricule} ${row.count} ${isDoublon ? 'doublon' : 'correct'}`).toLowerCase();
                     
                     let textMatch = fuzzyMatch(searchText, rowText);
                     let statusMatch = (statusFilter === 'all') || (statusFilter === 'doublon' && isDoublon);
@@ -2543,7 +2531,7 @@ Date : ${getFormattedDateTime()}
             EXPLICATION_SOUMISSION.forEach(line => csv.push(`"${line.replace(/"/g, '""')}"`));
             csv.push("");
 
-            csv.push(`"Domaine";"Niveau";"Thématique";"Formulation (Texte)";"Entité (DREN, CISCO, ZAP)";"Occurrences Formulation";"Statut de la Soumission";"DATE DE SOUMISSION"`);
+            csv.push(`"Domaine";"Niveau";"Thématique";"Formulation (Texte)";"Entité (DREN, CISCO, ZAP)";"Matricule / CIN";"Occurrences Formulation";"Statut de la Soumission";"DATE DE SOUMISSION"`);
             
             for (let taskName in filteredData) {
                 let parts = taskName.split(' '); 
@@ -2551,7 +2539,7 @@ Date : ${getFormattedDateTime()}
                 filteredData[taskName].forEach(row => {
                     let isDoublon = (row.count > 1 && row.entity !== 'Inconnue');
                     let statut = isDoublon ? '⚠️ DOUBLON' : '✅ CORRECT';
-                    csv.push(`"${domaine}";"${niveau}";"${row.theme}";"${cleanSpaces(row.text).replace(/"/g, '""')}";"${row.entity}";"${row.count}";"${statut}";"${row.dates.join(' ; ')}"`);
+                    csv.push(`"${domaine}";"${niveau}";"${row.theme}";"${cleanSpaces(row.text).replace(/"/g, '""')}";"${row.entity}";"${row.matricule}";"${row.count}";"${statut}";"${row.dates.join(' ; ')}"`);
                 });
             }
             downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
@@ -2588,11 +2576,11 @@ Date : ${getFormattedDateTime()}
             let eR = wsD.length - 1;
             wsD.push([]);
             
-            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } });
-            merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: 7 } });
-            for(let r = sR; r <= eR; r++) { merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 7 } }); }
+            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 8 } });
+            merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: 8 } });
+            for(let r = sR; r <= eR; r++) { merges.push({ s: { r: r, c: 0 }, e: { r: r, c: 8 } }); }
 
-            let headers = ["Domaine", "Niveau", "Thématique", "Formulation (Texte)", "Entité (DREN, CISCO, ZAP)", "Occurrences Formulation", "Statut de la Soumission", "DATE DE SOUMISSION"];
+            let headers = ["Domaine", "Niveau", "Thématique", "Formulation (Texte)", "Entité (DREN, CISCO, ZAP)", "Matricule / CIN", "Occurrences Formulation", "Statut de la Soumission", "DATE DE SOUMISSION"];
             wsD.push(headers.map(h => ({ v: h, s: headerStyle })));
             
             for (let taskName in filteredData) {
@@ -2610,6 +2598,7 @@ Date : ${getFormattedDateTime()}
                         { v: row.theme, s: sCenter },
                         { v: cleanSpaces(row.text), s: sText },
                         { v: row.entity, s: sCenter },
+                        { v: row.matricule, s: sCenter },
                         { v: row.count, s: sCenter },
                         { v: statut, s: sCenter },
                         { v: row.dates.join(' ; '), s: sText }
@@ -2619,7 +2608,7 @@ Date : ${getFormattedDateTime()}
             
             let ws = XLSX.utils.aoa_to_sheet(wsD);
             if (merges.length > 0) ws['!merges'] = merges;
-            ws['!cols'] = [ {wch: 15}, {wch: 10}, {wch: 15}, {wch: 60}, {wch: 30}, {wch: 25}, {wch: 25}, {wch: 35} ];
+            ws['!cols'] = [ {wch: 15}, {wch: 10}, {wch: 15}, {wch: 50}, {wch: 30}, {wch: 20}, {wch: 25}, {wch: 25}, {wch: 35} ];
             XLSX.utils.book_append_sheet(wb, ws, "Soumissions"); XLSX.writeFile(wb, fn);
         }
 
@@ -2627,12 +2616,11 @@ Date : ${getFormattedDateTime()}
             let filteredData = getFilteredSoumissionsData();
             if (Object.keys(filteredData).length === 0) return alert("Aucune donnée à exporter avec ces filtres ou lancez la consolidation complète.");
             
-            // Re-render internally logic for HTML export to only include visible items
             let tablesHtml = "";
             for (let taskName in filteredData) {
                 let data = filteredData[taskName];
                 tablesHtml += `<h4 style="color: #16a085; margin-top:30px;">${taskName}</h4><table style="width:100%; border-collapse:collapse; margin-bottom:20px;"><thead><tr style="background:#16a085; color:#fff;">`;
-                ["Thématique", "Formulation (Texte)", "Entité", "Occurrences", "Statut", "Dates"].forEach(h => tablesHtml += `<th style="padding:10px; border:1px solid #ddd;">${h}</th>`);
+                ["Thématique", "Formulation (Texte)", "Entité", "Matricule / CIN", "Occurrences", "Statut", "Dates"].forEach(h => tablesHtml += `<th style="padding:10px; border:1px solid #ddd;">${h}</th>`);
                 tablesHtml += `</tr></thead><tbody>`;
                 data.forEach(row => {
                     let isDoublon = row.count > 1 && row.entity !== 'Inconnue';
@@ -2643,6 +2631,7 @@ Date : ${getFormattedDateTime()}
                     tablesHtml += `<td style="padding:8px; border:1px solid #ddd;">${row.theme}</td>`;
                     tablesHtml += `<td style="padding:8px; border:1px solid #ddd; text-align:left;">${row.text}</td>`;
                     tablesHtml += `<td style="padding:8px; border:1px solid #ddd; font-weight:bold;">${row.entity}</td>`;
+                    tablesHtml += `<td style="padding:8px; border:1px solid #ddd; color:#17a2b8; font-weight:bold;">${row.matricule}</td>`;
                     tablesHtml += `<td style="padding:8px; border:1px solid #ddd;">${row.count}</td>`;
                     tablesHtml += `<td style="padding:8px; border:1px solid #ddd; font-weight:bold;">${statut}</td>`;
                     tablesHtml += `<td style="padding:8px; border:1px solid #ddd; font-size:0.85em;">${row.dates.join(' ; ')}</td>`;
@@ -2676,6 +2665,7 @@ Date : ${getFormattedDateTime()}
                         "Thématique": row.theme,
                         "Formulation (Texte)": row.text,
                         "Entité (DREN, CISCO, ZAP)": row.entity,
+                        "Matricule / CIN": row.matricule,
                         "Occurrences Formulation": row.count,
                         "Statut de la Soumission": isDoublon ? '⚠️ DOUBLON' : '✅ CORRECT',
                         "DATE DE SOUMISSION": row.dates
@@ -3031,164 +3021,6 @@ Date : ${getFormattedDateTime()}
             container.innerHTML = html;
         }
 
-        
-        function renderSoumissionsTable(data, containerId, title) {
-            let container = document.getElementById(containerId);
-            if (data.length === 0) {
-                container.innerHTML = `<div class="col-12 text-center text-muted py-5"><i class="fas fa-box-open fa-2x mb-3"></i><br>Aucune donnée pour ${title}</div>`;
-                return;
-            }
-            
-            let html = `<h4 class="mb-3 mt-4" style="color: #16a085;">${title}</h4><div class="table-responsive border"><table class="table table-bordered table-hover align-middle mb-0"><thead style="background-color: #16a085; color: white; position: sticky; top: 0; z-index: 5;"><tr><th>Thématique</th><th>Formulation (Texte)</th><th>Entité (DREN, CISCO, ZAP)</th><th>Occurrences Formulation</th><th>Statut de la Soumission</th><th>DATE DE SOUMISSION dans Kobotoolbox</th></tr></thead><tbody>`;
-            
-            data.forEach(row => {
-                // VERIFICATION DES DOUBLONS DE LA MÊME ACTIVITE PAR LA MÊME ENTITE
-                let isDoublon = row.count > 1 && row.entity !== 'Inconnue';
-                let trClass = isDoublon ? 'class="table-warning"' : '';
-                let alertBadge = isDoublon ? `<span class="badge bg-danger shadow-sm"><i class="fas fa-exclamation-triangle"></i> DOUBLON (${row.count} envois)</span>` : `<span class="badge bg-success shadow-sm"><i class="fas fa-check"></i> CORRECT (1 envoi)</span>`;
-                
-                html += `<tr ${trClass}>
-                    <td class="text-center"><span class="badge bg-secondary">${row.theme}</span></td>
-                    <td>${row.text}</td>
-                    <td class="text-center fw-bold ${isDoublon ? 'text-danger' : 'text-secondary'}">${row.entity}</td>
-                    <td class="text-center"><span class="badge bg-primary fs-6">${row.count}</span></td>
-                    <td class="text-center">${alertBadge}</td>
-                    <td class="text-center" style="font-size: 0.85rem;">${row.dates.join(' ; ')}</td>
-                </tr>`;
-            });
-            
-            html += `</tbody></table></div>`;
-            container.innerHTML = html;
-        }
-
-        
-
-        // ================= FONCTIONS EXPORT & PARTAGE ANOMALIES DBSCAN (ONGLET 5) =================
-        window.getDBSCANExportData = function() {
-            let flatData = [];
-            ['DREN', 'CISCO', 'ZAP'].forEach(lvl => {
-                if (globalDBSCANAnomalies[lvl]) {
-                    globalDBSCANAnomalies[lvl].forEach(item => {
-                        flatData.push({
-                            "Niveau": lvl,
-                            "Entité": item.name,
-                            "Nombre de Soumissions": item.count,
-                            "Statut": "⚠️ Anomalie de Soumission (Bruit DBSCAN)"
-                        });
-                    });
-                }
-            });
-            return flatData;
-        }
-
-        window.exportDBSCANToCSV = function(pfx) {
-            let data = window.getDBSCANExportData();
-            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
-            
-            let fn = generateFilename(pfx, 'csv'), csv = [], d = getFormattedDateTime();
-            csv.push(`"${TITRE_PLATEFORME}"`); csv.push(`"Rapport des Anomalies de Soumissions Kobotoolbox (DBSCAN)"`); csv.push("");
-            csv.push(`"--- METADONNEES D'EXPORT ---"`); csv.push(`"Date d'exportation";"${d}"`); csv.push("");
-            
-            csv.push(`"Niveau";"Entité";"Nombre de Soumissions";"Statut"`);
-            data.forEach(row => {
-                csv.push(`"${row.Niveau}";"${cleanSpaces(row['Entité']).replace(/"/g, '""')}";"${row['Nombre de Soumissions']}";"${row.Statut}"`);
-            });
-            downloadFile(new Blob(["\uFEFF" + csv.join("\n")], {type: "text/csv;charset=utf-8;"}), fn);
-        }
-
-        window.exportDBSCANToExcel = function(pfx) {
-            let data = window.getDBSCANExportData();
-            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
-            
-            let fn = generateFilename(pfx, 'xlsx'), wb = XLSX.utils.book_new(), wsD = [];
-            
-            let titleStyle = { font: { bold: true, sz: 14, color: { rgb: "2C3E50" } } };
-            let subTitleStyle = { font: { bold: true, sz: 12, color: { rgb: "E74C3C" } } };
-            let headerStyle = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "E74C3C" } }, alignment: { horizontal: "center", vertical: "center" } };
-            let alertStyleCenter = { fill: { fgColor: { rgb: "FDEDEC" } }, font: { color: { rgb: "C0392B" }, bold: true }, alignment: { vertical: "center", horizontal: "center" }, border: { top: {style:'thin', color:{rgb:"FADBD8"}}, bottom: {style:'thin', color:{rgb:"FADBD8"}}, left: {style:'thin', color:{rgb:"FADBD8"}}, right: {style:'thin', color:{rgb:"FADBD8"}} } };
-            let normalStyleCenter = { alignment: { vertical: "center", horizontal: "center" } };
-
-            wsD.push([{ v: TITRE_PLATEFORME, s: titleStyle }]); 
-            wsD.push([{ v: "Rapport des Anomalies de Soumissions Kobotoolbox (DBSCAN)", s: subTitleStyle }]); 
-            wsD.push([]);
-            wsD.push([{ v: "Date d'exportation", s: { font: { bold: true } } }, { v: getFormattedDateTime() }]); 
-            wsD.push([]);
-            
-            wsD.push([{v: "Niveau", s: headerStyle}, {v: "Entité", s: headerStyle}, {v: "Nombre de Soumissions", s: headerStyle}, {v: "Statut", s: headerStyle}]);
-            
-            data.forEach(row => {
-                wsD.push([
-                    {v: row.Niveau, s: normalStyleCenter}, 
-                    {v: cleanSpaces(row['Entité']), s: normalStyleCenter}, 
-                    {v: row['Nombre de Soumissions'], s: alertStyleCenter}, 
-                    {v: row.Statut, s: alertStyleCenter}
-                ]);
-            });
-            
-            let ws = XLSX.utils.aoa_to_sheet(wsD);
-            ws['!cols'] = [ {wch: 15}, {wch: 40}, {wch: 25}, {wch: 40} ];
-            XLSX.utils.book_append_sheet(wb, ws, "Anomalies_DBSCAN"); XLSX.writeFile(wb, fn);
-        }
-
-        window.exportDBSCANToHTML = function(pfx) {
-            let data = window.getDBSCANExportData();
-            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
-            
-            let htmlTable = `<table style="width:100%; border-collapse:collapse; margin-top:20px;">
-                <thead><tr style="background-color:#e74c3c; color:white;">
-                    <th style="padding:10px; border:1px solid #ddd;">Niveau</th>
-                    <th style="padding:10px; border:1px solid #ddd;">Entité</th>
-                    <th style="padding:10px; border:1px solid #ddd;">Nombre de Soumissions</th>
-                    <th style="padding:10px; border:1px solid #ddd;">Statut</th>
-                </tr></thead><tbody>`;
-                
-            data.forEach(row => {
-                htmlTable += `<tr>
-                    <td style="padding:10px; border:1px solid #ddd; text-align:center;">${row.Niveau}</td>
-                    <td style="padding:10px; border:1px solid #ddd;">${row['Entité']}</td>
-                    <td style="padding:10px; border:1px solid #ddd; text-align:center; font-weight:bold; color:#c0392b;">${row['Nombre de Soumissions']}</td>
-                    <td style="padding:10px; border:1px solid #ddd; text-align:center;"><span style="background:#fdedec; color:#c0392b; padding:5px; border-radius:5px;">${row.Statut}</span></td>
-                </tr>`;
-            });
-            htmlTable += `</tbody></table>`;
-
-            let h = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px;background:#f4f7f6;}</style></head><body><h2>${TITRE_PLATEFORME}</h2><h4 style="color:#e74c3c;">Rapport des Anomalies de Soumissions Kobotoolbox (DBSCAN) - Généré le ${getFormattedDateTime()}</h4>${htmlTable}</body></html>`;
-            downloadFile(new Blob([h], { type: 'text/html' }), generateFilename(pfx, 'html'));
-        }
-
-        window.exportDBSCANToJSONFile = function(pfx) { 
-            let data = window.getDBSCANExportData();
-            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
-            let j = JSON.stringify({ 
-                "titre_plateforme": TITRE_PLATEFORME, 
-                "sous_titre": "Rapport des Anomalies de Soumissions Kobotoolbox (DBSCAN)", 
-                "date_exportation": getFormattedDateTime(), 
-                "resultats": data 
-            }, null, 2);
-            downloadFile(new Blob([j], { type: 'application/json;charset=utf-8;' }), generateFilename(pfx, 'json')); 
-        }
-
-        window.sendDBSCANToGmail = function() {
-            let data = window.getDBSCANExportData();
-            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
-            let j = JSON.stringify(data, null, 2);
-            navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON Anomalies est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans le mail.");
-                window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Anomalies DBSCAN Kobo - Plateforme de Suivi")}&body=${encodeURIComponent(`Bonjour,\n\nDate : ${getFormattedDateTime()}\n\nVeuillez trouver ci-dessous la liste des anomalies de soumissions (Bruit).\n\n[ COLLER JSON ICI ]\n\nCordialement.`)}`, '_blank');
-            }).catch(function() { alert("❌ Erreur Presse-papiers."); });
-        }
-
-        window.sendDBSCANToWhatsApp = function() {
-            let data = window.getDBSCANExportData();
-            if (data.length === 0) return alert("Aucune anomalie détectée ou l'analyse n'a pas encore été exécutée.");
-            let j = JSON.stringify(data, null, 2);
-            navigator.clipboard.writeText(j).then(function() {
-                alert("✅ SUCCÈS !\nLe texte JSON Anomalies est copié.\nFaites 'Clic Droit > Coller' (ou Ctrl+V) dans WhatsApp.");
-                window.open(`https://wa.me/?text=${encodeURIComponent(`🚨 *Anomalies de Soumissions DBSCAN*\nDate : ${getFormattedDateTime()}\n\n[ COLLER JSON ICI ]`)}`, '_blank');
-            }).catch(function() { alert("❌ Erreur Presse-papiers."); });
-        }
-        
-
         window.runSoumissionsAnalysis = async function() {
             if(allData.length === 0) {
                 alert("Veuillez d'abord attendre le chargement des données de KoboToolbox.");
@@ -3241,8 +3073,23 @@ Date : ${getFormattedDateTime()}
                             if (text && text !== 'Non renseigné') {
                                 let e = (entity && entity !== 'Non renseigné') ? entity : 'Inconnue';
                                 let subDate = r['_submission_time'] ? r['_submission_time'] : 'Date inconnue';
-                                let key = text + "|||" + e;
-                                if (!map[key]) map[key] = { text: text, entity: e, count: 0, dates: [] };
+                                
+                                // --- NOUVELLE LOGIQUE DE SIGNATURE STRICTE POUR LES DOUBLONS ---
+                                let valDren = cleanSpaces(getKoboValue(r, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous'], []));
+                                let valCisco = cleanSpaces(getKoboValue(r, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous'], []));
+                                let valZap = cleanSpaces(getKoboValue(r, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous'], []));
+                                let valAct = cleanSpaces(getKoboValue(r, ['activite', 'activité'], ['sous_activite', 'sous-activite'], []));
+                                let valProd = cleanSpaces(getKoboValue(r, ['produit'], ['sous_produit', 'sous-produit'], []));
+                                let valSAct = cleanSpaces(getKoboValue(r, ['sous_activite', 'sous-activite'], [], []));
+                                let valMatricule = cleanSpaces(getKoboValue(r, ['numero_matricule_ou_cin', 'matricule', 'cin'], [], []));
+                                
+                                // On fusionne tous ces champs pour créer l'empreinte digitale unique de la soumission
+                                let rowSignature = [valDren, valCisco, valZap, valAct, valProd, valSAct, valMatricule].join("|||");
+                                let matriculeDisplay = valMatricule || "Non renseigné";
+                                
+                                let key = text + "|||" + e + "|||" + rowSignature;
+                                
+                                if (!map[key]) map[key] = { text: text, entity: e, matricule: matriculeDisplay, count: 0, dates: [] };
                                 map[key].count++;
                                 map[key].dates.push(subDate);
                             }
@@ -3260,7 +3107,8 @@ Date : ${getFormattedDateTime()}
                                 c.items.forEach(txt => {
                                     let matchingItems = items.filter(i => i.text === txt);
                                     matchingItems.forEach(mi => {
-                                        tableData.push({ theme: themeName, text: mi.text, entity: mi.entity, count: mi.count, dates: mi.dates });
+                                        // Ajout du matricule dans l'objet final
+                                        tableData.push({ theme: themeName, text: mi.text, entity: mi.entity, matricule: mi.matricule, count: mi.count, dates: mi.dates });
                                     });
                                 });
                             });
