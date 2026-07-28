@@ -3021,6 +3021,43 @@ Date : ${getFormattedDateTime()}
             container.innerHTML = html;
         }
 
+
+
+// ==========================================
+        // FONCTION MANQUANTE À COLLER ICI
+        // ==========================================
+        function renderSoumissionsTable(data, containerId, title) {
+            let container = document.getElementById(containerId);
+            if (data.length === 0) {
+                container.innerHTML = `<div class="col-12 text-center text-muted py-5"><i class="fas fa-box-open fa-2x mb-3"></i><br>Aucune donnée pour ${title}</div>`;
+                return;
+            }
+            
+            let html = `<h4 class="mb-3 mt-4" style="color: #16a085;">${title}</h4><div class="table-responsive border"><table class="table table-bordered table-hover align-middle mb-0"><thead style="background-color: #16a085; color: white; position: sticky; top: 0; z-index: 5;"><tr><th>Thématique</th><th>Formulation (Texte)</th><th>Entité (DREN, CISCO, ZAP)</th><th>Matricule / CIN</th><th>Occurrences Formulation</th><th>Statut de la Soumission</th><th>DATE DE SOUMISSION dans Kobotoolbox</th></tr></thead><tbody>`;
+            
+            data.forEach(row => {
+                let isDoublon = row.count > 1 && row.entity !== 'Inconnue';
+                let trClass = isDoublon ? 'class="table-warning"' : '';
+                let alertBadge = isDoublon ? `<span class="badge bg-danger shadow-sm"><i class="fas fa-exclamation-triangle"></i> DOUBLON (${row.count} envois)</span>` : `<span class="badge bg-success shadow-sm"><i class="fas fa-check"></i> CORRECT (1 envoi)</span>`;
+                
+                html += `<tr ${trClass}>
+                    <td class="text-center"><span class="badge bg-secondary">${row.theme}</span></td>
+                    <td class="text-start">${row.text}</td>
+                    <td class="text-center fw-bold ${isDoublon ? 'text-danger' : 'text-secondary'}">${row.entity}</td>
+                    <td class="text-center"><span class="badge bg-info text-dark">${row.matricule}</span></td>
+                    <td class="text-center"><span class="badge bg-primary fs-6">${row.count}</span></td>
+                    <td class="text-center">${alertBadge}</td>
+                    <td class="text-center" style="font-size: 0.85rem;">${row.dates.join(' ; ')}</td>
+                </tr>`;
+            });
+            
+            html += `</tbody></table></div>`;
+            container.innerHTML = html;
+        }
+        // ==========================================
+
+        
+        
         window.runSoumissionsAnalysis = async function() {
             if(allData.length === 0) {
                 alert("Veuillez d'abord attendre le chargement des données de KoboToolbox.");
