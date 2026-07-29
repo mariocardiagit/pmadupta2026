@@ -264,12 +264,19 @@
                             <input type="date" id="filter-date-fin" class="form-control filter-input">
                         </div>
 
-                        <!-- BOUTON AFFICHER LES DOUBLONS -->
-                        <div class="col-md-12 mt-3">
+                        <!-- BOUTONS AFFICHER LES DOUBLONS ET ANOMALIES -->
+                        <div class="col-md-12 mt-3 d-flex flex-wrap gap-3">
                             <div class="form-check form-switch border p-2 rounded bg-white shadow-sm d-inline-block">
                                 <input class="form-check-input filter-input" type="checkbox" id="filter-only-doublons" style="cursor: pointer; transform: scale(1.2); margin-top: 6px;">
                                 <label class="form-check-label text-danger fw-bold ms-2" for="filter-only-doublons" style="cursor: pointer;">
                                     <i class="fas fa-exclamation-triangle"></i> Afficher Tous Les DOUBLONS
+                                </label>
+                            </div>
+                            
+                            <div class="form-check form-switch border p-2 rounded bg-white shadow-sm d-inline-block">
+                                <input class="form-check-input filter-input" type="checkbox" id="filter-only-anomalies" style="cursor: pointer; transform: scale(1.2); margin-top: 6px;">
+                                <label class="form-check-label fw-bold ms-2" for="filter-only-anomalies" style="cursor: pointer; color: #8e44ad;">
+                                    <i class="fas fa-bug"></i> Anomalie de Liaison entre ACTIVITE et PRODUIT et SOUS ACTIVITE dans le Fichier xlsform PARENT
                                 </label>
                             </div>
                         </div>
@@ -405,7 +412,6 @@
                     </div>
                 </div>
             </div>
-			
 			
 			
 			
@@ -1948,9 +1954,12 @@
                 let valSAct = cleanSpaces(getKoboValue(row, ['sous_activite', 'sous-activite'], [], []));
                 
                 // --- COLONNE ANOMALIE SOUS ACTIVITE ---
-                let anomalyText = (!valSAct || valSAct.toLowerCase() === 'non renseigné') ? "Anomalie de Liaison entre ACTIVITE et PRODUIT et SOUS ACTIVITE dans le Fichier xlsform PARENT" : "OK";
-                let anomalyHtml = (!valSAct || valSAct.toLowerCase() === 'non renseigné') 
-                    ? `<span class="badge bg-danger shadow-sm text-wrap" style="font-size: 0.8rem; line-height: 1.2;"><i class="fas fa-exclamation-triangle"></i> Anomalie de Liaison entre ACTIVITE et PRODUIT et SOUS ACTIVITE dans le Fichier xlsform PARENT</span>`
+                let isAnomaly = (!valSAct || valSAct.toLowerCase() === 'non renseigné');
+                sData.isAnomaly = isAnomaly; // IMPORTANT POUR LE BOUTON FILTRE
+
+                let anomalyText = isAnomaly ? "Anomalie de Liaison entre ACTIVITE et PRODUIT et SOUS ACTIVITE dans le Fichier xlsform PARENT" : "Valide";
+                let anomalyHtml = isAnomaly 
+                    ? `<span class="badge bg-danger shadow-sm text-wrap" style="font-size: 0.8rem; line-height: 1.2; width: 140px; white-space: normal;"><i class="fas fa-exclamation-triangle"></i> Anomalie de Liaison entre ACTIVITE et PRODUIT et SOUS ACTIVITE dans le Fichier xlsform PARENT</span>`
                     : `<span class="badge bg-success shadow-sm" style="font-size: 0.85rem;"><i class="fas fa-check"></i> Valide</span>`;
                 tr.append($('<td></td>').attr('data-csv', anomalyText).html(anomalyHtml));
 
@@ -2217,7 +2226,8 @@
                 sProd: cleanSpaces($('#filter-sous-produit').val()),
                 dateDebut: $('#filter-date-debut').val(),
                 dateFin: $('#filter-date-fin').val(),
-                onlyDoublons: $('#filter-only-doublons').is(':checked') // NOUVEAU FILTRE DOUBLON
+                onlyDoublons: $('#filter-only-doublons').is(':checked'),
+                onlyAnomalies: $('#filter-only-anomalies').is(':checked') // NOUVEAU FILTRE ANOMALIE
             };
 
             let dStart = f.dateDebut ? new Date(f.dateDebut) : null;
@@ -2248,7 +2258,13 @@
                     doublonMatch = false;
                 }
 
-                if (mD && mC && mZ && mA && mP && mSA && mSP && dateMatch && doublonMatch) { 
+                // APPLICATION DE LA RÈGLE ANOMALIE
+                let anomalyMatch = true;
+                if (f.onlyAnomalies && !s.isAnomaly) {
+                    anomalyMatch = false;
+                }
+
+                if (mD && mC && mZ && mA && mP && mSA && mSP && dateMatch && doublonMatch && anomalyMatch) { 
                     $(this).show(); vC++; 
                 } else { 
                     $(this).hide(); 
@@ -2260,6 +2276,7 @@
         function clearFilters() { 
             $('.filter-input').not('[type="checkbox"]').val(''); 
             $('#filter-only-doublons').prop('checked', false);
+            $('#filter-only-anomalies').prop('checked', false);
             applyFilters(); 
         }
         
@@ -2274,14 +2291,13 @@
                 "Sous-produit": cleanSpaces($('#filter-sous-produit').val()) || "Tous",
                 "Date de début": $('#filter-date-debut').val() || "Toutes",
                 "Date de fin": $('#filter-date-fin').val() || "Toutes",
-                "Filtre Strict Doublons": $('#filter-only-doublons').is(':checked') ? "Activé" : "Désactivé"
+                "Filtre Strict Doublons": $('#filter-only-doublons').is(':checked') ? "Activé" : "Désactivé",
+                "Filtre Strict Anomalies": $('#filter-only-anomalies').is(':checked') ? "Activé" : "Désactivé"
             }; 
         }
-        
-        function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous" && f[k] !== "Toutes") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
-        
-        function getAnalysisFilters() { return { "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune", "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune", "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune" }; }
-        function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
+
+
+
 
 
 
@@ -2315,7 +2331,7 @@
             wsD.push(["--- CRITERES DE RECHERCHE APPLIQUES ---"]); let f = getCurrentFilters(); for(let k in f) wsD.push([k, f[k]]); wsD.push([]);
             wsD.push(["--- RESULTATS ---"]);
             let hrIdx = wsD.length, h1 = [], cH = 0;
-            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } });
+            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } });
             $('#table-group-header-row th').each(function() {
                 h1.push(cleanSpaces($(this).text())); let cs = parseInt($(this).attr('colspan') || 1, 10);
                 if (cs > 1) { merges.push({ s: { r: hrIdx, c: cH }, e: { r: hrIdx, c: cH + cs - 1 } }); for (let i = 1; i < cs; i++) h1.push(""); }
