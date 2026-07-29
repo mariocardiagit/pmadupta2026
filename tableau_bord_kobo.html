@@ -335,6 +335,8 @@
 					
 					
 					
+					
+
 <!-- ONGLET 3 : K-MEANS -->
                     <div class="tab-pane fade" id="clustering" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -423,6 +425,8 @@
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li><a class="dropdown-item" href="#" onclick="exportDBSCANToCSV('anomalies_DBSCAN_Soumissions_Kobo_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="exportDBSCANToExcel('anomalies_DBSCAN_Soumissions_Kobo_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportDBSCANToHTML('anomalies_DBSCAN_Soumissions_Kobo_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer HTML</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportDBSCANToJSONFile('anomalies_DBSCAN_Soumissions_Kobo_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
                                     </ul>
                                 </div>
                                 <div class="btn-group shadow-sm">
@@ -441,6 +445,11 @@
                             <div class="text-center mb-3 mt-2">
                                 <span class="math-box text-danger"><strong>| N<sub>&epsilon;</sub>(x) | &ge; MinPts</strong></span>
                             </div>
+                            <ul class="mb-0 mt-3">
+                                <li><strong>&epsilon; (Epsilon)</strong> : La distance de tolérance (le "rayon de recherche") calculée dynamiquement à partir de la dispersion des données.</li>
+                                <li><strong>MinPts</strong> : Le nombre minimal de voisins requis (ici $MinPts = 2$) pour confirmer un comportement de groupe.</li>
+                                <li><em>En pratique :</em> Toute entité qui n'a aucun voisin statistique dans la limite fixée par &epsilon; est expulsée des statistiques normales et classée en <strong class="text-danger">Anomalie</strong>.</li>
+                            </ul>
                         </div>
                         <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
                             <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#dbscan-dren" type="button">Clustering DREN</button></li>
@@ -499,6 +508,24 @@
                         <div class="analysis-card shadow-sm">
                             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                                 <h5 class="text-secondary m-0"><i class="fas fa-list-ul"></i> Registre des Diagnostics et Recommandations</h5>
+                                <div class="d-flex align-items-center flex-wrap gap-3">
+                                    <div class="btn-group shadow-sm">
+                                        <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter la Recommandation</button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="#" onclick="exportExpertToCSV('recommandations_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="exportExpertToExcel('recommandations_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="exportExpertToHTML('recommandations_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer HTML</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="exportExpertToJSONFile('recommandations_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="btn-group shadow-sm">
+                                        <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-share-alt"></i> Partager</button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="#" onclick="sendExpertToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (JSON)</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="sendExpertToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (JSON)</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                             <input type="text" id="search-expert-table" class="form-control form-control-sm mb-3" placeholder="Rechercher une entité ou un diagnostic..." autocomplete="off">
                             <div class="table-responsive border" id="expert-table-scroll-container" style="max-height: 600px;">
@@ -521,7 +548,66 @@
                             <h5 class="text-info"><i class="fas fa-chalkboard-teacher"></i> L'importance de la Transparence</h5>
                             <p>C'est une excellente démarche de transparence et de pédagogie (ce que l'on appelle <strong>l'Explainable AI ou IA Explicable</strong>). Afficher les formules mathématiques et le fonctionnement interne permet de légitimer vos résultats auprès de votre hiérarchie.</p>
                         </div>
-                        <!-- ... le reste de vos cours de maths (K-Means, Jenks, DBSCAN) ... -->
+                        
+                        <!-- Algo 1 : K-Means -->
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-primary text-white fw-bold fs-5">
+                                <i class="fas fa-project-diagram"></i> Algorithme 1 : K-Means (Centre de Gravité)
+                            </div>
+                            <div class="card-body">
+                                <p>Le K-Means est un algorithme de partitionnement géométrique. Son but est de regrouper $N$ observations en $K$ clusters en minimisant l'inertie intra-classe (la somme des distances au carré entre chaque entité et le centre de son groupe).</p>
+                                <p>La fonction de coût (Within-Cluster Sum of Squares) qu'il cherche à minimiser est définie par l'équation suivante :</p>
+                                <div class="text-center mb-3">
+                                    <span class="math-box text-primary"><strong>J = &Sigma; &Sigma; || x<sub>i</sub> - &mu;<sub>j</sub> ||<sup>2</sup></strong></span>
+                                </div>
+                                <div class="demo-box">
+                                    <h6 class="fw-bold text-primary"><i class="fas fa-microscope"></i> Démonstration Mathématique avec des données réelles :</h6>
+                                    <p class="mb-2">Imaginons 5 ZAP ayant respectivement soumis : <strong>X = { 2, 3, 10, 12, 25 }</strong> formulaires. L'IA cherche à les diviser en K=3 groupes.</p>
+                                    <div class="demo-step"><strong>Étape 1 :</strong> Initialisation des centres de gravité moyens. Supposons &mu;<sub>1</sub> = 2.5 (Faible), &mu;<sub>2</sub> = 11 (Moyen), &mu;<sub>3</sub> = 25 (Fort).</div>
+                                    <div class="demo-step"><strong>Étape 2 :</strong> Assignation des ZAP aux centres les plus proches. <br>
+                                        - Groupe Faible (C<sub>1</sub>) = {2, 3}<br>
+                                        - Groupe Moyen (C<sub>2</sub>) = {10, 12}<br>
+                                        - Groupe Fort (C<sub>3</sub>) = {25}
+                                    </div>
+                                    <div class="demo-step"><strong>Étape 3 :</strong> L'algorithme calcule son score d'erreur (Inertie J) pour vérifier si le groupement est optimal :<br>
+                                        - J<sub>1</sub> = (2 - 2.5)&sup2; + (3 - 2.5)&sup2; = (-0.5)&sup2; + (0.5)&sup2; = 0.25 + 0.25 = <strong>0.5</strong><br>
+                                        - J<sub>2</sub> = (10 - 11)&sup2; + (12 - 11)&sup2; = (-1)&sup2; + (1)&sup2; = 1 + 1 = <strong>2</strong><br>
+                                        - J<sub>3</sub> = (25 - 25)&sup2; = <strong>0</strong><br>
+                                    </div>
+                                    <div class="demo-step mt-2">
+                                        <span class="demo-result">Inertie Totale (J) = 0.5 + 2 + 0 = 2.5</span>
+                                    </div>
+                                    <p class="mt-2 mb-0 text-muted"><em>L'algorithme a trouvé le "J" minimum absolu, son groupement est donc mathématiquement validé.</em></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Algo 2 : Jenks -->
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-success text-white fw-bold fs-5">
+                                <i class="fas fa-layer-group"></i> Algorithme 2 : Jenks (Natural Breaks)
+                            </div>
+                            <div class="card-body">
+                                <p>Conçu spécifiquement pour les données unidimensionnelles (1D), c'est l'algorithme le plus précis pour cette plateforme. Il procède de manière déterministe pour trouver les "ruptures" optimales en cherchant à maximiser le critère GVF (Goodness of Variance Fit).</p>
+                                <p>Il compare la variance totale de l'échantillon (SDTM) avec la variance à l'intérieur des sous-groupes (SDIC) :</p>
+                                <div class="text-center mb-3">
+                                    <span class="math-box text-success"><strong>GVF = ( SDTM - SDIC ) / SDTM</strong></span>
+                                </div>
+                                <div class="demo-box" style="border-left-color: #27ae60;">
+                                    <h6 class="fw-bold text-success"><i class="fas fa-microscope"></i> Démonstration Mathématique :</h6>
+                                    <p class="mb-2">Reprenons les soumissions : <strong>X = { 2, 3, 10, 12, 25 }</strong>.</p>
+                                    <div class="demo-step"><strong>Étape 1 :</strong> Calcul de la Moyenne Globale (X&#772;). = <strong>10.4</strong></div>
+                                    <div class="demo-step"><strong>Étape 2 :</strong> Calcul de la Variance Globale Totale (SDTM). = <strong>341.2</strong></div>
+                                    <div class="demo-step"><strong>Étape 3 :</strong> Jenks teste la découpe {2, 3}, {10, 12}, {25}. La variance interne (SDIC) est <strong>2.5</strong>.</div>
+                                    <div class="demo-step mt-2">
+                                        <strong>Étape 4 : Validation du score GVF.</strong><br>
+                                        GVF = (341.2 - 2.5) / 341.2 = <span class="demo-result" style="color: #27ae60; background-color: #eafaf1;">0.9926 (soit 99.26%)</span>
+                                    </div>
+                                    <p class="mt-2 mb-0 text-muted"><em>Le GVF frôle les 100%. L'algorithme conclut que ces limites sont parfaites.</em></p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="card mb-4 shadow-sm border-dark">
                             <div class="card-header bg-dark text-white fw-bold fs-5"><i class="fas fa-layer-group"></i> Récapitulatif des Modèles d'Intelligence Artificielle</div>
                             <div class="card-body">
@@ -539,6 +625,24 @@
                     <div class="tab-pane fade" id="semantic" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4 class="text-semantic m-0"><i class="fas fa-brain"></i> Algorithme 4 : Analyse Sémantique (SBERT & Similarité Cosinus)</h4>
+                            <div class="d-flex align-items-center flex-wrap gap-3">
+                                <div class="btn-group shadow-sm">
+                                    <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter</button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="exportSemanticToCSV('semantique_formulation_unique')"><i class="fas fa-file-csv text-success"></i> CSV</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportSemanticToExcel('semantique_formulation_unique')"><i class="fas fa-file-excel text-success"></i> Excel</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportSemanticToHTML('semantique_formulation_unique')"><i class="fas fa-file-code text-primary"></i> HTML</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportSemanticToJSONFile('semantique_formulation_unique')"><i class="fas fa-file-alt text-warning"></i> JSON</a></li>
+                                    </ul>
+                                </div>
+                                <div class="btn-group shadow-sm">
+                                    <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-share-alt"></i> Partager</button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="sendSemanticToGmail()"><i class="fas fa-envelope text-danger"></i> Gmail</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="sendSemanticToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp</a></li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="alert alert-warning py-3 mb-4 shadow-sm border-warning" style="font-size: 0.95rem;">
@@ -629,12 +733,31 @@
                             <h5 class="text-explication"><i class="fas fa-server"></i> Comment l'IA comprend-elle le sens des phrases sans serveur externe ?</h5>
                             <p>La version actuelle de cette plateforme utilise une architecture <strong>Serverless</strong> innovante via la librairie <em>Transformers.js</em>. Cela permet de faire fonctionner une Intelligence Artificielle de Traitement du Langage Naturel (NLP) directement dans votre navigateur web.</p>
                         </div>
+                        <div class="row"><div class="col-md-12 mb-4"><div class="card shadow-sm border-0"><div class="card-header text-white fw-bold fs-5" style="background-color: #2c3e50;"><i class="fas fa-vector-square"></i> Étape 1 : Le Plongement Lexical (Embeddings)</div><div class="card-body"><p>L'ordinateur ne comprend pas les lettres. Le modèle d'IA <strong>Sentence-BERT (SBERT)</strong> prend chaque activité rédigée par une DREN, CISCO ou ZAP et la traduit en un vecteur mathématique (un gigantesque tableau de plusieurs centaines de nombres).</p></div></div></div></div>
                     </div>
 
                     <!-- ONGLET 10 : CONSOLIDATION KOBO -->
                     <div class="tab-pane fade" id="consolidation" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4 class="m-0" style="color: #16a085;"><i class="fas fa-layer-group"></i> Onglet 10 : Nombre Soumissions Kobo</h4>
+                            <div class="d-flex align-items-center flex-wrap gap-3">
+                                <div class="btn-group shadow-sm">
+                                    <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter</button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="exportSoumissionsToCSV('nombre_soumissions_kobo')"><i class="fas fa-file-csv text-success"></i> CSV</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportSoumissionsToExcel('nombre_soumissions_kobo')"><i class="fas fa-file-excel text-success"></i> Excel</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportSoumissionsToHTML('nombre_soumissions_kobo')"><i class="fas fa-file-code text-primary"></i> HTML</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportSoumissionsToJSONFile('nombre_soumissions_kobo')"><i class="fas fa-file-alt text-warning"></i> JSON</a></li>
+                                    </ul>
+                                </div>
+                                <div class="btn-group shadow-sm">
+                                    <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-share-alt"></i> Partager</button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="sendSoumissionsToGmail()"><i class="fas fa-envelope text-danger"></i> Gmail</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="sendSoumissionsToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp</a></li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="alert py-3 mb-4 shadow-sm" style="background-color: #e8f8f5; border: 1px solid #1abc9c; color: #117a65; font-size: 0.95rem;">
@@ -816,6 +939,7 @@
 
 
 
+
 <script>
         // VARIABLE GLOBALE POUR SAUVEGARDER L'ANALYSE SÉMANTIQUE ET CONSOLIDATION
         let globalSemanticResults = {};
@@ -988,8 +1112,10 @@
             let uniqueData = [...new Set(data)].sort((a,b)=>a-b);
             let actualK = Math.min(k, uniqueData.length);
             if (actualK <= 1) return data.map(() => 0);
+
             let centroids = [];
             for (let i = 0; i < actualK; i++) centroids.push(uniqueData[Math.floor(i * uniqueData.length / actualK)]);
+
             let assignments = new Array(data.length).fill(-1);
             let changed = true, iter = 0;
             while (changed && iter < 100) {
@@ -1329,6 +1455,8 @@
                 allData = allData.filter(row => row !== null && typeof row === 'object');
                 
                 renderTable(allData);
+                
+                // === FONCTION D'AFFICHAGE DE L'ANALYSE ===
                 renderAnalysis(allData);
                 
                 let bEx = isExcelLoaded ? '<span class="badge bg-success ms-2"><i class="fas fa-check-circle"></i> Traduit</span>' : '<span class="badge bg-warning text-dark ms-2"><i class="fas fa-info-circle"></i> Brut</span>';
@@ -1486,6 +1614,212 @@
             $('[data-bs-toggle="tooltip"]').tooltip();
         }
 
+        // ================= FONCTION RENDER ANALYSIS & GRAPHIQUES =================
+        function renderAlgorithmChart(algo, canvasId, listContainerId, rulesContainerId, freqData, existingChart, setChartRef) {
+            if (existingChart) existingChart.destroy();
+            
+            let entries = Object.entries(freqData).filter(([k,v]) => k !== "Non renseigné");
+            if (entries.length === 0) { 
+                document.getElementById(listContainerId).innerHTML = ''; 
+                document.getElementById(rulesContainerId).innerHTML = '';
+                return; 
+            }
+            
+            entries.sort((a,b) => a[1] - b[1]); 
+            let counts = entries.map(e => e[1]);
+            let labels = entries.map(e => e[0]);
+            let formattedLabels = labels.map(l => wrapLabel(l, 25)); 
+            
+            let assignments = [], clusterDefs = {};
+            let rulesHtml = '';
+
+            if (algo === 'kmeans') {
+                assignments = perform1DKMeans(counts, 3);
+                clusterDefs = {
+                    0: { title: "Activité Faible", bg: 'rgba(52, 152, 219, 0.7)', border: 'rgba(41, 128, 185, 1)', cardBg: 'bg-primary text-white', badge: 'bg-primary' },
+                    1: { title: "Activité Moyenne", bg: 'rgba(243, 156, 18, 0.7)', border: 'rgba(211, 84, 0, 1)', cardBg: 'bg-warning text-dark', badge: 'bg-warning text-dark' },
+                    2: { title: "Forte Activité", bg: 'rgba(39, 174, 96, 0.7)', border: 'rgba(46, 204, 113, 1)', cardBg: 'bg-success text-white', badge: 'bg-success' }
+                };
+                
+                let c0 = counts.filter((_, i) => assignments[i] === 0);
+                let c1 = counts.filter((_, i) => assignments[i] === 1);
+                let c2 = counts.filter((_, i) => assignments[i] === 2);
+                
+                let min0 = c0.length ? Math.min(...c0) : 0, max0 = c0.length ? Math.max(...c0) : 0;
+                let min1 = c1.length ? Math.min(...c1) : 0, max1 = c1.length ? Math.max(...c1) : 0;
+                let min2 = c2.length ? Math.min(...c2) : 0, max2 = c2.length ? Math.max(...c2) : 0;
+
+                rulesHtml = `<div class="alert alert-info py-2 mb-3 shadow-sm border-info" style="font-size: 0.95rem;">
+                    <strong><i class="fas fa-search"></i> Seuils stricts calculés et appliqués par le K-Means :</strong><br>
+                    <div class="mt-2 d-flex flex-wrap gap-2">
+                        <span class="badge bg-primary fs-6 fw-normal">Faible : de ${min0} à ${max0} soum.</span>
+                        <span class="badge bg-warning text-dark fs-6 fw-normal">Moyenne : de ${min1} à ${max1} soum.</span>
+                        <span class="badge bg-success fs-6 fw-normal">Forte : de ${min2} à ${max2} soum.</span>
+                    </div>
+                </div>`;
+
+            } else if (algo === 'jenks') {
+                assignments = performJenks(counts, 3);
+                clusterDefs = {
+                    0: { title: "Activité Faible", bg: 'rgba(52, 152, 219, 0.7)', border: 'rgba(41, 128, 185, 1)', cardBg: 'bg-primary text-white', badge: 'bg-primary' },
+                    1: { title: "Activité Moyenne", bg: 'rgba(243, 156, 18, 0.7)', border: 'rgba(211, 84, 0, 1)', cardBg: 'bg-warning text-dark', badge: 'bg-warning text-dark' },
+                    2: { title: "Forte Activité", bg: 'rgba(39, 174, 96, 0.7)', border: 'rgba(46, 204, 113, 1)', cardBg: 'bg-success text-white', badge: 'bg-success' }
+                };
+
+                let uniqueCounts = [...new Set(counts)];
+                if(uniqueCounts.length > 3) {
+                    let br = getJenksBreaks(counts, 3);
+                    rulesHtml = `<div class="alert alert-success py-2 mb-3 shadow-sm border-success" style="font-size: 0.95rem;">
+                        <strong><i class="fas fa-search"></i> Ruptures naturelles calculées et appliquées par Jenks :</strong><br>
+                        <div class="mt-2 d-flex flex-wrap gap-2">
+                            <span class="badge bg-primary fs-6 fw-normal">Faible : de ${br[0]} à ${br[1]} soum.</span>
+                            <span class="badge bg-warning text-dark fs-6 fw-normal">Moyenne : de ${br[1]+1} à ${br[2]} soum.</span>
+                            <span class="badge bg-success fs-6 fw-normal">Forte : de ${br[2]+1} à ${br[3]} soum.</span>
+                        </div>
+                    </div>`;
+                } else {
+                    rulesHtml = `<div class="alert alert-secondary py-2 mb-3 shadow-sm" style="font-size: 0.95rem;">Données trop homogènes pour définir des ruptures claires.</div>`;
+                }
+
+            } else if (algo === 'dbscan') {
+                let res = performDBSCAN(counts);
+                assignments = res.assignments;
+                
+                const cp = [
+                    {bg: 'rgba(52, 152, 219, 0.7)', b:'rgba(41, 128, 185, 1)', c:'bg-primary text-white', lb:'bg-primary'},
+                    {bg: 'rgba(39, 174, 96, 0.7)', b:'rgba(46, 204, 113, 1)', c:'bg-success text-white', lb:'bg-success'},
+                    {bg: 'rgba(243, 156, 18, 0.7)', b:'rgba(211, 84, 0, 1)', c:'bg-warning text-dark', lb:'bg-warning text-dark'},
+                    {bg: 'rgba(155, 89, 182, 0.7)', b:'rgba(142, 68, 173, 1)', c:'bg-secondary text-white', lb:'bg-secondary'},
+                    {bg: 'rgba(52, 73, 94, 0.7)', b:'rgba(44, 62, 80, 1)', c:'bg-dark text-white', lb:'bg-dark'}
+                ];
+                
+                clusterDefs[-1] = { title: "Bruit / Anomalies", bg: 'rgba(231, 76, 60, 0.7)', border: 'rgba(192, 57, 43, 1)', cardBg: 'bg-danger text-white', badge: 'bg-danger' };
+                for(let i=0; i<res.numClusters; i++) {
+                    let p = cp[i % cp.length];
+                    clusterDefs[i] = { title: "Groupe " + (i+1), bg: p.bg, border: p.b, cardBg: p.c, badge: p.lb };
+                }
+
+                rulesHtml = `<div class="alert alert-danger py-2 mb-3 shadow-sm border-danger" style="font-size: 0.95rem;">
+                    <strong><i class="fas fa-search"></i> Règles de Densité appliquées par DBSCAN :</strong><br>
+                    <ul class="mb-0 mt-1">
+                        <li>Rayon de recherche (&epsilon;) calculé : <strong>&plusmn; ${res.eps.toFixed(1)} soumissions</strong></li>
+                        <li>Seuil de validation (MinPts) : <strong>Au moins 2 entités</strong> requises pour forming un groupe valide.</li>
+                    </ul>
+                    <em class="mt-1 d-block">Toute entité isolée au-delà de ce rayon est classée en <span class="badge bg-danger">Anomalie (Bruit)</span>.</em>
+                </div>`;
+            }
+
+            document.getElementById(rulesContainerId).innerHTML = rulesHtml;
+
+            let bgColors = assignments.map(a => clusterDefs[a].bg);
+            let bdColors = assignments.map(a => clusterDefs[a].border);
+            
+            let ctx = document.getElementById(canvasId).getContext('2d');
+            let newChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: formattedLabels,
+                    datasets: [{
+                        label: 'Soumissions (' + algo.toUpperCase() + ')',
+                        data: counts,
+                        backgroundColor: bgColors, borderColor: bdColors, borderWidth: 1, borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    layout: { padding: { left: 30, bottom: 30, right: 30, top: 20 } },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) { return labels[context[0].dataIndex]; },
+                                afterLabel: function(context) { return `Catégorie : ${clusterDefs[assignments[context.dataIndex]].title}`; }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Soumissions' } },
+                        x: { display: true, ticks: { maxRotation: 45, minRotation: 45, autoSkip: false, font: { size: 11 } } }
+                    }
+                }
+            });
+            setChartRef(newChart);
+
+            let clusterGroups = {};
+            for(let key in clusterDefs) clusterGroups[key] = [];
+            for (let i = 0; i < entries.length; i++) clusterGroups[assignments[i]].push({ name: labels[i], count: counts[i] });
+
+            let htmlLists = `<div class="row mt-4">`;
+            let keys = Object.keys(clusterDefs).map(Number);
+            
+            if(algo === 'kmeans' || algo === 'jenks') keys.sort((a,b)=>b-a);
+            else { 
+                keys.sort((a,b)=>b-a);
+                let nIdx = keys.indexOf(-1);
+                if(nIdx > -1) { keys.splice(nIdx, 1); keys.push(-1); }
+            }
+
+            keys.forEach(k => {
+                clusterGroups[k].sort((a, b) => b.count - a.count);
+                if(algo === 'dbscan' && k === -1) {
+                    let lvl = canvasId.includes('DREN') ? 'DREN' : (canvasId.includes('CISCO') ? 'CISCO' : 'ZAP');
+                    globalDBSCANAnomalies[lvl] = clusterGroups[k].map(item => ({name: item.name, count: item.count, level: lvl}));
+                }
+                if(algo === 'dbscan' && k === -1 && clusterGroups[k].length === 0) return;
+                
+                let def = clusterDefs[k];
+                let icon = k === -1 ? 'fa-exclamation-triangle' : (k === 2 ? 'fa-arrow-up' : (k === 0 ? 'fa-arrow-down' : 'fa-check'));
+                
+                htmlLists += `
+                    <div class="col-md-4">
+                        <div class="card mb-3 shadow-sm border" style="border-color: ${def.border}; border-width: 2px;">
+                            <div class="card-header ${def.cardBg} fw-bold"><i class="fas ${icon}"></i> ${def.title}</div>
+                            <ul class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                `;
+                clusterGroups[k].forEach(item => {
+                    htmlLists += `<li class="list-group-item d-flex justify-content-between align-items-center">${item.name} <span class="badge ${def.badge} rounded-pill fs-6">${item.count}</span></li>`;
+                });
+                if(clusterGroups[k].length === 0) htmlLists += `<li class="list-group-item text-muted">Aucune entité</li>`;
+                htmlLists += `</ul></div></div>`;
+            });
+            
+            htmlLists += `</div>`;
+            document.getElementById(listContainerId).innerHTML = htmlLists;
+        }
+
+        function renderAnalysis(data) {
+            let totalRows = data.length;
+            let freqDren = data.reduce((acc, row) => { let v = cleanSpaces(getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous'])); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
+            let freqCisco = data.reduce((acc, row) => { let v = cleanSpaces(getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous'])); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
+            let freqZap = data.reduce((acc, row) => { let v = cleanSpaces(getKoboValue(row, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous'])); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
+
+            if (totalRows === 0) $('#ai-report-content').html("<p>Aucune donnée.</p>");
+            else {
+                let maxDren = Object.entries(freqDren).filter(([k,v]) => k !== "Non renseigné").sort((a,b) => b[1] - a[1])[0];
+                $('#ai-report-content').html(`<p>L'analyse intelligente révèle que <span class="highlight-val">${totalRows}</span> formulaires ont été soumis. La couverture s'étend sur <span class="highlight-val">${Object.keys(freqDren).length-1}</span> DREN(s) et <span class="highlight-val">${Object.keys(freqCisco).length-1}</span> CISCO(s). ${maxDren ? `La zone dominante est la DREN <span class="highlight-val">${maxDren[0]}</span> (${Math.round((maxDren[1]/totalRows)*100)}%).` : ''}</p>`);
+            }
+
+            const popTab = (id, fd) => {
+                let tb = $('#'+id).empty(), s = Object.entries(fd).sort((a,b)=>b[1]-a[1]);
+                if(s.length===0) tb.append('<tr><td colspan="3" class="text-muted">Vide</td></tr>');
+                else s.forEach(([n,c]) => { let p=(c/totalRows*100).toFixed(1)+'%'; tb.append(`<tr><td><strong>${n}</strong></td><td><span class="badge bg-primary fs-6">${c}</span></td><td class="align-middle"><div class="d-flex align-items-center justify-content-center"><span class="me-2" style="width: 45px; font-weight: bold;">${p}</span><div class="progress" style="width: 80px; height: 10px;"><div class="progress-bar bg-info" style="width: ${p};"></div></div></div></td></tr>`); });
+            };
+            popTab('dren-summary-table', freqDren); popTab('cisco-summary-table', freqCisco); popTab('zap-summary-table', freqZap);
+
+            renderAlgorithmChart('kmeans', 'kmeansChartDREN', 'kmeansListsDREN', 'rules-kmeans-dren', freqDren, chartsRefs.kmeans.DREN, c => chartsRefs.kmeans.DREN = c);
+            renderAlgorithmChart('kmeans', 'kmeansChartCISCO', 'kmeansListsCISCO', 'rules-kmeans-cisco', freqCisco, chartsRefs.kmeans.CISCO, c => chartsRefs.kmeans.CISCO = c);
+            renderAlgorithmChart('kmeans', 'kmeansChartZAP', 'kmeansListsZAP', 'rules-kmeans-zap', freqZap, chartsRefs.kmeans.ZAP, c => chartsRefs.kmeans.ZAP = c);
+
+            renderAlgorithmChart('jenks', 'jenksChartDREN', 'jenksListsDREN', 'rules-jenks-dren', freqDren, chartsRefs.jenks.DREN, c => chartsRefs.jenks.DREN = c);
+            renderAlgorithmChart('jenks', 'jenksChartCISCO', 'jenksListsCISCO', 'rules-jenks-cisco', freqCisco, chartsRefs.jenks.CISCO, c => chartsRefs.jenks.CISCO = c);
+            renderAlgorithmChart('jenks', 'jenksChartZAP', 'jenksListsZAP', 'rules-jenks-zap', freqZap, chartsRefs.jenks.ZAP, c => chartsRefs.jenks.ZAP = c);
+
+            renderAlgorithmChart('dbscan', 'dbscanChartDREN', 'dbscanListsDREN', 'rules-dbscan-dren', freqDren, chartsRefs.dbscan.DREN, c => chartsRefs.dbscan.DREN = c);
+            renderAlgorithmChart('dbscan', 'dbscanChartCISCO', 'dbscanListsCISCO', 'rules-dbscan-cisco', freqCisco, chartsRefs.dbscan.CISCO, c => chartsRefs.dbscan.CISCO = c);
+            renderAlgorithmChart('dbscan', 'dbscanChartZAP', 'dbscanListsZAP', 'rules-dbscan-zap', freqZap, chartsRefs.dbscan.ZAP, c => chartsRefs.dbscan.ZAP = c);
+
+            runExpertSystem(freqDren, freqCisco, freqZap);
+        }
+
         // ================= FILTRES ET INTERACTIVITE =================
         function setupAnalysisTableSearch(inputId, tbodyId) {
             $('#' + inputId).on('keyup', function() {
@@ -1550,8 +1884,6 @@
         function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous" && f[k] !== "Toutes" && f[k] !== "Désactivé") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
         function getAnalysisFilters() { return { "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune", "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune", "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune" }; }
         function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
-
-
 
 
 
@@ -1991,18 +2323,6 @@
             $('#real-clustering-results').html(html);
         };
 
-        $(document).ready(function() {
-            fetchData();
-            let typingTimer;
-            $('.filter-input').on('keyup', function () { clearTimeout(typingTimer); typingTimer = setTimeout(applyFilters, 300); });
-            $('.filter-input').on('change', applyFilters);
-            setupAnalysisTableSearch('search-dren-table', 'dren-summary-table');
-            setupAnalysisTableSearch('search-cisco-table', 'cisco-summary-table');
-            setupAnalysisTableSearch('search-zap-table', 'zap-summary-table');
-            
-            $('#search-soumissions-table').on('keyup', window.filterSoumissionsTables);
-            $('.filter-soumissions-radio').on('change', window.filterSoumissionsTables);
-        });
     </script>
 
     <!-- Script Module pour l'IA Sémantique et Consolidation (Transformers.js) -->
