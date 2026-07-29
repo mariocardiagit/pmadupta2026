@@ -318,83 +318,7 @@
                     </table>
                 </div>
             </div>
-
-            <!-- ONGLET 2 : ANALYSE & IA -->
-            <div class="tab-pane fade" id="analyse" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                    <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
-                    <div class="d-flex align-items-center flex-wrap gap-3">
-                        <div class="btn-group shadow-sm">
-                            <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter l'Analyse</button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToCSV('analyse_suivi_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToExcel('analyse_suivi_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToHTML('analyse_suivi_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer HTML</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToJSONFile('analyse_suivi_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
-                            </ul>
-                        </div>
-                        <div class="btn-group shadow-sm">
-                            <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-share-alt"></i> Partager l'Analyse</button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="sendAnalysisToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (JSON)</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="sendAnalysisToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (JSON)</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="ai-insights shadow-sm" id="ai-report-container">
-                    <h5><i class="fas fa-robot text-primary"></i> Rapport d'Analyse Intelligente (Généré automatiquement)</h5>
-                    <div id="ai-report-content"></div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <div class="analysis-card shadow-sm h-100">
-                            <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par DREN</h5>
-                            <input type="text" id="search-dren-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale DREN..." autocomplete="off">
-                            <div class="table-responsive" style="max-height: 350px;">
-                                <table class="table table-sm table-bordered table-hover text-center align-middle" id="dren-summary-table-container">
-                                    <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
-                                        <tr><th>Nom de la DREN</th><th>Soumissions</th><th>Part (%)</th></tr>
-                                    </thead>
-                                    <tbody id="dren-summary-table"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <div class="analysis-card shadow-sm h-100">
-                            <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par CISCO</h5>
-                            <input type="text" id="search-cisco-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale CISCO..." autocomplete="off">
-                            <div class="table-responsive" style="max-height: 350px;">
-                                <table class="table table-sm table-bordered table-hover text-center align-middle" id="cisco-summary-table-container">
-                                    <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
-                                        <tr><th>Nom de la CISCO</th><th>Soumissions</th><th>Part (%)</th></tr>
-                                    </thead>
-                                    <tbody id="cisco-summary-table"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        <div class="analysis-card shadow-sm">
-                            <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par ZAP</h5>
-                            <input type="text" id="search-zap-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale ZAP..." autocomplete="off">
-                            <div class="table-responsive" style="max-height: 350px;">
-                                <table class="table table-sm table-bordered table-hover text-center align-middle" id="zap-summary-table-container">
-                                    <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
-                                        <tr><th>Nom de la ZAP</th><th>Soumissions</th><th>Part (%)</th></tr>
-                                    </thead>
-                                    <tbody id="zap-summary-table"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+			
 			
 			
 			
@@ -1224,7 +1148,7 @@
             "Pour optimiser l'IA, le système effectue un dédoublonnage strict avant l'analyse :",
             "  Étape A : Liste de toutes les soumissions.",
             "  Étape B : Retrait des doublons parfaits (conservation d'une seule copie modèle si les phrases sont identiques à la virgule près).",
-            "  Étape C : L'IA SBERT analyse ces phrases uniques et les place dans des dossiers thématiques.",
+            "  Étape C : L'IA SBERT analyse ces phrases uniques et les place dans dossiers thématiques.",
             "EXEMPLE : Si 10 ZAP saisissent des activités de nettoyage (5 écrivent 'Nettoyer le bus', 3 'Laver le bus', 2 'Récurer l'autobus'),",
             "le système ne garde que 3 phrases (Nettoyer, Laver, Récurer). L'IA constate qu'elles ont le même sens et les regroupe dans la même thématique.",
             "La thématique contiendra alors 3 éléments (pour 3 formulations uniques), même s'il y a eu en réalité 10 formulaires soumis."
@@ -1277,14 +1201,13 @@
             { key: 'sousProduitZap', matches: ['sous_produit', 'sous-produit'], mustMatch: ['zap'], ex: [], label: 'Sous-produit de la ZAP', xmlName: '' }
         ];
 
-        // ================= FONCTION D'EXTRACTION NETTE DU MATRICULE / CIN =================
+        // ================= FONCTION D'EXTRACTION NETTE DU MATRICULE / CIN (Filtrage Regex) =================
         function extractMatricules(row) {
             let mats = [];
             
-            // Filtre strict (Regex) : Valide uniquement 6 ou 12 chiffres
+            // Filtre strict (Regex) : Valide uniquement 6 ou 12 chiffres (ignore les "image/jpeg", etc.)
             const validateID = (val) => {
                 if (!val) return null;
-                // On retire les espaces ou tirets éventuels saisis par l'utilisateur
                 let cleanVal = String(val).replace(/[\s.-]/g, ''); 
                 if (/^\d{6}$/.test(cleanVal) || /^\d{12}$/.test(cleanVal)) {
                     return cleanVal;
@@ -1293,19 +1216,15 @@
             };
 
             for (let key in row) {
-                // 1. CORRECTION MAJEURE : On IGNORE les métadonnées internes de Kobo 
-                // (comme _attachments qui contient les images "image/jpeg")
+                // Ignore formellement les métadonnées internes de Kobo (_attachments etc.)
                 if (key.startsWith('_')) continue;
 
                 let val = row[key];
                 
                 if (Array.isArray(val)) {
-                    // 2. Traitement des "Repeat Groups" (Listes de présences Kobo)
                     val.forEach(item => {
                         if (typeof item === 'object' && item !== null) {
                             let foundMat = false;
-                            
-                            // A) On cherche d'abord dans une colonne explicitement nommée matricule/cin
                             for (let subKey in item) {
                                 let lowSub = subKey.toLowerCase();
                                 if (lowSub.includes('matricule') || lowSub.includes('cin')) {
@@ -1316,8 +1235,6 @@
                                     }
                                 }
                             }
-                            
-                            // B) Si non trouvé par le nom, on scanne les valeurs elles-mêmes à la recherche de 6 ou 12 chiffres
                             if (!foundMat) {
                                 Object.values(item).forEach(v => {
                                     let validId = validateID(v);
@@ -1327,7 +1244,6 @@
                         }
                     });
                 } else if (typeof val === 'string' || typeof val === 'number') {
-                    // 3. Traitement des champs normaux hors Repeat Group
                     let lowKey = key.toLowerCase();
                     if (lowKey.endsWith('/matricule') || lowKey.endsWith('/cin') || lowKey.includes('numero_matricule_ou_cin')) {
                         let validId = validateID(val);
@@ -1336,7 +1252,6 @@
                 }
             }
             
-            // 4. On enlève les doublons internes et on assemble avec un point-virgule si plusieurs personnes
             return [...new Set(mats)].filter(Boolean).join(' ; ');
         }
 
@@ -1393,7 +1308,6 @@
             return `${prefix}_${ts}_kobo.${extension}`;
         }
 
-        // ================= IA : K-MEANS =================
         function perform1DKMeans(data, k) {
             if (data.length === 0) return [];
             let uniqueData = [...new Set(data)].sort((a,b)=>a-b);
@@ -1426,7 +1340,6 @@
             return assignments.map(a => rankMap[a]);
         }
 
-        // ================= IA : JENKS =================
         function getJenksBreaks(data, numclass) {
             data = data.slice().sort((a, b) => a - b);
             if (data.length <= numclass) return data;
@@ -1478,7 +1391,6 @@
             });
         }
 
-        // ================= IA : DBSCAN 1D =================
         function performDBSCAN(data) {
             if (data.length === 0) return { assignments: [], numClusters: 0, eps: 0 };
             let max = Math.max(...data), min = Math.min(...data);
@@ -1523,7 +1435,6 @@
             return { assignments: labels, numClusters: clusterId, eps: eps };
         }
 
-        // ================= MOTEUR D'INFÉRENCE : SYSTÈME EXPERT =================
         function getClusterMap(freqData, k) {
             let entries = Object.entries(freqData).filter(([key,v]) => key !== "Non renseigné");
             entries.sort((a,b) => a[1] - b[1]);
@@ -1830,6 +1741,7 @@
             } finally { $('#loading-box').hide(); }
         }
 
+        // ================= NOUVELLE FONCTION DE RENDU AVEC MARQUEUR DE DOUBLONS (ONGLET 1) =================
         function renderTable(data) {
             const tbody = $('#table-body').empty(), gHeaderTr = $('#table-group-header-row').empty(), sHeaderTr = $('#table-sub-header-row').empty();
             if (data.length === 0) {
@@ -1850,11 +1762,50 @@
 
             let exKeys = Array.from(exSet), mtKeys = Array.from(mtSet);
 
-            gHeaderTr.append(`<th class="group-header-survey" style="background-color: #f39c12 !important;"><i class="fas fa-bolt"></i> Action</th>`);
+            // 1) PRÉ-CALCUL DES DOUBLONS AVEC SIGNATURE STRICTE
+            let signatureMap = {};
+            data.forEach((r, idx) => {
+                let valDren = cleanSpaces(getKoboValue(r, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous'], []));
+                let valCisco = cleanSpaces(getKoboValue(r, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous'], []));
+                let valZap = cleanSpaces(getKoboValue(r, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous'], []));
+                let valAct = cleanSpaces(getKoboValue(r, ['activite', 'activité'], ['sous_activite', 'sous-activite'], []));
+                let valProd = cleanSpaces(getKoboValue(r, ['produit'], ['sous_produit', 'sous-produit'], []));
+                let valSAct = cleanSpaces(getKoboValue(r, ['sous_activite', 'sous-activite'], [], []));
+                
+                let matsRaw = extractMatricules(r);
+                let matsArray = matsRaw ? matsRaw.split(';').map(m => m.trim()).filter(Boolean) : ["Non renseigné"];
+                
+                matsArray.forEach(mat => {
+                    let sig = [valDren, valCisco, valZap, valAct, valProd, valSAct, mat].join("|||");
+                    if (!signatureMap[sig]) signatureMap[sig] = [];
+                    signatureMap[sig].push(idx);
+                });
+            });
+            
+            let doublonCounter = 1;
+            let rowToDoublonIds = {};
+            
+            for (let sig in signatureMap) {
+                if (signatureMap[sig].length > 1) {
+                    let dName = "Doublon " + doublonCounter;
+                    doublonCounter++;
+                    signatureMap[sig].forEach(rowIdx => {
+                        if (!rowToDoublonIds[rowIdx]) rowToDoublonIds[rowIdx] = [];
+                        if (!rowToDoublonIds[rowIdx].includes(dName)) {
+                            rowToDoublonIds[rowIdx].push(dName);
+                        }
+                    });
+                }
+            }
+
+            // 2) CRÉATION DES EN-TÊTES
+            gHeaderTr.append(`<th class="group-header-survey" colspan="2" style="background-color: #f39c12 !important;"><i class="fas fa-bolt"></i> Statut & Action</th>`);
             if (baseColsInfo.length + exKeys.length > 0) gHeaderTr.append(`<th colspan="${baseColsInfo.length + exKeys.length}" class="group-header-survey"><i class="fas fa-edit"></i> Matrice Complète</th>`);
             if (mtKeys.length > 0) gHeaderTr.append(`<th colspan="${mtKeys.length}" class="group-header-meta"><i class="fas fa-cogs"></i> Métadonnées</th>`);
 
+            sHeaderTr.append(`<th class="sub-header-survey" style="background-color: #c0392b !important; color: white; width: 100px;">DOUBLON</th>`);
             sHeaderTr.append(`<th class="sub-header-survey" style="background-color: #e67e22 !important; width: 100px;">Éditer (Kobo)</th>`);
+            
             baseColsInfo.forEach(col => sHeaderTr.append(`<th class="sub-header-survey">${col.label}</th>`));
             exKeys.forEach(key => sHeaderTr.append(`<th class="sub-header-survey">${getTranslatedHeader(key.split('/').pop())}</th>`));
             mtKeys.forEach(key => sHeaderTr.append(`<th class="sub-header-meta">${getTranslatedHeader(key.split('/').pop())}</th>`));
@@ -1888,9 +1839,8 @@
                 }).join(' ; '));
             }
 
-            let tableRowsHtml = [];
-            
-            data.forEach(row => {
+            // 3) REMPLISSAGE DU TABLEAU
+            data.forEach((row, idx) => {
                 const tr = $('<tr></tr>'); let sData = {};
                 
                 let colZap = baseColsInfo.find(c => c.key === 'zap');
@@ -1902,6 +1852,17 @@
                 
                 let entityName = vZap || vCisco || vDren || "cette soumission";
                 
+                // Insertion de la cellule Doublon
+                let doublonsForRow = rowToDoublonIds[idx] || [];
+                let doublonHtml = doublonsForRow.length > 0 
+                    ? doublonsForRow.map(d => `<span class="badge bg-danger shadow-sm mb-1" style="font-size: 0.85rem;"><i class="fas fa-exclamation-triangle"></i> ${d}</span>`).join('<br>')
+                    : `<span class="badge bg-success shadow-sm" style="font-size: 0.85rem;"><i class="fas fa-check"></i> Unique</span>`;
+                
+                let doublonText = doublonsForRow.length > 0 ? doublonsForRow.join(', ') : 'Unique';
+                
+                tr.append($('<td></td>').attr('data-csv', doublonText).html(doublonHtml));
+                
+                // Bouton Éditer
                 let editUrl = '#';
                 let editBtnHtml = '';
                 if (row['_id']) {
@@ -3056,7 +3017,6 @@ Date : ${getFormattedDateTime()}
 
 
 
-
 <!-- Script Module pour l'IA Sémantique (Transformers.js) -->
     <script type="module">
         import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.16.0';
@@ -3205,9 +3165,11 @@ Date : ${getFormattedDateTime()}
                 $('#cons-progress-bar').css('width', '100%').text('Modèle chargé !');
 
                 const consTasks = [
-                    { textKey: 'activiteDren', entityKey: 'dren', resId: 'res-cons-act-dren', name: 'Activités DREN' },
-                    { textKey: 'activiteCisco', entityKey: 'cisco', resId: 'res-cons-act-cisco', name: 'Activités CISCO' },
-                    { textKey: 'activiteZap', entityKey: 'zap', resId: 'res-cons-act-zap', name: 'Activités ZAP' },
+                    // --- DEMANDE C : Remplacement de 'activite' par 'sousActivite' pour afficher les Sous-Activités ---
+                    { textKey: 'sousActiviteDren', entityKey: 'dren', resId: 'res-cons-act-dren', name: 'Activités DREN' },
+                    { textKey: 'sousActiviteCisco', entityKey: 'cisco', resId: 'res-cons-act-cisco', name: 'Activités CISCO' },
+                    { textKey: 'sousActiviteZap', entityKey: 'zap', resId: 'res-cons-act-zap', name: 'Activités ZAP' },
+                    // --------------------------------------------------------------------------------------------------
                     { textKey: 'produitDren', entityKey: 'dren', resId: 'res-cons-prod-dren', name: 'Produits DREN' },
                     { textKey: 'produitCisco', entityKey: 'cisco', resId: 'res-cons-prod-cisco', name: 'Produits CISCO' },
                     { textKey: 'produitZap', entityKey: 'zap', resId: 'res-cons-prod-zap', name: 'Produits ZAP' },
@@ -3243,18 +3205,22 @@ Date : ${getFormattedDateTime()}
                                 let valProd = cleanSpaces(getKoboValue(r, ['produit'], ['sous_produit', 'sous-produit'], []));
                                 let valSAct = cleanSpaces(getKoboValue(r, ['sous_activite', 'sous-activite'], [], []));
                                 
-                                // Extraction du matricule via la fonction dédiée
-                                let valMatricule = extractMatricules(r);
+                                // On extrait la chaîne brute qui peut contenir plusieurs matricules
+                                let valMatriculesRaw = extractMatricules(r);
                                 
-                                // On fusionne tous ces champs pour créer l'empreinte digitale unique de la soumission
-                                let rowSignature = [valDren, valCisco, valZap, valAct, valProd, valSAct, valMatricule].join("|||");
-                                let matriculeDisplay = valMatricule || "Non renseigné";
-                                
-                                let key = text + "|||" + e + "|||" + rowSignature;
-                                
-                                if (!map[key]) map[key] = { text: text, entity: e, matricule: matriculeDisplay, count: 0, dates: [] };
-                                map[key].count++;
-                                map[key].dates.push(subDate);
+                                // --- DEMANDES A et B : DÉCOUPAGE DES MATRICULES MULTIPLES ---
+                                let matsArray = valMatriculesRaw ? valMatriculesRaw.split(';').map(m => m.trim()).filter(Boolean) : ["Non renseigné"];
+
+                                matsArray.forEach(singleMatricule => {
+                                    // La signature est calculée avec UN SEUL matricule à la fois pour repérer le vrai doublon
+                                    let rowSignature = [valDren, valCisco, valZap, valAct, valProd, valSAct, singleMatricule].join("|||");
+                                    let key = text + "|||" + e + "|||" + rowSignature;
+                                    
+                                    if (!map[key]) map[key] = { text: text, entity: e, matricule: singleMatricule, count: 0, dates: [] };
+                                    map[key].count++;
+                                    map[key].dates.push(subDate);
+                                });
+                                // -----------------------------------------------------------
                             }
                         });
                         
@@ -3270,7 +3236,6 @@ Date : ${getFormattedDateTime()}
                                 c.items.forEach(txt => {
                                     let matchingItems = items.filter(i => i.text === txt);
                                     matchingItems.forEach(mi => {
-                                        // Ajout du matricule dans l'objet final
                                         tableData.push({ theme: themeName, text: mi.text, entity: mi.entity, matricule: mi.matricule, count: mi.count, dates: mi.dates });
                                     });
                                 });
