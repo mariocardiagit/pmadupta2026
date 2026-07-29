@@ -264,6 +264,16 @@
                             <input type="date" id="filter-date-fin" class="form-control filter-input">
                         </div>
 
+                        <!-- NOUVEAU : BOUTON AFFICHER LES DOUBLONS -->
+                        <div class="col-md-12 mt-3">
+                            <div class="form-check form-switch border p-2 rounded bg-white shadow-sm d-inline-block">
+                                <input class="form-check-input filter-input" type="checkbox" id="filter-only-doublons" style="cursor: pointer; transform: scale(1.2); margin-top: 6px;">
+                                <label class="form-check-label text-danger fw-bold ms-2" for="filter-only-doublons" style="cursor: pointer;">
+                                    <i class="fas fa-exclamation-triangle"></i> Afficher Tous Les DOUBLONS
+                                </label>
+                            </div>
+                        </div>
+
                     </div>
                     <div class="mt-3 text-end">
                         <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
@@ -318,7 +328,83 @@
                     </table>
                 </div>
             </div>
-			
+
+            <!-- ONGLET 2 : ANALYSE & IA -->
+            <div class="tab-pane fade" id="analyse" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                    <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
+                    <div class="d-flex align-items-center flex-wrap gap-3">
+                        <div class="btn-group shadow-sm">
+                            <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter l'Analyse</button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToCSV('analyse_suivi_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToExcel('analyse_suivi_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToHTML('analyse_suivi_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer HTML</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportAnalysisToJSONFile('analyse_suivi_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
+                            </ul>
+                        </div>
+                        <div class="btn-group shadow-sm">
+                            <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-share-alt"></i> Partager l'Analyse</button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" onclick="sendAnalysisToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (JSON)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sendAnalysisToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (JSON)</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ai-insights shadow-sm" id="ai-report-container">
+                    <h5><i class="fas fa-robot text-primary"></i> Rapport d'Analyse Intelligente (Généré automatiquement)</h5>
+                    <div id="ai-report-content"></div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="analysis-card shadow-sm h-100">
+                            <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par DREN</h5>
+                            <input type="text" id="search-dren-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale DREN..." autocomplete="off">
+                            <div class="table-responsive" style="max-height: 350px;">
+                                <table class="table table-sm table-bordered table-hover text-center align-middle" id="dren-summary-table-container">
+                                    <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
+                                        <tr><th>Nom de la DREN</th><th>Soumissions</th><th>Part (%)</th></tr>
+                                    </thead>
+                                    <tbody id="dren-summary-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="analysis-card shadow-sm h-100">
+                            <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par CISCO</h5>
+                            <input type="text" id="search-cisco-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale CISCO..." autocomplete="off">
+                            <div class="table-responsive" style="max-height: 350px;">
+                                <table class="table table-sm table-bordered table-hover text-center align-middle" id="cisco-summary-table-container">
+                                    <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
+                                        <tr><th>Nom de la CISCO</th><th>Soumissions</th><th>Part (%)</th></tr>
+                                    </thead>
+                                    <tbody id="cisco-summary-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="analysis-card shadow-sm">
+                            <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par ZAP</h5>
+                            <input type="text" id="search-zap-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale ZAP..." autocomplete="off">
+                            <div class="table-responsive" style="max-height: 350px;">
+                                <table class="table table-sm table-bordered table-hover text-center align-middle" id="zap-summary-table-container">
+                                    <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;">
+                                        <tr><th>Nom de la ZAP</th><th>Soumissions</th><th>Part (%)</th></tr>
+                                    </thead>
+                                    <tbody id="zap-summary-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 			
 			
 			
@@ -1133,7 +1219,6 @@
 
 
 
-
 <script>
         // VARIABLE GLOBALE POUR SAUVEGARDER L'ANALYSE SÉMANTIQUE
         let globalSemanticResults = {};
@@ -1148,7 +1233,7 @@
             "Pour optimiser l'IA, le système effectue un dédoublonnage strict avant l'analyse :",
             "  Étape A : Liste de toutes les soumissions.",
             "  Étape B : Retrait des doublons parfaits (conservation d'une seule copie modèle si les phrases sont identiques à la virgule près).",
-            "  Étape C : L'IA SBERT analyse ces phrases uniques et les place dans dossiers thématiques.",
+            "  Étape C : L'IA SBERT analyse ces phrases uniques et les place dans des dossiers thématiques.",
             "EXEMPLE : Si 10 ZAP saisissent des activités de nettoyage (5 écrivent 'Nettoyer le bus', 3 'Laver le bus', 2 'Récurer l'autobus'),",
             "le système ne garde que 3 phrases (Nettoyer, Laver, Récurer). L'IA constate qu'elles ont le même sens et les regroupe dans la même thématique.",
             "La thématique contiendra alors 3 éléments (pour 3 formulations uniques), même s'il y a eu en réalité 10 formulaires soumis."
@@ -1854,6 +1939,8 @@
                 
                 // Insertion de la cellule Doublon
                 let doublonsForRow = rowToDoublonIds[idx] || [];
+                sData.isDoublon = doublonsForRow.length > 0; // IMPORTANT POUR LE BOUTON FILTRE
+
                 let doublonHtml = doublonsForRow.length > 0 
                     ? doublonsForRow.map(d => `<span class="badge bg-danger shadow-sm mb-1" style="font-size: 0.85rem;"><i class="fas fa-exclamation-triangle"></i> ${d}</span>`).join('<br>')
                     : `<span class="badge bg-success shadow-sm" style="font-size: 0.85rem;"><i class="fas fa-check"></i> Unique</span>`;
@@ -2112,7 +2199,8 @@
                 sAct: cleanSpaces($('#filter-sous-activite').val()), 
                 sProd: cleanSpaces($('#filter-sous-produit').val()),
                 dateDebut: $('#filter-date-debut').val(),
-                dateFin: $('#filter-date-fin').val()
+                dateFin: $('#filter-date-fin').val(),
+                onlyDoublons: $('#filter-only-doublons').is(':checked') // NOUVEAU FILTRE DOUBLON
             };
 
             let dStart = f.dateDebut ? new Date(f.dateDebut) : null;
@@ -2137,12 +2225,26 @@
                     dateMatch = false;
                 }
 
-                if (mD && mC && mZ && mA && mP && mSA && mSP && dateMatch) { $(this).show(); vC++; } else { $(this).hide(); }
+                // APPLICATION DE LA RÈGLE DOUBLON
+                let doublonMatch = true;
+                if (f.onlyDoublons && !s.isDoublon) {
+                    doublonMatch = false;
+                }
+
+                if (mD && mC && mZ && mA && mP && mSA && mSP && dateMatch && doublonMatch) { 
+                    $(this).show(); vC++; 
+                } else { 
+                    $(this).hide(); 
+                }
             });
             $('#record-count').text(vC);
         }
 
-        function clearFilters() { $('.filter-input').val(''); applyFilters(); }
+        function clearFilters() { 
+            $('.filter-input').not('[type="checkbox"]').val(''); 
+            $('#filter-only-doublons').prop('checked', false);
+            applyFilters(); 
+        }
         
         function getCurrentFilters() { 
             return { 
@@ -2154,7 +2256,8 @@
                 "Sous-activité": cleanSpaces($('#filter-sous-activite').val()) || "Tous", 
                 "Sous-produit": cleanSpaces($('#filter-sous-produit').val()) || "Tous",
                 "Date de début": $('#filter-date-debut').val() || "Toutes",
-                "Date de fin": $('#filter-date-fin').val() || "Toutes"
+                "Date de fin": $('#filter-date-fin').val() || "Toutes",
+                "Filtre Strict Doublons": $('#filter-only-doublons').is(':checked') ? "Activé" : "Désactivé"
             }; 
         }
         
@@ -2163,7 +2266,12 @@
         function getAnalysisFilters() { return { "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune", "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune", "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune" }; }
         function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
 
-        // ================= EXPORTS ET PARTAGE =================
+
+
+
+
+
+// ================= EXPORTS ET PARTAGE =================
         function downloadFile(b, fn) { let a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = fn; a.style.display="none"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
 
         function exportTableToCSV(pfx) {
@@ -3013,11 +3121,7 @@ Date : ${getFormattedDateTime()}
         });
     </script>
 
-
-
-
-
-<!-- Script Module pour l'IA Sémantique (Transformers.js) -->
+    <!-- Script Module pour l'IA Sémantique (Transformers.js) -->
     <script type="module">
         import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.16.0';
 
@@ -3165,11 +3269,11 @@ Date : ${getFormattedDateTime()}
                 $('#cons-progress-bar').css('width', '100%').text('Modèle chargé !');
 
                 const consTasks = [
-                    // --- DEMANDE C : Remplacement de 'activite' par 'sousActivite' pour afficher les Sous-Activités ---
+                    // Affiche les Sous-Activités pour les 3 premières tâches (Onglet 10)
                     { textKey: 'sousActiviteDren', entityKey: 'dren', resId: 'res-cons-act-dren', name: 'Activités DREN' },
                     { textKey: 'sousActiviteCisco', entityKey: 'cisco', resId: 'res-cons-act-cisco', name: 'Activités CISCO' },
                     { textKey: 'sousActiviteZap', entityKey: 'zap', resId: 'res-cons-act-zap', name: 'Activités ZAP' },
-                    // --------------------------------------------------------------------------------------------------
+                    
                     { textKey: 'produitDren', entityKey: 'dren', resId: 'res-cons-prod-dren', name: 'Produits DREN' },
                     { textKey: 'produitCisco', entityKey: 'cisco', resId: 'res-cons-prod-cisco', name: 'Produits CISCO' },
                     { textKey: 'produitZap', entityKey: 'zap', resId: 'res-cons-prod-zap', name: 'Produits ZAP' },
@@ -3197,7 +3301,7 @@ Date : ${getFormattedDateTime()}
                                 let e = (entity && entity !== 'Non renseigné') ? entity : 'Inconnue';
                                 let subDate = r['_submission_time'] ? r['_submission_time'] : 'Date inconnue';
                                 
-                                // --- NOUVELLE LOGIQUE DE SIGNATURE STRICTE POUR LES DOUBLONS ---
+                                // Construction de la signature stricte
                                 let valDren = cleanSpaces(getKoboValue(r, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous'], []));
                                 let valCisco = cleanSpaces(getKoboValue(r, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous'], []));
                                 let valZap = cleanSpaces(getKoboValue(r, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous'], []));
@@ -3205,14 +3309,12 @@ Date : ${getFormattedDateTime()}
                                 let valProd = cleanSpaces(getKoboValue(r, ['produit'], ['sous_produit', 'sous-produit'], []));
                                 let valSAct = cleanSpaces(getKoboValue(r, ['sous_activite', 'sous-activite'], [], []));
                                 
-                                // On extrait la chaîne brute qui peut contenir plusieurs matricules
                                 let valMatriculesRaw = extractMatricules(r);
                                 
-                                // --- DEMANDES A et B : DÉCOUPAGE DES MATRICULES MULTIPLES ---
+                                // Séparation par point-virgule pour isoler chaque agent
                                 let matsArray = valMatriculesRaw ? valMatriculesRaw.split(';').map(m => m.trim()).filter(Boolean) : ["Non renseigné"];
 
                                 matsArray.forEach(singleMatricule => {
-                                    // La signature est calculée avec UN SEUL matricule à la fois pour repérer le vrai doublon
                                     let rowSignature = [valDren, valCisco, valZap, valAct, valProd, valSAct, singleMatricule].join("|||");
                                     let key = text + "|||" + e + "|||" + rowSignature;
                                     
@@ -3220,7 +3322,6 @@ Date : ${getFormattedDateTime()}
                                     map[key].count++;
                                     map[key].dates.push(subDate);
                                 });
-                                // -----------------------------------------------------------
                             }
                         });
                         
@@ -3254,7 +3355,7 @@ Date : ${getFormattedDateTime()}
                     }
                 }
                 $('#cons-status').text("✅ Analyse des soumissions terminée avec succès !");
-                window.filterSoumissionsTables(); // Applique le filtre automatiquement après analyse
+                window.filterSoumissionsTables(); 
                 setTimeout(() => $('#cons-progress-container').hide(), 5000);
             } catch(e) {
                 $('#cons-status').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Erreur lors de l'analyse : ${e.message}</span>`);
@@ -3268,14 +3369,13 @@ Date : ${getFormattedDateTime()}
                 return;
             }
 
-            globalSemanticResults = {}; // Remise à zéro des résultats
+            globalSemanticResults = {}; 
 
             $('#semantic-progress-container').show();
             $('#semantic-status').text("Téléchargement et initialisation du modèle IA (SBERT)... Cela peut prendre une minute.");
             $('#semantic-progress-bar').css('width', '5%').text('5%');
 
             try {
-                // Utilisation du modèle multilingue léger de Xenova
                 let extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', {
                     progress_callback: x => {
                         if (x.status === 'progress') {
@@ -3325,4 +3425,4 @@ Date : ${getFormattedDateTime()}
         };
     </script>
 </body>
-</html>	
+</html>		
