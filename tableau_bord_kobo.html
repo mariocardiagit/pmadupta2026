@@ -264,7 +264,7 @@
                             <input type="date" id="filter-date-fin" class="form-control filter-input">
                         </div>
 
-                        <!-- NOUVEAU : BOUTON AFFICHER LES DOUBLONS -->
+                        <!-- BOUTON AFFICHER LES DOUBLONS -->
                         <div class="col-md-12 mt-3">
                             <div class="form-check form-switch border p-2 rounded bg-white shadow-sm d-inline-block">
                                 <input class="form-check-input filter-input" type="checkbox" id="filter-only-doublons" style="cursor: pointer; transform: scale(1.2); margin-top: 6px;">
@@ -405,6 +405,8 @@
                     </div>
                 </div>
             </div>
+			
+			
 			
 			
 			
@@ -1219,6 +1221,9 @@
 
 
 
+
+
+
 <script>
         // VARIABLE GLOBALE POUR SAUVEGARDER L'ANALYSE SÉMANTIQUE
         let globalSemanticResults = {};
@@ -1826,7 +1831,7 @@
             } finally { $('#loading-box').hide(); }
         }
 
-        // ================= NOUVELLE FONCTION DE RENDU AVEC MARQUEUR DE DOUBLONS (ONGLET 1) =================
+        // ================= NOUVELLE FONCTION DE RENDU AVEC ANOMALIE SOUS-ACTIVITÉ & DOUBLONS (ONGLET 1) =================
         function renderTable(data) {
             const tbody = $('#table-body').empty(), gHeaderTr = $('#table-group-header-row').empty(), sHeaderTr = $('#table-sub-header-row').empty();
             if (data.length === 0) {
@@ -1884,10 +1889,12 @@
             }
 
             // 2) CRÉATION DES EN-TÊTES
-            gHeaderTr.append(`<th class="group-header-survey" colspan="2" style="background-color: #f39c12 !important;"><i class="fas fa-bolt"></i> Statut & Action</th>`);
+            // On inclut les 3 colonnes de statut/action : Anomalie, Doublon, Editer
+            gHeaderTr.append(`<th class="group-header-survey" colspan="3" style="background-color: #f39c12 !important;"><i class="fas fa-bolt"></i> Statut & Action</th>`);
             if (baseColsInfo.length + exKeys.length > 0) gHeaderTr.append(`<th colspan="${baseColsInfo.length + exKeys.length}" class="group-header-survey"><i class="fas fa-edit"></i> Matrice Complète</th>`);
             if (mtKeys.length > 0) gHeaderTr.append(`<th colspan="${mtKeys.length}" class="group-header-meta"><i class="fas fa-cogs"></i> Métadonnées</th>`);
 
+            sHeaderTr.append(`<th class="sub-header-survey" style="background-color: #8e44ad !important; color: white; width: 150px;">Anomalie Colonne Sous activite finale</th>`);
             sHeaderTr.append(`<th class="sub-header-survey" style="background-color: #c0392b !important; color: white; width: 100px;">DOUBLON</th>`);
             sHeaderTr.append(`<th class="sub-header-survey" style="background-color: #e67e22 !important; width: 100px;">Éditer (Kobo)</th>`);
             
@@ -1937,7 +1944,17 @@
                 
                 let entityName = vZap || vCisco || vDren || "cette soumission";
                 
-                // Insertion de la cellule Doublon
+                // Pré-calcul de la sous-activité pour la vérification de l'anomalie
+                let valSAct = cleanSpaces(getKoboValue(row, ['sous_activite', 'sous-activite'], [], []));
+                
+                // --- COLONNE ANOMALIE SOUS ACTIVITE ---
+                let anomalyText = (!valSAct || valSAct.toLowerCase() === 'non renseigné') ? "Anomalie de Liaison entre ACTIVITE et PRODUIT et SOUS ACTIVITE dans le Fichier xlsform PARENT" : "OK";
+                let anomalyHtml = (!valSAct || valSAct.toLowerCase() === 'non renseigné') 
+                    ? `<span class="badge bg-danger shadow-sm text-wrap" style="font-size: 0.8rem; line-height: 1.2;"><i class="fas fa-exclamation-triangle"></i> Anomalie de Liaison entre ACTIVITE et PRODUIT et SOUS ACTIVITE dans le Fichier xlsform PARENT</span>`
+                    : `<span class="badge bg-success shadow-sm" style="font-size: 0.85rem;"><i class="fas fa-check"></i> Valide</span>`;
+                tr.append($('<td></td>').attr('data-csv', anomalyText).html(anomalyHtml));
+
+                // --- COLONNE DOUBLON ---
                 let doublonsForRow = rowToDoublonIds[idx] || [];
                 sData.isDoublon = doublonsForRow.length > 0; // IMPORTANT POUR LE BOUTON FILTRE
 
@@ -1946,10 +1963,9 @@
                     : `<span class="badge bg-success shadow-sm" style="font-size: 0.85rem;"><i class="fas fa-check"></i> Unique</span>`;
                 
                 let doublonText = doublonsForRow.length > 0 ? doublonsForRow.join(', ') : 'Unique';
-                
                 tr.append($('<td></td>').attr('data-csv', doublonText).html(doublonHtml));
                 
-                // Bouton Éditer
+                // --- BOUTON ÉDITER ---
                 let editUrl = '#';
                 let editBtnHtml = '';
                 if (row['_id']) {
@@ -1960,6 +1976,7 @@
                 }
                 tr.append($('<td></td>').attr('data-csv', editUrl).html(editBtnHtml));
                 
+                // Remplissage des colonnes dynamiques
                 baseColsInfo.forEach(col => {
                     let val = getKoboValue(row, col.matches, col.ex, col.mustMatch);
                     tr.append($('<td></td>').attr('data-csv', val).text(val)); sData[col.key] = cleanSpaces(String(val)).toLowerCase();
