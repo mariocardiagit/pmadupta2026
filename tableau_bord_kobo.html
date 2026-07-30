@@ -230,11 +230,21 @@
                                 
                                 <div class="col-md-6 mt-3">
                                     <label class="filter-label text-primary"><i class="fas fa-calendar-alt"></i> Date de début (Soumission)</label>
-                                    <input type="date" id="filter-date-debut" class="form-control filter-input">
+                                    <input type="date" id="filter-date-debut" class="form-control filter-input border-primary">
                                 </div>
                                 <div class="col-md-6 mt-3">
                                     <label class="filter-label text-primary"><i class="fas fa-calendar-check"></i> Date de fin (Soumission)</label>
-                                    <input type="date" id="filter-date-fin" class="form-control filter-input">
+                                    <input type="date" id="filter-date-fin" class="form-control filter-input border-primary">
+                                </div>
+
+                                <!-- NOUVEAUX CHAMPS : DATES DE REALISATION (EN ROUGE/ALERTE) -->
+                                <div class="col-md-6 mt-3">
+                                    <label class="filter-label text-danger"><i class="fas fa-calendar-alt"></i> Date de début (Réalisation)</label>
+                                    <input type="date" id="filter-date-debut-realisation" class="form-control filter-input border-danger shadow-sm" style="background-color: #fdedec;">
+                                </div>
+                                <div class="col-md-6 mt-3">
+                                    <label class="filter-label text-danger"><i class="fas fa-calendar-check"></i> Date de fin (Réalisation)</label>
+                                    <input type="date" id="filter-date-fin-realisation" class="form-control filter-input border-danger shadow-sm" style="background-color: #fdedec;">
                                 </div>
 
                                 <div class="col-md-12 mt-3 d-flex flex-wrap gap-3">
@@ -254,7 +264,7 @@
 
                                 <!-- NOUVEAU BLOC : 15 CASES A COCHER -->
                                 <div class="col-md-12 mt-4 border-top pt-3">
-                                    <label class="filter-label text-primary mb-3"><i class="fas fa-check-square"></i> Champs de recherche par présence (Cochez pour afficher uniquement si la donnée existe)</label>
+                                    <label class="filter-label text-primary mb-3"><i class="fas fa-check-square"></i> Filtres par présence (Cochez pour afficher uniquement les lignes où la donnée existe)</label>
                                     <div class="row g-2">
                                         <div class="col-lg-2 col-md-4">
                                             <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-dren"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-dren">Afficher Toutes Les DREN</label></div>
@@ -325,43 +335,7 @@
                             </table>
                         </div>
                     </div>
-
-                    <!-- ONGLET 2 : ANALYSE & IA -->
-                    <div class="tab-pane fade" id="analyse" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                            <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
-                        </div>
-                        <div class="ai-insights shadow-sm" id="ai-report-container">
-                            <h5><i class="fas fa-robot text-primary"></i> Rapport d'Analyse Intelligente (Généré automatiquement)</h5>
-                            <div id="ai-report-content"></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <div class="analysis-card shadow-sm h-100">
-                                    <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par DREN</h5>
-                                    <input type="text" id="search-dren-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale DREN..." autocomplete="off">
-                                    <div class="table-responsive" style="max-height: 350px;">
-                                        <table class="table table-sm table-bordered table-hover text-center align-middle" id="dren-summary-table-container">
-                                            <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;"><tr><th>Nom de la DREN</th><th>Soumissions</th><th>Part (%)</th></tr></thead>
-                                            <tbody id="dren-summary-table"></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-4">
-                                <div class="analysis-card shadow-sm h-100">
-                                    <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par CISCO</h5>
-                                    <input type="text" id="search-cisco-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale CISCO..." autocomplete="off">
-                                    <div class="table-responsive" style="max-height: 350px;">
-                                        <table class="table table-sm table-bordered table-hover text-center align-middle" id="cisco-summary-table-container">
-                                            <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;"><tr><th>Nom de la CISCO</th><th>Soumissions</th><th>Part (%)</th></tr></thead>
-                                            <tbody id="cisco-summary-table"></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+					
 					
 					
 					
@@ -946,7 +920,7 @@
                                             <th>Date de Soumission</th>
                                             <th>Niveau</th>
                                             <th>Entité Responsable</th>
-                                            <th>Activité / Produit concerné</th>
+                                            <th>Sous Activité concernée</th>
                                             <th class="bg-dark text-white"><i class="fas fa-hashtag"></i> Valeur de la Réalisation</th>
                                         </tr>
                                     </thead>
@@ -966,7 +940,6 @@
 
     <!-- Scripts Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 
 
 
@@ -1643,6 +1616,13 @@
                 exKeys.concat(mtKeys).forEach(key => {
                     let xmlName = key.split('/').pop();
                     tr.append($('<td></td>').attr('data-csv', formatExtra(row[key], row, xmlName, true)).html(formatExtra(row[key], row, xmlName, false)));
+                    
+                    // Ajout conditionnel de la date de réalisation pour le filtre si existante
+                    let xmlNameLow = xmlName.toLowerCase();
+                    if(xmlNameLow.includes('date') && (xmlNameLow.includes('realisation') || xmlNameLow.includes('enq'))) {
+                        let parsedD = new Date(row[key]);
+                        if(!isNaN(parsedD)) sData.realDateObj = parsedD;
+                    }
                 });
                 tr.data('search', sData); tbody.append(tr);
             });
@@ -1872,6 +1852,10 @@
                 dateDebut: $('#filter-date-debut').val(), dateFin: $('#filter-date-fin').val(),
                 onlyDoublons: $('#filter-only-doublons').is(':checked'),
                 onlyAnomalies: $('#filter-only-anomalies').is(':checked'),
+                
+                // NOUVEAUX FILTRES DATES DE REALISATION
+                dateDebutReal: $('#filter-date-debut-realisation').val(), dateFinReal: $('#filter-date-fin-realisation').val(),
+
                 // === NOUVELLES CASES A COCHER DE PRESENCE ===
                 chkDren: $('#chk-dren').is(':checked'), chkCisco: $('#chk-cisco').is(':checked'), chkZap: $('#chk-zap').is(':checked'),
                 chkActDren: $('#chk-act-dren').is(':checked'), chkActCisco: $('#chk-act-cisco').is(':checked'), chkActZap: $('#chk-act-zap').is(':checked'),
@@ -1882,6 +1866,9 @@
 
             let dStart = f.dateDebut ? new Date(f.dateDebut) : null; if (dStart) dStart.setHours(0, 0, 0, 0);
             let dEnd = f.dateFin ? new Date(f.dateFin) : null; if (dEnd) dEnd.setHours(23, 59, 59, 999);
+            
+            let dStartReal = f.dateDebutReal ? new Date(f.dateDebutReal) : null; if (dStartReal) dStartReal.setHours(0, 0, 0, 0);
+            let dEndReal = f.dateFinReal ? new Date(f.dateFinReal) : null; if (dEndReal) dEndReal.setHours(23, 59, 59, 999);
 
             let hasVal = (val) => val && val !== 'non renseigné' && val !== '';
 
@@ -1899,6 +1886,13 @@
                     if (dStart && s.subDateObj < dStart) dateMatch = false;
                     if (dEnd && s.subDateObj > dEnd) dateMatch = false;
                 } else if (dStart || dEnd) dateMatch = false;
+
+                // Application du filtre de date de réalisation
+                let dateRealMatch = true;
+                if (s.realDateObj) {
+                    if (dStartReal && s.realDateObj < dStartReal) dateRealMatch = false;
+                    if (dEndReal && s.realDateObj > dEndReal) dateRealMatch = false;
+                } else if (dStartReal || dEndReal) dateRealMatch = false;
 
                 let doublonMatch = true; if (f.onlyDoublons && !s.isDoublon) doublonMatch = false;
                 let anomalyMatch = true; if (f.onlyAnomalies && !s.isAnomaly) anomalyMatch = false;
@@ -1925,7 +1919,7 @@
                 if (f.chkSprodCisco && !hasVal(s.sousProduitCisco)) chkMatch = false;
                 if (f.chkSprodZap && !hasVal(s.sousProduitZap)) chkMatch = false;
 
-                if (mD && mC && mZ && mA && mP && mSA && mSP && dateMatch && doublonMatch && anomalyMatch && chkMatch) { $(this).show(); vC++; } else { $(this).hide(); }
+                if (mD && mC && mZ && mA && mP && mSA && mSP && dateMatch && dateRealMatch && doublonMatch && anomalyMatch && chkMatch) { $(this).show(); vC++; } else { $(this).hide(); }
             });
             $('#record-count').text(vC);
         }
@@ -1941,7 +1935,8 @@
                 "DREN": cleanSpaces($('#filter-dren').val()) || "Tous", "CISCO": cleanSpaces($('#filter-cisco').val()) || "Tous", "ZAP": cleanSpaces($('#filter-zap').val()) || "Tous", 
                 "Activité": cleanSpaces($('#filter-activite').val()) || "Tous", "Produit": cleanSpaces($('#filter-produit').val()) || "Tous", 
                 "Sous-activité": cleanSpaces($('#filter-sous-activite').val()) || "Tous", "Sous-produit": cleanSpaces($('#filter-sous-produit').val()) || "Tous",
-                "Date de début": $('#filter-date-debut').val() || "Toutes", "Date de fin": $('#filter-date-fin').val() || "Toutes",
+                "Date de début (Soumission)": $('#filter-date-debut').val() || "Toutes", "Date de fin (Soumission)": $('#filter-date-fin').val() || "Toutes",
+                "Date de début (Réalisation)": $('#filter-date-debut-realisation').val() || "Toutes", "Date de fin (Réalisation)": $('#filter-date-fin-realisation').val() || "Toutes",
                 "Filtre Strict Doublons": $('#filter-only-doublons').is(':checked') ? "Activé" : "Désactivé",
                 "Filtre Strict Anomalies": $('#filter-only-anomalies').is(':checked') ? "Activé" : "Désactivé"
             }; 
@@ -2586,48 +2581,6 @@
                 window.filterSoumissionsTables(); 
                 setTimeout(() => $('#cons-progress-container').hide(), 5000);
             } catch(e) { $('#cons-status').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Erreur lors de l'analyse : ${e.message}</span>`); }
-        };
-
-        window.runSemanticAnalysis = async function() {
-            if(allData.length === 0) { alert("Veuillez d'abord attendre le chargement des données."); return; }
-            globalSemanticResults = {}; 
-            $('#semantic-progress-container').show(); $('#semantic-status').text("Téléchargement du modèle IA (SBERT)... Cela peut prendre une minute."); $('#semantic-progress-bar').css('width', '5%').text('5%');
-
-            try {
-                let extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', {
-                    progress_callback: x => { if (x.status === 'progress') { let p = Math.round(x.progress); $('#semantic-progress-bar').css('width', p + '%').text(p + '%'); } }
-                });
-                $('#semantic-progress-bar').css('width', '100%').text('Modèle chargé !');
-
-                const semanticTasks = [
-                    { key: 'activiteDren', resId: 'res-act-dren', chartId: 'semanticChart-act-dren', chartCont: 'chart-container-act-dren', name: 'Activités DREN' },
-                    { key: 'activiteCisco', resId: 'res-act-cisco', chartId: 'semanticChart-act-cisco', chartCont: 'chart-container-act-cisco', name: 'Activités CISCO' },
-                    { key: 'activiteZap', resId: 'res-act-zap', chartId: 'semanticChart-act-zap', chartCont: 'chart-container-act-zap', name: 'Activités ZAP' },
-                    { key: 'produitDren', resId: 'res-prod-dren', chartId: 'semanticChart-prod-dren', chartCont: 'chart-container-prod-dren', name: 'Produits DREN' },
-                    { key: 'produitCisco', resId: 'res-prod-cisco', chartId: 'semanticChart-prod-cisco', chartCont: 'chart-container-prod-cisco', name: 'Produits CISCO' },
-                    { key: 'produitZap', resId: 'res-prod-zap', chartId: 'semanticChart-prod-zap', chartCont: 'chart-container-prod-zap', name: 'Produits ZAP' },
-                    { key: 'sousActiviteDren', resId: 'res-sact-dren', chartId: 'semanticChart-sact-dren', chartCont: 'chart-container-sact-dren', name: 'Sous-activités DREN' },
-                    { key: 'sousActiviteCisco', resId: 'res-sact-cisco', chartId: 'semanticChart-sact-cisco', chartCont: 'chart-container-sact-cisco', name: 'Sous-activités CISCO' },
-                    { key: 'sousActiviteZap', resId: 'res-sact-zap', chartId: 'semanticChart-sact-zap', chartCont: 'chart-container-sact-zap', name: 'Sous-activités ZAP' },
-                    { key: 'sousProduitDren', resId: 'res-sprod-dren', chartId: 'semanticChart-sprod-dren', chartCont: 'chart-container-sprod-dren', name: 'Sous-produits DREN' },
-                    { key: 'sousProduitCisco', resId: 'res-sprod-cisco', chartId: 'semanticChart-sprod-cisco', chartCont: 'chart-container-sprod-cisco', name: 'Sous-produits CISCO' },
-                    { key: 'sousProduitZap', resId: 'res-sprod-zap', chartId: 'semanticChart-sprod-zap', chartCont: 'chart-container-sprod-zap', name: 'Sous-produits ZAP' }
-                ];
-
-                for(let task of semanticTasks) {
-                    $('#semantic-status').text(`Analyse sémantique en cours : ${task.name}...`);
-                    let col = baseColsInfo.find(c => c.key === task.key);
-                    if(col) {
-                        let dataToProcess = [...new Set(allData.map(r => cleanSpaces(getKoboValue(r, col.matches, col.ex, col.mustMatch))).filter(v => v && v !== 'Non renseigné'))];
-                        let clusters = await clusterActivities(dataToProcess, extractor);
-                        globalSemanticResults[task.name] = clusters; 
-                        renderSemanticChart(clusters, task.chartId, task.chartCont);
-                        renderSemanticClusters(clusters, task.resId, task.name);
-                    }
-                }
-                $('#semantic-status').text("✅ Analyse sémantique de tous les niveaux terminée avec succès !");
-                setTimeout(() => $('#semantic-progress-container').hide(), 5000);
-            } catch(e) { $('#semantic-status').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Erreur lors de l'analyse : ${e.message}</span>`); }
         };
 
         function renderSoumissionsTable(data, containerId, title) {
