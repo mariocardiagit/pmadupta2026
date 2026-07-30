@@ -190,7 +190,9 @@
                     <li class="nav-item" role="presentation"><button class="nav-link text-semantic fw-bold" id="semantic-tab" data-bs-toggle="tab" data-bs-target="#semantic" type="button" role="tab"><i class="fas fa-brain"></i> 8 : Clustering Sémantique</button></li>
                     <li class="nav-item" role="presentation"><button class="nav-link text-explication fw-bold" id="explication-sem-tab" data-bs-toggle="tab" data-bs-target="#explication-sem" type="button" role="tab"><i class="fas fa-graduation-cap"></i> 9 : Explication IA Sémantique</button></li>
                     <li class="nav-item" role="presentation"><button class="nav-link fw-bold" style="color: #16a085;" id="consolidation-tab" data-bs-toggle="tab" data-bs-target="#consolidation" type="button" role="tab"><i class="fas fa-layer-group"></i> 10 : Nombre Soumissions Kobo</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link fw-bold text-dark" id="explication-soum-tab" data-bs-toggle="tab" data-bs-target="#explication-soum" type="button" role="tab"><i class="fas fa-chalkboard-teacher"></i> 11 : Explication Soumissions Kobo</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link fw-bold text-dark" id="explication-soum-tab" data-bs-toggle="tab" data-bs-target="#explication-soum" type="button" role="tab"><i class="fas fa-chalkboard-teacher"></i> 11 : Explication Soumissions</button></li>
+                    <!-- NOUVEL ONGLET 12 -->
+                    <li class="nav-item" role="presentation"><button class="nav-link fw-bold text-info" id="evolution-kobo-tab" data-bs-toggle="tab" data-bs-target="#evolution-kobo" type="button" role="tab"><i class="fas fa-chart-line"></i> 12 : Évolution Soumissions</button></li>
                 </ul>
 
                 <div class="tab-content" id="dashboardTabsContent">
@@ -888,6 +890,35 @@
                         </div>
                     </div>
 
+                    <!-- NOUVEL ONGLET 12 : EVOLUTION DES SOUMISSIONS -->
+                    <div class="tab-pane fade" id="evolution-kobo" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="m-0 text-info"><i class="fas fa-chart-line"></i> Onglet 12 : Évolution des Soumissions Kobo dans le temps</h4>
+                        </div>
+                        <div class="analysis-card shadow-sm">
+                            <h5 class="text-secondary mb-3"><i class="fas fa-calendar-alt"></i> Courbe de tendance des formulaires soumis</h5>
+                            <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                                <div>
+                                    <label class="fw-bold text-info mb-1 small">Niveau d'analyse</label>
+                                    <select id="evo-niveau-select" class="form-select border-info shadow-sm">
+                                        <option value="global">Global (Toutes Soumissions confondues)</option>
+                                        <option value="dren">Répartition par DREN</option>
+                                        <option value="cisco">Répartition par CISCO</option>
+                                        <option value="zap">Répartition par ZAP</option>
+                                    </select>
+                                </div>
+                                <div class="mt-4 pt-1">
+                                    <button class="btn btn-info text-white shadow-sm fw-bold" onclick="window.runEvolutionSoumissions()">
+                                        <i class="fas fa-play-circle"></i> Générer le Graphique
+                                    </button>
+                                </div>
+                            </div>
+                            <div style="height: 500px; width: 100%; position: relative;" id="container-chart-evolution">
+                                <div class="text-center text-muted py-5 mt-5"><i class="fas fa-chart-line fa-3x mb-3"></i><br>Cliquez sur le bouton pour générer la courbe d'évolution.</div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div> <!-- Fin de #dashboardTabsContent (Ancien menu) -->
             </div> <!-- Fin de #master-soumissions -->
 
@@ -1002,6 +1033,9 @@
 
 
 
+
+
+
 <script>
         // VARIABLE GLOBALE POUR SAUVEGARDER L'ANALYSE SÉMANTIQUE ET CONSOLIDATION
         let globalSemanticResults = {};
@@ -1012,6 +1046,7 @@
         // VARIABLES GLOBALES POUR LES RÉALISATIONS (Nouveau Super-Onglet)
         let chartRealisationTemporel = null;
         let chartRealisationClusteringRefs = { dren: null, cisco: null, zap: null };
+        let chartEvolutionKobo = null;
         
         // EXPLICATION SÉMANTIQUE POUR LES EXPORTS
         const EXPLICATION_SEMANTIQUE = [
@@ -1647,7 +1682,8 @@
                 let translatedHeader = getTranslatedHeader(xmlName);
                 let isHL = translatedHeader.toLowerCase().includes('date de suivi') || translatedHeader.toLowerCase().includes('réalisation') || translatedHeader.toLowerCase().includes('realisation') || xmlName.toLowerCase().includes('date_enq');
                 
-                let style = isHL ? 'background-color: #2ecc71 !important; color: white !important; font-size: 1.05rem; border: 2px solid #27ae60 !important; font-weight: 800;' : '';
+                // VERT PASTEL BEAUCOUP PLUS CLAIR (#e8f6f3)
+                let style = isHL ? 'background-color: #e8f6f3 !important; color: #117a65 !important; font-size: 1.05rem; border: 2px solid #a3e4d7 !important; font-weight: 800;' : '';
                 sHeaderTr.append(`<th class="sub-header-survey" style="${style}">${translatedHeader}</th>`);
             });
             
@@ -1729,7 +1765,9 @@
                     
                     // ===== APPLICATION DU DESIGN SUR LES CELLULES CIBLES =====
                     let isHL = translatedHeader.toLowerCase().includes('date de suivi') || translatedHeader.toLowerCase().includes('réalisation') || translatedHeader.toLowerCase().includes('realisation') || xmlName.toLowerCase().includes('date_enq');
-                    let style = isHL ? 'background-color: #eafaf1 !important; color: #1e8449 !important; font-weight: 900; font-size: 1.1rem; border-left: 2px solid #2ecc71 !important; border-right: 2px solid #2ecc71 !important;' : '';
+                    
+                    // VERT PASTEL BEAUCOUP PLUS CLAIR (#f4fbf9)
+                    let style = isHL ? 'background-color: #f4fbf9 !important; color: #117a65 !important; font-weight: 700; font-size: 1.05rem; border-left: 1px solid #d1f2eb !important; border-right: 1px solid #d1f2eb !important;' : '';
 
                     let td = $(`<td style="${style}"></td>`).attr('data-csv', formatExtra(row[key], row, xmlName, true)).html(formatExtra(row[key], row, xmlName, false));
                     tr.append(td);
@@ -2102,6 +2140,9 @@
 
 
 
+
+
+
 // ================= EXPORTS ET PARTAGE =================
         function downloadFile(b, fn) { let a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = fn; a.style.display="none"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
 
@@ -2317,6 +2358,90 @@
         window.sendDBSCANToGmail = function() { let data = window.getDBSCANExportData(); if (data.length === 0) return alert("Aucune anomalie détectée."); navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(function() { alert("✅ SUCCÈS !\nCopié.\nCollez-le dans Gmail."); window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("Anomalies DBSCAN")}&body=${encodeURIComponent(`Bonjour,\n\n[ COLLER JSON ICI ]`)}`, '_blank'); }); }
         window.sendDBSCANToWhatsApp = function() { let data = window.getDBSCANExportData(); if (data.length === 0) return alert("Aucune anomalie détectée."); navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(function() { alert("✅ SUCCÈS !\nCopié.\nCollez-le dans WhatsApp."); window.open(`https://wa.me/?text=${encodeURIComponent(`🚨 *Anomalies DBSCAN*\n\n[ COLLER JSON ICI ]`)}`, '_blank'); }); }
 
+        // ======================= LOGIQUE : NOUVEL ONGLET 12 (ÉVOLUTION SOUMISSIONS KOBO) ======================= //
+        
+        window.runEvolutionSoumissions = function() {
+            let selectedLevel = $('#evo-niveau-select').val(); // 'global', 'dren', 'cisco', 'zap'
+            
+            if (allData.length === 0) {
+                $('#container-chart-evolution').html('<div class="text-center text-muted py-5 mt-5"><i class="fas fa-exclamation-circle fa-3x mb-3 text-warning"></i><br>Aucune donnée disponible. Veuillez rafraîchir les données.</div>');
+                return;
+            }
+
+            let timeSeries = {};
+            let allMonthsSet = new Set();
+
+            allData.forEach(row => {
+                let dateSubRaw = row['_submission_time'] ? row['_submission_time'].substring(0, 7) : null;
+                if (!dateSubRaw) return; // Ignore si pas de date
+                
+                allMonthsSet.add(dateSubRaw);
+                
+                let vDren = cleanSpaces(getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous'], []));
+                let vCisco = cleanSpaces(getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous'], []));
+                let vZap = cleanSpaces(getKoboValue(row, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous'], []));
+
+                let seriesName = 'Total Global';
+                
+                if (selectedLevel === 'dren') seriesName = vDren || 'Inconnue';
+                if (selectedLevel === 'cisco') seriesName = vCisco || 'Inconnue';
+                if (selectedLevel === 'zap') seriesName = vZap || 'Inconnue';
+
+                if (!timeSeries[seriesName]) timeSeries[seriesName] = {};
+                if (!timeSeries[seriesName][dateSubRaw]) timeSeries[seriesName][dateSubRaw] = 0;
+                
+                timeSeries[seriesName][dateSubRaw] += 1;
+            });
+
+            let allMonths = Array.from(allMonthsSet).sort();
+            if (allMonths.length === 0) return;
+
+            $('#container-chart-evolution').empty().append('<canvas id="chart-evo-kobo"></canvas>');
+
+            let datasets = [];
+            const colors = ['#3498db', '#e74c3c', '#2ecc71', '#9b59b6', '#f1c40f', '#e67e22', '#1abc9c', '#34495e', '#ff9ff3', '#00cec9'];
+            let colorIdx = 0;
+
+            for (let sName in timeSeries) {
+                if(sName === 'Inconnue' && selectedLevel !== 'global') continue; // On ignore les "Inconnues" par propreté visuelle
+                
+                let dataPoints = allMonths.map(m => timeSeries[sName][m] || 0);
+                let col = colors[colorIdx % colors.length];
+                
+                datasets.push({
+                    label: sName,
+                    data: dataPoints,
+                    borderColor: col,
+                    backgroundColor: col + '33',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    fill: (selectedLevel === 'global') // On remplit la courbe uniquement si c'est la vue globale
+                });
+                colorIdx++;
+            }
+
+            // Si trop de ZAP/CISCO, on garde le TOP 15 pour la lisibilité
+            if (datasets.length > 15 && selectedLevel !== 'global') {
+                datasets.sort((a, b) => b.data.reduce((s,v)=>s+v,0) - a.data.reduce((s,v)=>s+v,0));
+                datasets = datasets.slice(0, 15);
+            }
+
+            let ctx = document.getElementById('chart-evo-kobo').getContext('2d');
+            if (chartEvolutionKobo) chartEvolutionKobo.destroy();
+
+            chartEvolutionKobo = new Chart(ctx, {
+                type: 'line',
+                data: { labels: allMonths, datasets: datasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { tooltip: { mode: 'index', intersect: false } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Nombre de Formulaires Soumis' } },
+                        x: { title: { display: true, text: 'Mois (YYYY-MM)' } }
+                    }
+                }
+            });
+        };
 
         // ======================= LOGIQUE : STRICTE ANALYSE DES RÉALISATIONS (ATTRIBUTION DIRECTE + ANOMALIE) ======================= //
 
