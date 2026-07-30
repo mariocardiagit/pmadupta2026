@@ -251,6 +251,39 @@
                                         </label>
                                     </div>
                                 </div>
+
+                                <!-- NOUVEAU BLOC : 15 CASES A COCHER -->
+                                <div class="col-md-12 mt-4 border-top pt-3">
+                                    <label class="filter-label text-primary mb-3"><i class="fas fa-check-square"></i> Champs de recherche par présence (Cochez pour afficher uniquement si la donnée existe)</label>
+                                    <div class="row g-2">
+                                        <div class="col-lg-2 col-md-4">
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-dren"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-dren">Afficher Toutes Les DREN</label></div>
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-cisco"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-cisco">Afficher Toutes Les CISCO</label></div>
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-zap"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-zap">Afficher Toutes Les ZAP</label></div>
+                                        </div>
+                                        <div class="col-lg-2 col-md-4">
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-act-dren"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-act-dren">Afficher Toutes Les ACTIVITES des DREN</label></div>
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-act-cisco"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-act-cisco">Afficher Toutes Les ACTIVITES des CISCO</label></div>
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-act-zap"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-act-zap">Afficher Toutes Les ACTIVITES des ZAP</label></div>
+                                        </div>
+                                        <div class="col-lg-2 col-md-4">
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-prod-dren"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-prod-dren">Afficher Tous Les PRODUITS des DREN</label></div>
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-prod-cisco"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-prod-cisco">Afficher Tous Les PRODUITS des CISCO</label></div>
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-prod-zap"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-prod-zap">Afficher Tous Les PRODUITS des ZAP</label></div>
+                                        </div>
+                                        <div class="col-lg-3 col-md-6">
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-sact-dren"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-sact-dren">Afficher Toutes Les SOUS ACTIVITES des DREN</label></div>
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-sact-cisco"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-sact-cisco">Afficher Toutes Les SOUS ACTIVITES des CISCO</label></div>
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-sact-zap"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-sact-zap">Afficher Toutes Les SOUS ACTIVITES des ZAP</label></div>
+                                        </div>
+                                        <div class="col-lg-3 col-md-6">
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-sprod-dren"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-sprod-dren">Afficher Tous Les SOUS PRODUITS des DREN</label></div>
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-sprod-cisco"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-sprod-cisco">Afficher Tous Les SOUS PRODUITS des CISCO</label></div>
+                                            <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-sprod-zap"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-sprod-zap">Afficher Tous Les SOUS PRODUITS des ZAP</label></div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                             <div class="mt-3 text-end">
                                 <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
@@ -329,6 +362,8 @@
                             </div>
                         </div>
                     </div>
+					
+					
 					
 					
 					
@@ -931,6 +966,8 @@
 
     <!-- Scripts Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
 
 
 
@@ -1834,11 +1871,19 @@
                 sAct: cleanSpaces($('#filter-sous-activite').val()), sProd: cleanSpaces($('#filter-sous-produit').val()),
                 dateDebut: $('#filter-date-debut').val(), dateFin: $('#filter-date-fin').val(),
                 onlyDoublons: $('#filter-only-doublons').is(':checked'),
-                onlyAnomalies: $('#filter-only-anomalies').is(':checked')
+                onlyAnomalies: $('#filter-only-anomalies').is(':checked'),
+                // === NOUVELLES CASES A COCHER DE PRESENCE ===
+                chkDren: $('#chk-dren').is(':checked'), chkCisco: $('#chk-cisco').is(':checked'), chkZap: $('#chk-zap').is(':checked'),
+                chkActDren: $('#chk-act-dren').is(':checked'), chkActCisco: $('#chk-act-cisco').is(':checked'), chkActZap: $('#chk-act-zap').is(':checked'),
+                chkProdDren: $('#chk-prod-dren').is(':checked'), chkProdCisco: $('#chk-prod-cisco').is(':checked'), chkProdZap: $('#chk-prod-zap').is(':checked'),
+                chkSactDren: $('#chk-sact-dren').is(':checked'), chkSactCisco: $('#chk-sact-cisco').is(':checked'), chkSactZap: $('#chk-sact-zap').is(':checked'),
+                chkSprodDren: $('#chk-sprod-dren').is(':checked'), chkSprodCisco: $('#chk-sprod-cisco').is(':checked'), chkSprodZap: $('#chk-sprod-zap').is(':checked')
             };
 
             let dStart = f.dateDebut ? new Date(f.dateDebut) : null; if (dStart) dStart.setHours(0, 0, 0, 0);
             let dEnd = f.dateFin ? new Date(f.dateFin) : null; if (dEnd) dEnd.setHours(23, 59, 59, 999);
+
+            let hasVal = (val) => val && val !== 'non renseigné' && val !== '';
 
             let vC = 0;
             $('#table-body tr').each(function() {
@@ -1858,19 +1903,41 @@
                 let doublonMatch = true; if (f.onlyDoublons && !s.isDoublon) doublonMatch = false;
                 let anomalyMatch = true; if (f.onlyAnomalies && !s.isAnomaly) anomalyMatch = false;
 
-                if (mD && mC && mZ && mA && mP && mSA && mSP && dateMatch && doublonMatch && anomalyMatch) { $(this).show(); vC++; } else { $(this).hide(); }
+                // === VÉRIFICATION DES CASES DE PRÉSENCE ===
+                let chkMatch = true;
+                if (f.chkDren && !hasVal(s.dren)) chkMatch = false;
+                if (f.chkCisco && !hasVal(s.cisco)) chkMatch = false;
+                if (f.chkZap && !hasVal(s.zap)) chkMatch = false;
+
+                if (f.chkActDren && !hasVal(s.activiteDren)) chkMatch = false;
+                if (f.chkActCisco && !hasVal(s.activiteCisco)) chkMatch = false;
+                if (f.chkActZap && !hasVal(s.activiteZap)) chkMatch = false;
+
+                if (f.chkProdDren && !hasVal(s.produitDren)) chkMatch = false;
+                if (f.chkProdCisco && !hasVal(s.produitCisco)) chkMatch = false;
+                if (f.chkProdZap && !hasVal(s.produitZap)) chkMatch = false;
+
+                if (f.chkSactDren && !hasVal(s.sousActiviteDren)) chkMatch = false;
+                if (f.chkSactCisco && !hasVal(s.sousActiviteCisco)) chkMatch = false;
+                if (f.chkSactZap && !hasVal(s.sousActiviteZap)) chkMatch = false;
+
+                if (f.chkSprodDren && !hasVal(s.sousProduitDren)) chkMatch = false;
+                if (f.chkSprodCisco && !hasVal(s.sousProduitCisco)) chkMatch = false;
+                if (f.chkSprodZap && !hasVal(s.sousProduitZap)) chkMatch = false;
+
+                if (mD && mC && mZ && mA && mP && mSA && mSP && dateMatch && doublonMatch && anomalyMatch && chkMatch) { $(this).show(); vC++; } else { $(this).hide(); }
             });
             $('#record-count').text(vC);
         }
 
         function clearFilters() { 
             $('.filter-input').not('[type="checkbox"]').val(''); 
-            $('#filter-only-doublons').prop('checked', false); $('#filter-only-anomalies').prop('checked', false);
+            $('.filter-input[type="checkbox"]').prop('checked', false);
             applyFilters(); 
         }
         
         function getCurrentFilters() { 
-            return { 
+            let filters = { 
                 "DREN": cleanSpaces($('#filter-dren').val()) || "Tous", "CISCO": cleanSpaces($('#filter-cisco').val()) || "Tous", "ZAP": cleanSpaces($('#filter-zap').val()) || "Tous", 
                 "Activité": cleanSpaces($('#filter-activite').val()) || "Tous", "Produit": cleanSpaces($('#filter-produit').val()) || "Tous", 
                 "Sous-activité": cleanSpaces($('#filter-sous-activite').val()) || "Tous", "Sous-produit": cleanSpaces($('#filter-sous-produit').val()) || "Tous",
@@ -1878,12 +1945,21 @@
                 "Filtre Strict Doublons": $('#filter-only-doublons').is(':checked') ? "Activé" : "Désactivé",
                 "Filtre Strict Anomalies": $('#filter-only-anomalies').is(':checked') ? "Activé" : "Désactivé"
             }; 
+            
+            // Indication des présences requises dans l'export
+            if ($('#chk-dren').is(':checked')) filters["Présence DREN"] = "Requise";
+            if ($('#chk-cisco').is(':checked')) filters["Présence CISCO"] = "Requise";
+            if ($('#chk-zap').is(':checked')) filters["Présence ZAP"] = "Requise";
+            if ($('#chk-act-dren').is(':checked')) filters["Présence Activité DREN"] = "Requise";
+            if ($('#chk-act-cisco').is(':checked')) filters["Présence Activité CISCO"] = "Requise";
+            if ($('#chk-act-zap').is(':checked')) filters["Présence Activité ZAP"] = "Requise";
+            
+            return filters;
         }
         
         function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous" && f[k] !== "Toutes" && f[k] !== "Désactivé") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
         function getAnalysisFilters() { return { "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune", "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune", "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune" }; }
         function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
-
 
 
 
@@ -2109,7 +2185,7 @@
         window.sendDBSCANToWhatsApp = function() { let data = window.getDBSCANExportData(); if (data.length === 0) return alert("Aucune anomalie détectée."); navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(function() { alert("✅ SUCCÈS !\nCopié.\nCollez-le dans WhatsApp."); window.open(`https://wa.me/?text=${encodeURIComponent(`🚨 *Anomalies DBSCAN*\n\n[ COLLER JSON ICI ]`)}`, '_blank'); }); }
 
 
-        // ======================= LOGIQUE : STRICTE ANALYSE DES RÉALISATIONS (ATTRIBUTION DIRECTE) ======================= //
+        // ======================= LOGIQUE : STRICTE ANALYSE DES RÉALISATIONS (ATTRIBUTION DIRECTE + ANOMALIE) ======================= //
 
         function getRealisationsData() {
             let realData = [];
@@ -2124,6 +2200,9 @@
                 let act = cleanSpaces(getKoboValue(row, ['activite', 'activité', 'produit'], ['sous_activite', 'sous-activite', 'sous_produit', 'sous-produit'], []));
                 let sAct = cleanSpaces(getKoboValue(row, ['sous_activite', 'sous-activite'], [], []));
                 let labelAct = (sAct && sAct !== 'Non renseigné') ? sAct : (act || 'Non spécifiée');
+
+                // DÉTECTION DE L'ANOMALIE (Sous-activité manquante ou non renseignée)
+                let isAnomaly = (!sAct || sAct.toLowerCase() === 'non renseigné');
 
                 for(let key in row) {
                     let lowKey = key.split('/').pop().toLowerCase();
@@ -2140,7 +2219,8 @@
                                 niveau: niveau, 
                                 entite: entite, 
                                 activite: labelAct, 
-                                valeur: val
+                                valeur: val,
+                                isAnomaly: isAnomaly // On stocke l'état d'anomalie
                             });
                         }
                     }
@@ -2161,13 +2241,19 @@
             data.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             data.forEach(item => {
+                // Application du design si anomalie détectée
+                let trClass = item.isAnomaly ? 'class="table-danger"' : '';
+                let entiteTextColor = item.isAnomaly ? 'text-danger' : 'text-success';
+                let anomalyBadge = item.isAnomaly ? '<br><span class="badge bg-danger mt-1 px-2 py-1 shadow-sm"><i class="fas fa-exclamation-triangle"></i> Anomalie de Liaison</span>' : '';
+                let valeurTextColor = item.isAnomaly ? 'text-danger' : '';
+
                 tbody.append(`
-                    <tr>
-                        <td class="text-center">${item.date}</td>
-                        <td class="text-center"><span class="badge bg-secondary">${item.niveau}</span></td>
-                        <td class="fw-bold text-success">${item.entite}</td>
-                        <td class="small">${item.activite}</td>
-                        <td class="text-center bg-light fw-bold fs-5">${item.valeur.toLocaleString('fr-FR')}</td>
+                    <tr ${trClass}>
+                        <td class="text-center align-middle">${item.date}</td>
+                        <td class="text-center align-middle"><span class="badge bg-secondary">${item.niveau}</span></td>
+                        <td class="fw-bold align-middle ${entiteTextColor}">${item.entite}${anomalyBadge}</td>
+                        <td class="small align-middle">${item.activite}</td>
+                        <td class="text-center align-middle bg-light fw-bold fs-5 ${valeurTextColor}">${item.valeur.toLocaleString('fr-FR')}</td>
                     </tr>
                 `);
             });
