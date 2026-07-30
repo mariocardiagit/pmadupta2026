@@ -191,7 +191,6 @@
                     <li class="nav-item" role="presentation"><button class="nav-link text-explication fw-bold" id="explication-sem-tab" data-bs-toggle="tab" data-bs-target="#explication-sem" type="button" role="tab"><i class="fas fa-graduation-cap"></i> 9 : Explication IA Sémantique</button></li>
                     <li class="nav-item" role="presentation"><button class="nav-link fw-bold" style="color: #16a085;" id="consolidation-tab" data-bs-toggle="tab" data-bs-target="#consolidation" type="button" role="tab"><i class="fas fa-layer-group"></i> 10 : Nombre Soumissions Kobo</button></li>
                     <li class="nav-item" role="presentation"><button class="nav-link fw-bold text-dark" id="explication-soum-tab" data-bs-toggle="tab" data-bs-target="#explication-soum" type="button" role="tab"><i class="fas fa-chalkboard-teacher"></i> 11 : Explication Soumissions</button></li>
-                    <!-- NOUVEL ONGLET 12 -->
                     <li class="nav-item" role="presentation"><button class="nav-link fw-bold text-info" id="evolution-kobo-tab" data-bs-toggle="tab" data-bs-target="#evolution-kobo" type="button" role="tab"><i class="fas fa-chart-line"></i> 12 : Évolution Soumissions</button></li>
                 </ul>
 
@@ -333,13 +332,26 @@
                                     <button class="btn btn-secondary btn-sm" onclick="scrollTableUp()" title="Défiler vers le haut"><i class="fas fa-arrow-up"></i></button>
                                     <button class="btn btn-secondary btn-sm" onclick="scrollTableDown()" title="Défiler vers le bas"><i class="fas fa-arrow-down"></i></button>
                                 </div>
+                                
+                                <!-- RESTAURATION DES BOUTONS D'EXPORT COMPLETS -->
                                 <div class="btn-group shadow-sm">
                                     <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter</button>
-                                    <ul class="dropdown-menu">
+                                    <ul class="dropdown-menu dropdown-menu-end">
                                         <li><a class="dropdown-item" href="#" onclick="exportTableToCSV('donnees_suivi_pma_std')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="exportTableToExcel('donnees_suivi_pma_std')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportTableToHTML('donnees_suivi_pma_std')"><i class="fas fa-file-code text-primary"></i> Enregistrer HTML</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportTableToJSONFile('donnees_suivi_pma_std')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
                                     </ul>
                                 </div>
+                                <div class="btn-group shadow-sm">
+                                    <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-share-alt"></i> Partager</button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="sendToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail (JSON)</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="sendToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp (JSON)</a></li>
+                                    </ul>
+                                </div>
+                                <!-- FIN RESTAURATION -->
+
                             </div>
                         </div>
                         
@@ -350,9 +362,6 @@
                             </table>
                         </div>
                     </div>
-					
-					
-					
 					
 					
 					
@@ -1682,8 +1691,8 @@
                 let translatedHeader = getTranslatedHeader(xmlName);
                 let isHL = translatedHeader.toLowerCase().includes('date de suivi') || translatedHeader.toLowerCase().includes('réalisation') || translatedHeader.toLowerCase().includes('realisation') || xmlName.toLowerCase().includes('date_enq');
                 
-                // VERT PASTEL BEAUCOUP PLUS CLAIR (#e8f6f3)
-                let style = isHL ? 'background-color: #e8f6f3 !important; color: #117a65 !important; font-size: 1.05rem; border: 2px solid #a3e4d7 !important; font-weight: 800;' : '';
+                // VERT PASTEL BEAUCOUP PLUS CLAIR (#2ecc71 au lieu de dark green)
+                let style = isHL ? 'background-color: #2ecc71 !important; color: white !important; font-size: 1.05rem; border: 2px solid #27ae60 !important; font-weight: 800;' : '';
                 sHeaderTr.append(`<th class="sub-header-survey" style="${style}">${translatedHeader}</th>`);
             });
             
@@ -1767,7 +1776,7 @@
                     let isHL = translatedHeader.toLowerCase().includes('date de suivi') || translatedHeader.toLowerCase().includes('réalisation') || translatedHeader.toLowerCase().includes('realisation') || xmlName.toLowerCase().includes('date_enq');
                     
                     // VERT PASTEL BEAUCOUP PLUS CLAIR (#f4fbf9)
-                    let style = isHL ? 'background-color: #f4fbf9 !important; color: #117a65 !important; font-weight: 700; font-size: 1.05rem; border-left: 1px solid #d1f2eb !important; border-right: 1px solid #d1f2eb !important;' : '';
+                    let style = isHL ? 'background-color: #eafaf1 !important; color: #1e8449 !important; font-weight: 700; font-size: 1.05rem; border-left: 1px solid #d1f2eb !important; border-right: 1px solid #d1f2eb !important;' : '';
 
                     let td = $(`<td style="${style}"></td>`).attr('data-csv', formatExtra(row[key], row, xmlName, true)).html(formatExtra(row[key], row, xmlName, false));
                     tr.append(td);
@@ -2127,10 +2136,6 @@
         function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous" && f[k] !== "Toutes" && f[k] !== "Désactivé" && f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
         function getAnalysisFilters() { return { "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune", "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune", "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune" }; }
         function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
-
-
-
-
 
 
 
