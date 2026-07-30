@@ -357,7 +357,47 @@
 					
 					
 					
-<!-- ONGLET 3 : K-MEANS -->
+					
+					
+					
+<!-- ONGLET 2 : ANALYSE & IA -->
+                    <div class="tab-pane fade" id="analyse" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                            <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
+                        </div>
+                        <div class="ai-insights shadow-sm" id="ai-report-container">
+                            <h5><i class="fas fa-robot text-primary"></i> Rapport d'Analyse Intelligente (Généré automatiquement)</h5>
+                            <div id="ai-report-content"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="analysis-card shadow-sm h-100">
+                                    <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par DREN</h5>
+                                    <input type="text" id="search-dren-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale DREN..." autocomplete="off">
+                                    <div class="table-responsive" style="max-height: 350px;">
+                                        <table class="table table-sm table-bordered table-hover text-center align-middle" id="dren-summary-table-container">
+                                            <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;"><tr><th>Nom de la DREN</th><th>Soumissions</th><th>Part (%)</th></tr></thead>
+                                            <tbody id="dren-summary-table"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="analysis-card shadow-sm h-100">
+                                    <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par CISCO</h5>
+                                    <input type="text" id="search-cisco-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale CISCO..." autocomplete="off">
+                                    <div class="table-responsive" style="max-height: 350px;">
+                                        <table class="table table-sm table-bordered table-hover text-center align-middle" id="cisco-summary-table-container">
+                                            <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;"><tr><th>Nom de la CISCO</th><th>Soumissions</th><th>Part (%)</th></tr></thead>
+                                            <tbody id="cisco-summary-table"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ONGLET 3 : K-MEANS -->
                     <div class="tab-pane fade" id="clustering" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4 class="text-primary m-0"><i class="fas fa-project-diagram"></i> Algorithme 1 : K-Means (Centre de Gravité)</h4>
@@ -962,8 +1002,6 @@
 
 
 
-
-
 <script>
         // VARIABLE GLOBALE POUR SAUVEGARDER L'ANALYSE SÉMANTIQUE ET CONSOLIDATION
         let globalSemanticResults = {};
@@ -1513,20 +1551,28 @@
 
             let exKeys = Array.from(exSet), mtKeys = Array.from(mtSet);
 
-            // ====== TRI PERSONNALISÉ DES COLONNES (Demande Utilisateur) ======
+            // ====== TRI PERSONNALISÉ DES COLONNES ======
             exKeys.sort((a, b) => {
                 let nameA = a.split('/').pop().toLowerCase();
                 let nameB = b.split('/').pop().toLowerCase();
 
                 let rank = (name) => {
-                    if (name.includes('sous_activite_finale') || name === 'sous_activite_finale') return -100;
-                    if (name.startsWith('sa_part')) return -99;
-                    return 0; // Autres colonnes normales
+                    // 1. Date de suivi et Réalisations (Côte à côte au début de la matrice complète)
+                    if (name.includes('date_enq') || name.includes('date de suivi')) return -10;
+                    if (name.includes('realisation') || name.includes('quantit') || name.includes('effectif') || name.includes('montant')) return -9;
+                    
+                    // 3. Sous activité finale et Sa part X (À la toute fin)
+                    if (name.includes('sous_activite_finale') || name === 'sous_activite_finale') return 100;
+                    if (name.startsWith('sa_part')) return 101;
+                    
+                    // 2. Toutes les autres colonnes normales au milieu
+                    return 0; 
                 };
 
                 let rA = rank(nameA), rB = rank(nameB);
 
-                if (rA === -99 && rB === -99) {
+                // Tri numérique pour que "Sa part 1" soit avant "Sa part 17"
+                if (rA === 101 && rB === 101) {
                     let numA = parseInt(nameA.replace(/\D/g, '')) || 0;
                     let numB = parseInt(nameB.replace(/\D/g, '')) || 0;
                     return numA - numB;
@@ -2043,7 +2089,6 @@
         function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous" && f[k] !== "Toutes" && f[k] !== "Désactivé" && f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
         function getAnalysisFilters() { return { "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune", "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune", "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune" }; }
         function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
-
 
 
 
