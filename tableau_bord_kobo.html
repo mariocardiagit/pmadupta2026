@@ -348,43 +348,7 @@
                             </table>
                         </div>
                     </div>
-
-                    <!-- ONGLET 2 : ANALYSE & IA -->
-                    <div class="tab-pane fade" id="analyse" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                            <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
-                        </div>
-                        <div class="ai-insights shadow-sm" id="ai-report-container">
-                            <h5><i class="fas fa-robot text-primary"></i> Rapport d'Analyse Intelligente (Généré automatiquement)</h5>
-                            <div id="ai-report-content"></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <div class="analysis-card shadow-sm h-100">
-                                    <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par DREN</h5>
-                                    <input type="text" id="search-dren-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale DREN..." autocomplete="off">
-                                    <div class="table-responsive" style="max-height: 350px;">
-                                        <table class="table table-sm table-bordered table-hover text-center align-middle" id="dren-summary-table-container">
-                                            <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;"><tr><th>Nom de la DREN</th><th>Soumissions</th><th>Part (%)</th></tr></thead>
-                                            <tbody id="dren-summary-table"></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-4">
-                                <div class="analysis-card shadow-sm h-100">
-                                    <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par CISCO</h5>
-                                    <input type="text" id="search-cisco-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale CISCO..." autocomplete="off">
-                                    <div class="table-responsive" style="max-height: 350px;">
-                                        <table class="table table-sm table-bordered table-hover text-center align-middle" id="cisco-summary-table-container">
-                                            <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;"><tr><th>Nom de la CISCO</th><th>Soumissions</th><th>Part (%)</th></tr></thead>
-                                            <tbody id="cisco-summary-table"></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+					
 					
 					
 					
@@ -999,6 +963,7 @@
 
 
 
+
 <script>
         // VARIABLE GLOBALE POUR SAUVEGARDER L'ANALYSE SÉMANTIQUE ET CONSOLIDATION
         let globalSemanticResults = {};
@@ -1548,6 +1513,44 @@
 
             let exKeys = Array.from(exSet), mtKeys = Array.from(mtSet);
 
+            // ====== TRI PERSONNALISÉ DES COLONNES (Demande Utilisateur) ======
+            exKeys.sort((a, b) => {
+                let nameA = a.split('/').pop().toLowerCase();
+                let nameB = b.split('/').pop().toLowerCase();
+
+                let rank = (name) => {
+                    if (name.includes('sous_activite_finale') || name === 'sous_activite_finale') return -100;
+                    if (name.startsWith('sa_part')) return -99;
+                    return 0; // Autres colonnes normales
+                };
+
+                let rA = rank(nameA), rB = rank(nameB);
+
+                if (rA === -99 && rB === -99) {
+                    let numA = parseInt(nameA.replace(/\D/g, '')) || 0;
+                    let numB = parseInt(nameB.replace(/\D/g, '')) || 0;
+                    return numA - numB;
+                }
+
+                if (rA !== rB) return rA - rB;
+                return nameA.localeCompare(nameB);
+            });
+
+            mtKeys.sort((a, b) => {
+                let nameA = a.split('/').pop().toLowerCase();
+                let nameB = b.split('/').pop().toLowerCase();
+                
+                let rank = (name) => {
+                    if (name === '_id' || name === 'id') return 1;
+                    if (name === '_uuid' || name === 'uuid') return 2;
+                    return 3;
+                };
+                let rA = rank(nameA), rB = rank(nameB);
+                if (rA !== rB) return rA - rB;
+                return nameA.localeCompare(nameB);
+            });
+            // ================================================================
+
             // 1) PRÉ-CALCUL DES DOUBLONS AVEC SIGNATURE STRICTE ET DÉCOUPAGE DES MATRICULES
             let signatureMap = {};
             data.forEach((r, idx) => {
@@ -1591,7 +1594,17 @@
             sHeaderTr.append(`<th class="sub-header-survey" style="background-color: #e67e22 !important; width: 100px;">Éditer (Kobo)</th>`);
             
             baseColsInfo.forEach(col => sHeaderTr.append(`<th class="sub-header-survey">${col.label}</th>`));
-            exKeys.forEach(key => sHeaderTr.append(`<th class="sub-header-survey">${getTranslatedHeader(key.split('/').pop())}</th>`));
+            
+            // ===== APPLICATION DU DESIGN SUR LES EN-TETES CIBLES =====
+            exKeys.forEach(key => {
+                let xmlName = key.split('/').pop();
+                let translatedHeader = getTranslatedHeader(xmlName);
+                let isHL = translatedHeader.toLowerCase().includes('date de suivi') || translatedHeader.toLowerCase().includes('réalisation') || translatedHeader.toLowerCase().includes('realisation') || xmlName.toLowerCase().includes('date_enq');
+                
+                let style = isHL ? 'background-color: #2ecc71 !important; color: white !important; font-size: 1.05rem; border: 2px solid #27ae60 !important; font-weight: 800;' : '';
+                sHeaderTr.append(`<th class="sub-header-survey" style="${style}">${translatedHeader}</th>`);
+            });
+            
             mtKeys.forEach(key => sHeaderTr.append(`<th class="sub-header-meta">${getTranslatedHeader(key.split('/').pop())}</th>`));
 
             function formatExtra(val, rowData, xmlName, isRaw) {
@@ -1663,9 +1676,17 @@
                     tr.append($('<td></td>').attr('data-csv', val).text(val)); sData[col.key] = cleanSpaces(String(val)).toLowerCase();
                     sData.subDateObj = row['_submission_time'] ? new Date(row['_submission_time']) : null;
                 });
+                
                 exKeys.concat(mtKeys).forEach(key => {
                     let xmlName = key.split('/').pop();
-                    tr.append($('<td></td>').attr('data-csv', formatExtra(row[key], row, xmlName, true)).html(formatExtra(row[key], row, xmlName, false)));
+                    let translatedHeader = getTranslatedHeader(xmlName);
+                    
+                    // ===== APPLICATION DU DESIGN SUR LES CELLULES CIBLES =====
+                    let isHL = translatedHeader.toLowerCase().includes('date de suivi') || translatedHeader.toLowerCase().includes('réalisation') || translatedHeader.toLowerCase().includes('realisation') || xmlName.toLowerCase().includes('date_enq');
+                    let style = isHL ? 'background-color: #eafaf1 !important; color: #1e8449 !important; font-weight: 900; font-size: 1.1rem; border-left: 2px solid #2ecc71 !important; border-right: 2px solid #2ecc71 !important;' : '';
+
+                    let td = $(`<td style="${style}"></td>`).attr('data-csv', formatExtra(row[key], row, xmlName, true)).html(formatExtra(row[key], row, xmlName, false));
+                    tr.append(td);
                     
                     // Ajout conditionnel de la date de réalisation pour le filtre si existante
                     let xmlNameLow = xmlName.toLowerCase();
