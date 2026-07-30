@@ -138,6 +138,7 @@
     </style>
 </head>
 <body>
+    <!-- Infobulle dynamique pour l'aperçu des images -->
     <div id="image-preview-tooltip"><img id="preview-img" src="" alt="Aperçu de l'image"></div>
 
     <div class="container-fluid">
@@ -175,7 +176,7 @@
 
         <div class="tab-content bg-transparent p-0" id="masterTabsContent" style="box-shadow: none;">
             
-            <!-- SUPER-ONGLET 1 : SOUMISSIONS KOBO (Contient l'ancien menu) -->
+            <!-- SUPER-ONGLET 1 : SOUMISSIONS KOBO (Contient le menu d'origine) -->
             <div class="tab-pane fade show active" id="master-soumissions" role="tabpanel">
                 
                 <ul class="nav nav-tabs d-flex justify-content-center flex-wrap" id="dashboardTabs" role="tablist">
@@ -328,9 +329,6 @@
                             </div>
                         </div>
                     </div>
-					
-					
-					
 					
 					
 					
@@ -837,7 +835,7 @@
                 
                 <div class="alert shadow-sm mb-4" style="background-color: #eafaf1; border: 1px solid #27ae60; color: #1e8449;">
                     <h4 class="fw-bold mb-2"><i class="fas fa-chart-line"></i> Module d'Analyse Quantitative des Réalisations</h4>
-                    <p class="mb-0" style="font-size: 1.05rem;">Ce module se concentre exclusivement sur les champs chiffrés de type "Réalisation" (quantités, montants, effectifs réalisés sur le terrain) pour comparer mathématiquement et temporellement les performances des DREN, CISCO et ZAP.</p>
+                    <p class="mb-0" style="font-size: 1.05rem;">Ce module se concentre exclusivement sur les champs chiffrés de type "Réalisation" (quantités, montants, effectifs réalisés sur le terrain) pour comparer mathématiquement et temporellement les performances des DREN, CISCO et ZAP. <br><strong>Règle stricte appliquée : L'attribution se fait sans aucun cumul hiérarchique. Une réalisation appartient exclusivement à son auteur direct.</strong></p>
                 </div>
                 
                 <ul class="nav nav-tabs mb-4 justify-content-center" id="realisationTabs" role="tablist">
@@ -933,8 +931,6 @@
 
     <!-- Scripts Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-
 
 
 
@@ -1897,7 +1893,6 @@
 
 
 
-
 // ================= EXPORTS ET PARTAGE =================
         function downloadFile(b, fn) { let a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = fn; a.style.display="none"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
 
@@ -2114,13 +2109,13 @@
         window.sendDBSCANToWhatsApp = function() { let data = window.getDBSCANExportData(); if (data.length === 0) return alert("Aucune anomalie détectée."); navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(function() { alert("✅ SUCCÈS !\nCopié.\nCollez-le dans WhatsApp."); window.open(`https://wa.me/?text=${encodeURIComponent(`🚨 *Anomalies DBSCAN*\n\n[ COLLER JSON ICI ]`)}`, '_blank'); }); }
 
 
-        // ======================= LOGIQUE : ANALYSE DES RÉALISATIONS (NOUVEAU SUPER-ONGLET 2) ======================= //
+        // ======================= LOGIQUE : STRICTE ANALYSE DES RÉALISATIONS (ATTRIBUTION DIRECTE) ======================= //
 
         function getRealisationsData() {
             let realData = [];
             allData.forEach(row => {
                 let dateSubRaw = row['_submission_time'] ? row['_submission_time'].substring(0, 10) : null;
-                if (!dateSubRaw) return; // Ignorer si pas de date
+                if (!dateSubRaw) return; 
                 
                 let vDren = cleanSpaces(getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous'], []));
                 let vCisco = cleanSpaces(getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous'], []));
@@ -2132,19 +2127,20 @@
 
                 for(let key in row) {
                     let lowKey = key.split('/').pop().toLowerCase();
-                    // On cherche les colonnes quantitatives liées aux réalisations
+                    // On cherche les colonnes quantitatives
                     if(lowKey.includes('realisation') || lowKey.includes('quantit') || lowKey.includes('effectif') || lowKey.includes('montant')) {
                         let val = parseFloat(row[key]);
                         if(!isNaN(val)) {
+                            // RÈGLE STRICTE : La réalisation appartient UNIQUEMENT au niveau le plus bas renseigné
                             let niveau = vZap ? 'ZAP' : (vCisco ? 'CISCO' : (vDren ? 'DREN' : 'National'));
                             let entite = vZap || vCisco || vDren || 'Inconnue';
+                            
                             realData.push({ 
-                                date: dateSubRaw, // YYYY-MM-DD
+                                date: dateSubRaw,
                                 niveau: niveau, 
                                 entite: entite, 
                                 activite: labelAct, 
-                                valeur: val, 
-                                dren: vDren, cisco: vCisco, zap: vZap 
+                                valeur: val
                             });
                         }
                     }
@@ -2162,7 +2158,6 @@
                 return;
             }
 
-            // Trier par date décroissante
             data.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             data.forEach(item => {
@@ -2182,17 +2177,17 @@
             let selectedLevel = $('#real-niveau-select').val(); // 'dren', 'cisco', 'zap'
             let data = getRealisationsData();
             
-            // Regrouper par Mois-Année et par Entité
             let timeSeries = {};
             let allMonthsSet = new Set();
 
             data.forEach(item => {
                 let entiteName = '';
-                if(selectedLevel === 'dren' && item.dren) entiteName = item.dren;
-                if(selectedLevel === 'cisco' && item.cisco) entiteName = item.cisco;
-                if(selectedLevel === 'zap' && item.zap) entiteName = item.zap;
+                // RÈGLE STRICTE : On ne prend le chiffre que si l'auteur DIRECT correspond au niveau sélectionné
+                if(selectedLevel === 'dren' && item.niveau === 'DREN') entiteName = item.entite;
+                if(selectedLevel === 'cisco' && item.niveau === 'CISCO') entiteName = item.entite;
+                if(selectedLevel === 'zap' && item.niveau === 'ZAP') entiteName = item.entite;
                 
-                if(!entiteName) return;
+                if(!entiteName) return; // Si la ligne appartient à une ZAP mais qu'on analyse les CISCO, on ignore.
 
                 let monthYear = item.date.substring(0, 7); // "YYYY-MM"
                 allMonthsSet.add(monthYear);
@@ -2203,9 +2198,9 @@
                 timeSeries[entiteName][monthYear] += item.valeur;
             });
 
-            let allMonths = Array.from(allMonthsSet).sort(); // Mois chronologiques
+            let allMonths = Array.from(allMonthsSet).sort();
             if (allMonths.length === 0) {
-                $('#container-chart-real-temporel').html('<div class="text-center text-muted py-5 mt-5"><i class="fas fa-exclamation-circle fa-3x mb-3 text-warning"></i><br>Pas assez de données pour ce niveau.</div>');
+                $('#container-chart-real-temporel').html('<div class="text-center text-muted py-5 mt-5"><i class="fas fa-exclamation-circle fa-3x mb-3 text-warning"></i><br>Aucune Réalisation enregistrée en propre à ce niveau (pas de cumul hiérarchique).</div>');
                 return;
             }
 
@@ -2213,14 +2208,12 @@
             $('#container-chart-real-temporel').empty().append('<canvas id="chart-real-temporel"></canvas>');
 
             let datasets = [];
-            // Couleurs aléatoires jolies
             const colors = ['#1abc9c', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#e74c3c', '#34495e', '#2ecc71', '#8e44ad', '#d35400'];
             let colorIdx = 0;
 
             for(let entite in timeSeries) {
                 let dataPoints = allMonths.map(m => timeSeries[entite][m] || 0);
                 
-                // Pour éviter un graphique illisible si on a 100 ZAP, on ne prend que celles qui ont des données
                 let totalReals = dataPoints.reduce((a,b)=>a+b, 0);
                 if(totalReals === 0) continue;
 
@@ -2237,7 +2230,6 @@
                 colorIdx++;
             }
 
-            // Si trop de datasets (ex: 50 ZAP), on trie et on garde les 15 meilleures pour la lisibilité temporelle
             if (datasets.length > 15) {
                 datasets.sort((a, b) => b.data.reduce((s,v)=>s+v,0) - a.data.reduce((s,v)=>s+v,0));
                 datasets = datasets.slice(0, 15);
@@ -2249,10 +2241,7 @@
 
             chartRealisationTemporel = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: allMonths,
-                    datasets: datasets
-                },
+                data: { labels: allMonths, datasets: datasets },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: { tooltip: { mode: 'index', intersect: false } },
@@ -2273,9 +2262,10 @@
 
             let agg = { dren: {}, cisco: {}, zap: {} };
             data.forEach(item => {
-                if(item.dren) { agg.dren[item.dren] = (agg.dren[item.dren] || 0) + item.valeur; }
-                if(item.cisco) { agg.cisco[item.cisco] = (agg.cisco[item.cisco] || 0) + item.valeur; }
-                if(item.zap) { agg.zap[item.zap] = (agg.zap[item.zap] || 0) + item.valeur; }
+                // RÈGLE STRICTE : Addition UNIQUEMENT sur le niveau exact (pas de cumul hiérarchique)
+                if(item.niveau === 'DREN') { agg.dren[item.entite] = (agg.dren[item.entite] || 0) + item.valeur; }
+                if(item.niveau === 'CISCO') { agg.cisco[item.entite] = (agg.cisco[item.entite] || 0) + item.valeur; }
+                if(item.niveau === 'ZAP') { agg.zap[item.entite] = (agg.zap[item.entite] || 0) + item.valeur; }
             });
 
             let html = '';
@@ -2302,7 +2292,6 @@
 
                 let blockHtml = `<div class="col-12 mt-4"><h5 class="text-primary mb-3 text-uppercase border-bottom pb-2">${levelName}</h5><div class="row">`;
                 
-                // On affiche de l'excellent (index 2) vers le faible (index 0)
                 [2, 1, 0].forEach(idx => {
                     let group = clustersInfo[idx];
                     blockHtml += `
@@ -2314,7 +2303,7 @@
                     group.items.forEach(item => {
                         blockHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">${item.name} <span class="badge ${group.badge} rounded-pill fs-6">${item.val.toLocaleString('fr-FR')}</span></li>`;
                     });
-                    if(group.items.length === 0) blockHtml += `<li class="list-group-item text-muted">Aucune entité</li>`;
+                    if(group.items.length === 0) blockHtml += `<li class="list-group-item text-muted">Aucune entité (Aucune réalisation en propre)</li>`;
                     blockHtml += `</ul></div></div>`;
                 });
                 
@@ -2322,9 +2311,9 @@
                 return blockHtml;
             };
 
-            html += createClusteringHTML('Niveau DREN', agg.dren);
-            html += createClusteringHTML('Niveau CISCO', agg.cisco);
-            html += createClusteringHTML('Niveau ZAP', agg.zap);
+            html += createClusteringHTML('Niveau DREN (Réalisations Propres)', agg.dren);
+            html += createClusteringHTML('Niveau CISCO (Réalisations Propres)', agg.cisco);
+            html += createClusteringHTML('Niveau ZAP (Réalisations Propres)', agg.zap);
 
             $('#real-clustering-results').html(html);
         };
