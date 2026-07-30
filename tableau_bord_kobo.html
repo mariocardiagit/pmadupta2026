@@ -237,16 +237,16 @@
                                     <input type="date" id="filter-date-fin" class="form-control filter-input border-primary">
                                 </div>
 
-                                <!-- NOUVEAU GROUPE : REALISATIONS DES SOUS ACTIVITES (VERT CLAIR) -->
+                                <!-- GROUPE : REALISATIONS DES SOUS ACTIVITES (VERT CLAIR) -->
                                 <div class="col-md-12 mt-4 border-top pt-3">
                                     <label class="filter-label mb-3" style="color: #27ae60; font-size: 1rem;"><i class="fas fa-chart-line"></i> REALISATIONS des SOUS ACTIVITES</label>
                                     <div class="row g-3 p-3 rounded shadow-sm" style="background-color: #eafaf1; border: 1px solid #2ecc71;">
                                         <div class="col-md-3">
-                                            <label class="filter-label text-success"><i class="fas fa-calendar-alt"></i> Date de début (Réalisation)</label>
+                                            <label class="filter-label text-success"><i class="fas fa-calendar-alt"></i> Date de début (Suivi de la Réalisation)</label>
                                             <input type="date" id="filter-date-debut-realisation" class="form-control filter-input border-success bg-white">
                                         </div>
                                         <div class="col-md-3">
-                                            <label class="filter-label text-success"><i class="fas fa-calendar-check"></i> Date de fin (Réalisation)</label>
+                                            <label class="filter-label text-success"><i class="fas fa-calendar-check"></i> Date de fin (Suivi de la Réalisation)</label>
                                             <input type="date" id="filter-date-fin-realisation" class="form-control filter-input border-success bg-white">
                                         </div>
                                         <div class="col-md-3">
@@ -385,8 +385,6 @@
                             </div>
                         </div>
                     </div>
-					
-					
 					
 					
 					
@@ -990,6 +988,8 @@
 
     <!-- Scripts Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
 
 
 
@@ -2002,7 +2002,7 @@
                 "Activité": cleanSpaces($('#filter-activite').val()) || "Tous", "Produit": cleanSpaces($('#filter-produit').val()) || "Tous", 
                 "Sous-activité": cleanSpaces($('#filter-sous-activite').val()) || "Tous", "Sous-produit": cleanSpaces($('#filter-sous-produit').val()) || "Tous",
                 "Date de début (Soumission)": $('#filter-date-debut').val() || "Toutes", "Date de fin (Soumission)": $('#filter-date-fin').val() || "Toutes",
-                "Date de début (Réalisation)": $('#filter-date-debut-realisation').val() || "Toutes", "Date de fin (Réalisation)": $('#filter-date-fin-realisation').val() || "Toutes",
+                "Date de début (Suivi de la Réalisation)": $('#filter-date-debut-realisation').val() || "Toutes", "Date de fin (Suivi de la Réalisation)": $('#filter-date-fin-realisation').val() || "Toutes",
                 "Valeur Minimum (Réalisation)": $('#filter-val-min-realisation').val() || "Aucune", "Valeur Maximum (Réalisation)": $('#filter-val-max-realisation').val() || "Aucune",
                 "Filtre Strict Doublons": $('#filter-only-doublons').is(':checked') ? "Activé" : "Désactivé",
                 "Filtre Strict Anomalies": $('#filter-only-anomalies').is(':checked') ? "Activé" : "Désactivé"
@@ -2022,6 +2022,10 @@
         function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous" && f[k] !== "Toutes" && f[k] !== "Désactivé" && f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
         function getAnalysisFilters() { return { "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune", "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune", "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune" }; }
         function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
+
+
+
+
 
 
 
@@ -2649,48 +2653,6 @@
                 window.filterSoumissionsTables(); 
                 setTimeout(() => $('#cons-progress-container').hide(), 5000);
             } catch(e) { $('#cons-status').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Erreur lors de l'analyse : ${e.message}</span>`); }
-        };
-
-        window.runSemanticAnalysis = async function() {
-            if(allData.length === 0) { alert("Veuillez d'abord attendre le chargement des données."); return; }
-            globalSemanticResults = {}; 
-            $('#semantic-progress-container').show(); $('#semantic-status').text("Téléchargement du modèle IA (SBERT)... Cela peut prendre une minute."); $('#semantic-progress-bar').css('width', '5%').text('5%');
-
-            try {
-                let extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', {
-                    progress_callback: x => { if (x.status === 'progress') { let p = Math.round(x.progress); $('#semantic-progress-bar').css('width', p + '%').text(p + '%'); } }
-                });
-                $('#semantic-progress-bar').css('width', '100%').text('Modèle chargé !');
-
-                const semanticTasks = [
-                    { key: 'activiteDren', resId: 'res-act-dren', chartId: 'semanticChart-act-dren', chartCont: 'chart-container-act-dren', name: 'Activités DREN' },
-                    { key: 'activiteCisco', resId: 'res-act-cisco', chartId: 'semanticChart-act-cisco', chartCont: 'chart-container-act-cisco', name: 'Activités CISCO' },
-                    { key: 'activiteZap', resId: 'res-act-zap', chartId: 'semanticChart-act-zap', chartCont: 'chart-container-act-zap', name: 'Activités ZAP' },
-                    { key: 'produitDren', resId: 'res-prod-dren', chartId: 'semanticChart-prod-dren', chartCont: 'chart-container-prod-dren', name: 'Produits DREN' },
-                    { key: 'produitCisco', resId: 'res-prod-cisco', chartId: 'semanticChart-prod-cisco', chartCont: 'chart-container-prod-cisco', name: 'Produits CISCO' },
-                    { key: 'produitZap', resId: 'res-prod-zap', chartId: 'semanticChart-prod-zap', chartCont: 'chart-container-prod-zap', name: 'Produits ZAP' },
-                    { key: 'sousActiviteDren', resId: 'res-sact-dren', chartId: 'semanticChart-sact-dren', chartCont: 'chart-container-sact-dren', name: 'Sous-activités DREN' },
-                    { key: 'sousActiviteCisco', resId: 'res-sact-cisco', chartId: 'semanticChart-sact-cisco', chartCont: 'chart-container-sact-cisco', name: 'Sous-activités CISCO' },
-                    { key: 'sousActiviteZap', resId: 'res-sact-zap', chartId: 'semanticChart-sact-zap', chartCont: 'chart-container-sact-zap', name: 'Sous-activités ZAP' },
-                    { key: 'sousProduitDren', resId: 'res-sprod-dren', chartId: 'semanticChart-sprod-dren', chartCont: 'chart-container-sprod-dren', name: 'Sous-produits DREN' },
-                    { key: 'sousProduitCisco', resId: 'res-sprod-cisco', chartId: 'semanticChart-sprod-cisco', chartCont: 'chart-container-sprod-cisco', name: 'Sous-produits CISCO' },
-                    { key: 'sousProduitZap', resId: 'res-sprod-zap', chartId: 'semanticChart-sprod-zap', chartCont: 'chart-container-sprod-zap', name: 'Sous-produits ZAP' }
-                ];
-
-                for(let task of semanticTasks) {
-                    $('#semantic-status').text(`Analyse sémantique en cours : ${task.name}...`);
-                    let col = baseColsInfo.find(c => c.key === task.key);
-                    if(col) {
-                        let dataToProcess = [...new Set(allData.map(r => cleanSpaces(getKoboValue(r, col.matches, col.ex, col.mustMatch))).filter(v => v && v !== 'Non renseigné'))];
-                        let clusters = await clusterActivities(dataToProcess, extractor);
-                        globalSemanticResults[task.name] = clusters; 
-                        renderSemanticChart(clusters, task.chartId, task.chartCont);
-                        renderSemanticClusters(clusters, task.resId, task.name);
-                    }
-                }
-                $('#semantic-status').text("✅ Analyse sémantique de tous les niveaux terminée avec succès !");
-                setTimeout(() => $('#semantic-progress-container').hide(), 5000);
-            } catch(e) { $('#semantic-status').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Erreur lors de l'analyse : ${e.message}</span>`); }
         };
 
         function renderSoumissionsTable(data, containerId, title) {
