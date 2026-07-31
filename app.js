@@ -343,7 +343,7 @@ $('#search-expert-table').on('keyup', function() {
 async function loadDictionaryAutomatically() {
     try {
         $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire...</span>');
-        const excelUrl = "ath6cv2NrXEUijffeKJqSf(12).xlsx"; 
+        const excelUrl = "dictionnaire.xlsx"; 
         const response = await fetch(excelUrl);
         if (response.ok) {
             const arrayBuffer = await response.arrayBuffer();
@@ -497,13 +497,35 @@ async function fetchData() {
     await loadDictionaryAutomatically();
 
     try {
-//			const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime()), { cache: 'no-store' });		
-// On attaque directement le serveur Kobo sans passer par allorigins ou corsproxy
-//  const response = await fetch('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime(), { cache: 'no-store' });		
-// const response = await fetch('https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime()), { cache: 'no-store' });        
-    const response = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime()), { cache: 'no-store' });        
-//        const response = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime()), { cache: 'no-store' });
-        if (!response.ok) throw new Error('Erreur réseau');
+        const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime();
+        
+        // Liste des 3 solutions (Connexion directe + 2 Proxys)
+        const fetchUrls = [
+            koboUrl, // 1. On tente d'abord la connexion directe propre !
+            'https://api.allorigins.win/raw?url=' + encodeURIComponent(koboUrl), // 2. Proxy de secours 1
+            'https://corsproxy.io/?' + encodeURIComponent(koboUrl) // 3. Proxy de secours 2
+        ];
+
+        let response = null;
+        let fetchSuccess = false;
+
+        // Boucle Anti-Blocage : on teste chaque URL une par une
+        for (let url of fetchUrls) {
+            try {
+                response = await fetch(url, { cache: 'no-store' });
+                if (response.ok) {
+                    fetchSuccess = true;
+                    break; // Succès ! On arrête de chercher et on sort de la boucle.
+                }
+            } catch (e) {
+                console.warn("Le navigateur a bloqué l'accès via :", url);
+            }
+        }
+
+        // Si uBlock ou Firefox bloque tout
+        if (!fetchSuccess) {
+            throw new Error("L'antivirus ou l'extension du navigateur (ex: uBlock) bloque la connexion. Veuillez utiliser le bouton 'Importer la base de données' en haut de la page.");
+        }
         
         allData = (await response.json()).results || [];
         allData = allData.filter(row => row !== null && typeof row === 'object');
@@ -1468,6 +1490,63 @@ window.runRealisationClustering = function() {
 
     $('#real-clustering-results').html(html);
 };
+
+async function fetchData() {
+    $('#loading-box').show(); $('#error-box').hide();
+    $('#table-body').empty(); $('#table-group-header-row').empty(); $('#table-sub-header-row').empty();
+    $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Collecte en cours...</span>');
+    
+    await loadDictionaryAutomatically();
+
+    try {
+        const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime();
+        
+        // Liste des 4 solutions de secours (Proxys multiples + Tentative directe)
+        const fetchUrls = [
+            'https://api.allorigins.win/raw?url=' + encodeURIComponent(koboUrl),
+            'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(koboUrl),
+            'https://corsproxy.io/?' + encodeURIComponent(koboUrl),
+            koboUrl // Tentative directe sans proxy
+        ];
+
+        let response = null;
+        let fetchSuccess = false;
+
+        // Boucle Anti-Blocage : on teste chaque URL une par une
+        for (let url of fetchUrls) {
+            try {
+                console.log("Tentative de connexion via :", url);
+                response = await fetch(url, { cache: 'no-store' });
+                if (response.ok) {
+                    fetchSuccess = true;
+                    break; // Succès ! On arrête de chercher et on sort de la boucle.
+                }
+            } catch (e) {
+                console.warn("Le navigateur a bloqué ce serveur :", url);
+            }
+        }
+
+        // Si absolument tous les serveurs ont été bloqués par Firefox
+        if (!fetchSuccess) {
+            throw new Error("La sécurité de Firefox (ou AdBlock) bloque toutes les connexions. Veuillez importer votre fichier Excel manuellement via le bouton en haut.");
+        }
+        
+        allData = (await response.json()).results || [];
+        allData = allData.filter(row => row !== null && typeof row === 'object');
+        
+        renderTable(allData);
+        renderAnalysis(allData);
+        
+        let bEx = isExcelLoaded ? '<span class="badge bg-success ms-2"><i class="fas fa-check-circle"></i> Traduit</span>' : '<span class="badge bg-warning text-dark ms-2"><i class="fas fa-info-circle"></i> Brut</span>';
+        $('#sync-status').html(`<span class="badge bg-success sync-badge"><i class="fas fa-check-double"></i> Ok : ${allData.length} Lignes</span>`).append(bEx);
+
+    } catch (error) {
+        $('#error-box').html('<strong>Erreur de sécurité réseau :</strong> ' + error.message).show();
+        $('#sync-status').html('<span class="badge bg-danger sync-badge">Échec Kobo</span>');
+    } finally { 
+        $('#loading-box').hide(); 
+    }
+}
 
 $(document).ready(function() {
     fetchData();
