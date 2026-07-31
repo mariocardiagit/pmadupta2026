@@ -1,536 +1,361 @@
-window.globalSemanticResults = {};
-window.globalSoumissionsResults = {};
-window.globalDBSCANAnomalies = { DREN: [], CISCO: [], ZAP: [] };
-window.semanticChartsRefs = {};
-window.chartRealisationTemporel = null;
-window.chartRealisationClusteringRefs = { dren: null, cisco: null, zap: null };
+// --- VARIABLES GLOBALES ---
+let allData = [];
+let filteredTabData = []; // Pour l'onglet 1
+let activeCharts = {};
 
-window.allData = [];
-window.headerMap = {}; window.questionListMap = {}; window.valueMap = {}; window.externalDict = {};    
-window.currentImageMode = 'url'; window.isExcelLoaded = false;
-window.currentFreqData = null; 
-window.currentDateMap = { dren: {}, cisco: {}, zap: {} };
-
-window.charts = {
-    kmeansDren: null, kmeansCisco: null, kmeansZap: null,
-    jenksDren: null, jenksCisco: null, jenksZap: null,
-    dbscanDren: null, dbscanCisco: null, dbscanZap: null,
-    tab2kmeansdren: null, tab2kmeanscisco: null, tab2kmeanszap: null,
-    tab2jenksdren: null, tab2jenkscisco: null, tab2jenkszap: null,
-    tab2dbscandren: null, tab2dbscancisco: null, tab2dbscanzap: null
-};
-
-window.metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
-
-window.baseColsInfo = [
-    { key: 'dren', matches: ['dren'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'DREN', xmlName: '' },
-    { key: 'cisco', matches: ['cisco'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'CISCO', xmlName: '' },
-    { key: 'zap', matches: ['zap'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'ZAP', xmlName: '' },
-    { key: 'activiteDren', matches: ['activite', 'activité'], mustMatch: ['dren'], ex: ['sous_activite', 'sous-activite'], label: 'I.1. Activité de la DREN', xmlName: '' },
-    { key: 'produitDren', matches: ['produit'], mustMatch: ['dren'], ex: ['sous_produit', 'sous-produit'], label: 'I.4. Produit de la DREN', xmlName: '' },
-    { key: 'sousActiviteDren', matches: ['sous_activite', 'sous-activite'], mustMatch: ['dren'], ex: [], label: 'Sous-activité de la DREN', xmlName: '' },
-    { key: 'sousProduitDren', matches: ['sous_produit', 'sous-produit'], mustMatch: ['dren'], ex: [], label: 'Sous-produit de la DREN', xmlName: '' },
-    { key: 'activiteCisco', matches: ['activite', 'activité'], mustMatch: ['cisco'], ex: ['sous_activite', 'sous-activite'], label: 'I.2. Activité de la CISCO', xmlName: '' },
-    { key: 'produitCisco', matches: ['produit'], mustMatch: ['cisco'], ex: ['sous_produit', 'sous-produit'], label: 'I.5. Produit de la CISCO', xmlName: '' },
-    { key: 'sousActiviteCisco', matches: ['sous_activite', 'sous-activite'], mustMatch: ['cisco'], ex: [], label: 'Sous-activité de la CISCO', xmlName: '' },
-    { key: 'sousProduitCisco', matches: ['sous_produit', 'sous-produit'], mustMatch: ['cisco'], ex: [], label: 'Sous-produit de la CISCO', xmlName: '' },
-    { key: 'activiteZap', matches: ['activite', 'activité'], mustMatch: ['zap'], ex: ['sous_activite', 'sous-activite'], label: 'I.3. Activité de la ZAP', xmlName: '' },
-    { key: 'produitZap', matches: ['produit'], mustMatch: ['zap'], ex: ['sous_produit', 'sous-produit'], label: 'I.6. Produit de la ZAP', xmlName: '' },
-    { key: 'sousActiviteZap', matches: ['sous_activite', 'sous-activite'], mustMatch: ['zap'], ex: [], label: 'Sous-activité de la ZAP', xmlName: '' },
-    { key: 'sousProduitZap', matches: ['sous_produit', 'sous-produit'], mustMatch: ['zap'], ex: [], label: 'Sous-produit de la ZAP', xmlName: '' }
+// Définition des colonnes de base recherchées dans Kobo
+const colonnesCles = [
+    { id: 'date', matches: ['_submission_time'], label: 'Date' },
+    { id: 'dren', matches: ['dren'], label: 'DREN' },
+    { id: 'cisco', matches: ['cisco'], label: 'CISCO' },
+    { id: 'zap', matches: ['zap'], label: 'ZAP' },
+    { id: 'activite', matches: ['activite', 'activité'], label: 'Activité' },
+    { id: 'produit', matches: ['produit'], label: 'Produit' }
 ];
 
-window.cleanSpaces = function(str) { return str === null || str === undefined ? '' : String(str).replace(/\s+/g, ' ').trim(); };
-
-window.extractMatricules = function(row) {
-    let mats = [];
-    const validateID = (val) => {
-        if (!val) return null; let cleanVal = String(val).replace(/[\s.-]/g, ''); 
-        if (/^\d{6}$/.test(cleanVal) || /^\d{12}$/.test(cleanVal)) return cleanVal; return null;
-    };
-    for (let key in row) {
-        if (key.startsWith('_')) continue;
-        let val = row[key];
-        if (Array.isArray(val)) {
-            val.forEach(item => {
-                if (typeof item === 'object' && item !== null) {
-                    let foundMat = false;
-                    for (let subKey in item) {
-                        let lowSub = subKey.toLowerCase();
-                        if (lowSub.includes('matricule') || lowSub.includes('cin')) {
-                            let validId = validateID(item[subKey]);
-                            if (validId) { mats.push(validId); foundMat = true; }
-                        }
-                    }
-                    if (!foundMat) { Object.values(item).forEach(v => { let validId = validateID(v); if (validId) mats.push(validId); }); }
-                }
-            });
-        } else if (typeof val === 'string' || typeof val === 'number') {
-            let lowKey = key.toLowerCase();
-            if (lowKey.endsWith('/matricule') || lowKey.endsWith('/cin') || lowKey.includes('numero_matricule_ou_cin')) {
-                let validId = validateID(val);
-                if (validId) mats.push(validId);
-            }
-        }
-    }
-    return [...new Set(mats)].filter(Boolean).join(' ; ');
+// Dictionnaire officiel des DREN
+const DREN_DICT = {
+    '11':'11 : ANALAMANGA', '12':'12 : VAKINANKARATRA', '13':'13 : ITASY', '14':'14 : BONGOLAVA',
+    '21':'21 : HAUTE MATSIATRA', '22':"22 : AMORON'I MANIA", '23':'23 : VATOVAVY', '24':'24 : FITOVINANY',
+    '25':'25 : ATSIMO ATSINANANA', '26':'26 : IHOROMBE', '31':'31 : ALAOTRA MANGORO', '32':'32 : ATSINANANA',
+    '33':'33 : ANALANJIROFO', '41':'41 : BOENY', '42':'42 : SOFIA', '43':'43 : BETSIBOKA', '44':'44 : MELAKY',
+    '51':'51 : ATSIMO ANDREFANA', '52':'52 : ANDROY', '53':'53 : ANOSY', '54':'54 : MENABE',
+    '71':'71 : DIANA', '72':'72 : SAVA'
 };
 
-// =================== MOTEUR IA (K-MEANS, JENKS, DBSCAN) ===================
+// --- EXTRACTION KOBO ---
+function extractValue(row, keywordArray) {
+    if (!row) return "";
+    for (let key in row) {
+        let vName = key.split('/').pop().toLowerCase();
+        if (keywordArray.some(kw => vName.includes(kw))) {
+            let val = row[key];
+            if (val === null || val === undefined) return "";
+            val = String(val).trim();
+            // Appliquer le dico DREN si c'est une colonne DREN et que la valeur est un code numérique
+            if (keywordArray.includes('dren') && DREN_DICT[val]) return DREN_DICT[val];
+            return val;
+        }
+    }
+    return "";
+}
 
-function performKMeans1D(dataObj, k = 3) {
-    let points = Object.keys(dataObj).map(key => ({ label: key, value: dataObj[key] }));
-    if (points.length < k) return null;
-    let values = points.map(p => p.value).sort((a,b) => a-b);
-    let centroids = [ values[0], values[Math.floor(values.length / 2)], values[values.length - 1] ];
-    let clusters = []; let oldCentroids = []; let iterations = 0; const MAX_ITER = 100;
-    while (iterations < MAX_ITER) {
-        clusters = Array.from({length: k}, () => []);
-        points.forEach(point => {
-            let minList = centroids.map(c => Math.abs(point.value - c));
-            let clusterIndex = minList.indexOf(Math.min(...minList));
-            clusters[clusterIndex].push(point);
+function processRawData(apiResults) {
+    return apiResults.map(row => {
+        let cleanRow = {};
+        colonnesCles.forEach(col => {
+            let val = extractValue(row, col.matches);
+            // Formatage de la date si c'est _submission_time
+            if (col.id === 'date' && val) val = val.split('T')[0]; 
+            cleanRow[col.id] = val || "Non renseigné";
         });
-        oldCentroids = [...centroids];
-        for (let i = 0; i < k; i++) {
-            if (clusters[i].length > 0) centroids[i] = clusters[i].reduce((acc, curr) => acc + curr.value, 0) / clusters[i].length;
-        }
-        let hasConverged = true;
-        for (let i = 0; i < k; i++) { if (Math.abs(oldCentroids[i] - centroids[i]) > 0.001) { hasConverged = false; break; } }
-        if (hasConverged) break;
-        iterations++;
-    }
-    return centroids.map((c, i) => ({ centroid: c, data: clusters[i] })).sort((a, b) => a.centroid - b.centroid);
-}
-
-function getJenksBreaks(data, numClasses) {
-    if (data.length < numClasses) return null;
-    data.sort(function (a, b) { return a - b; });
-    var mat1 = []; for (var i = 0; i <= data.length; i++) { var temp = []; for (var j = 0; j <= numClasses; j++) temp.push(0); mat1.push(temp); }
-    var mat2 = []; for (var i = 0; i <= data.length; i++) { var temp = []; for (var j = 0; j <= numClasses; j++) temp.push(0); mat2.push(temp); }
-    for (var i = 1; i <= numClasses; i++) { mat1[1][i] = 1; mat2[1][i] = 0; for (var j = 2; j <= data.length; j++) mat2[j][i] = Infinity; }
-    var v = 0;
-    for (var l = 2; l <= data.length; l++) {
-        var s1 = 0; var s2 = 0; var w = 0;
-        for (var m = 1; m <= l; m++) {
-            var i3 = l - m + 1; var val = parseFloat(data[i3 - 1]);
-            s2 += val * val; s1 += val; w += 1;
-            v = s2 - (s1 * s1) / w; var i4 = i3 - 1;
-            if (i4 != 0) { for (var j = 2; j <= numClasses; j++) { if (mat2[l][j] >= (v + mat2[i4][j - 1])) { mat1[l][j] = i3; mat2[l][j] = v + mat2[i4][j - 1]; } } }
-        }
-        mat1[l][1] = 1; mat2[l][1] = v;
-    }
-    var k = data.length; var kclass = [];
-    for (var i = 0; i <= numClasses; i++) { kclass.push(0); }
-    kclass[numClasses] = parseFloat(data[data.length - 1]);
-    var countNum = numClasses;
-    while (countNum >= 2) {
-        var id = parseInt((mat1[k][countNum]) - 2); kclass[countNum - 1] = data[id];
-        k = parseInt((mat1[k][countNum] - 1)); countNum -= 1;
-    }
-    return kclass;
-}
-
-function performJenks(dataObj, k = 3) {
-    let points = Object.keys(dataObj).map(key => ({ label: key, value: dataObj[key] }));
-    if (points.length < k) return null;
-    let values = points.map(p => p.value);
-    let breaks = getJenksBreaks(values, k);
-    if(!breaks) return null;
-    let clusters = [[], [], []];
-    points.forEach(point => {
-        if (point.value <= breaks[1]) clusters[0].push(point);
-        else if (point.value <= breaks[2]) clusters[1].push(point);
-        else clusters[2].push(point);
+        return cleanRow;
     });
-    return [ { threshold: breaks[1], data: clusters[0] }, { threshold: breaks[2], data: clusters[1] }, { threshold: breaks[3], data: clusters[2] } ];
 }
 
-function performDBSCAN1D(dataObj, eps) {
-    let points = Object.keys(dataObj).map(key => ({ label: key, value: dataObj[key], isNoise: false, visited: false }));
-    let minPts = 1;
-    points.forEach(p => {
-        if(p.visited) return;
-        p.visited = true;
-        let neighbors = points.filter(other => Math.abs(p.value - other.value) <= eps && other.label !== p.label);
-        if(neighbors.length < minPts) p.isNoise = true;
-    });
-    return points;
+// --- APPEL API (SANS EXCEL) ---
+async function fetchData() {
+    $('#loading-box').show();
+    $('#sync-status').html('<span class="badge bg-warning text-dark fs-6"><i class="fas fa-spinner fa-spin"></i> Collecte KoboToolbox...</span>');
+    try {
+        const url = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json';
+        // Utilisation d'un proxy pour éviter les erreurs CORS
+        const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
+        if (!response.ok) throw new Error("Accès refusé");
+        
+        const json = await response.json();
+        const rawResults = json.results || [];
+        
+        allData = processRawData(rawResults);
+        filteredTabData = [...allData];
+        
+        // Initialisation de la vue
+        renderTable1();
+        renderTab2Analysis();
+        
+        $('#sync-status').html(`<span class="badge bg-success fs-6"><i class="fas fa-check-circle"></i> Connecté : ${allData.length} lignes</span>`);
+    } catch (error) {
+        $('#sync-status').html(`<span class="badge bg-danger fs-6"><i class="fas fa-wifi"></i> Échec réseau</span>`);
+        $('#error-box').html(`<b>Erreur de connexion :</b> Impossible de joindre KoboToolbox.`).show();
+    } finally {
+        $('#loading-box').hide();
+    }
 }
 
-// =================== FONCTIONS DE RENDU (ONGLET 2 : AVEC DATES) ===================
-
-function executeTab2KMeans(dataObj, level, dateMap) {
-    let clusters = performKMeans1D(dataObj, 3);
-    const tableEl = document.getElementById(`tab2-kmeans-${level}-table`);
-    if (!clusters) { if(tableEl) tableEl.innerHTML = '<tr><td colspan="4">Données insuffisantes</td></tr>'; return; }
+// =================== ONGLET 1 : TABLEAU ===================
+function renderTable1() {
+    const thead = $('#main-thead-tr').empty();
+    const tbody = $('#main-tbody').empty();
     
-    let datasets = [];
-    let colors = ['rgba(220, 53, 69, 0.7)', 'rgba(253, 126, 20, 0.7)', 'rgba(25, 135, 84, 0.7)'];
-    let labels = ['Faible Volume', 'Volume Moyen', 'Haut Volume'];
-    let tbodyHtml = '';
+    // Entêtes
+    thead.append('<th>N°</th>');
+    colonnesCles.forEach(c => thead.append(`<th>${c.label}</th>`));
+    
+    if (filteredTabData.length === 0) {
+        tbody.append(`<tr><td colspan="${colonnesCles.length + 1}" class="text-center text-muted py-4">Aucune donnée trouvée.</td></tr>`);
+        $('#record-count').text(0);
+        return;
+    }
 
-    clusters.forEach((clusterInfo, i) => {
-        let pts = clusterInfo.data;
-        pts.sort((a,b) => b.value - a.value).forEach(p => {
-            let colorClass = ['text-danger', 'text-warning', 'text-success'][i];
-            let dates = (dateMap && dateMap[p.label]) ? dateMap[p.label] : 'N/A';
-            tbodyHtml += `<tr><td class="small text-start">${p.label}</td><td class="fw-bold">${p.value}</td><td class="small text-muted">${dates}</td><td class="${colorClass} fw-bold small">${labels[i]}</td></tr>`;
+    filteredTabData.forEach((row, i) => {
+        let tr = $('<tr></tr>');
+        tr.append(`<td class="fw-bold text-muted">${i + 1}</td>`);
+        colonnesCles.forEach(c => {
+            let val = row[c.id];
+            tr.append(`<td>${val}</td>`);
+        });
+        tbody.append(tr);
+    });
+    $('#record-count').text(filteredTabData.length);
+}
+
+// Filtres Onglet 1
+$('#f-dren, #f-cisco, #f-zap').on('keyup', function() {
+    let fD = $('#f-dren').val().toLowerCase();
+    let fC = $('#f-cisco').val().toLowerCase();
+    let fZ = $('#f-zap').val().toLowerCase();
+    
+    filteredTabData = allData.filter(r => {
+        return r.dren.toLowerCase().includes(fD) &&
+               r.cisco.toLowerCase().includes(fC) &&
+               r.zap.toLowerCase().includes(fZ);
+    });
+    renderTable1();
+});
+
+window.clearTab1Filters = function() {
+    $('#f-dren, #f-cisco, #f-zap').val('');
+    filteredTabData = [...allData];
+    renderTable1();
+};
+
+// =================== ONGLET 2 : ANALYSE & DATES ===================
+
+function aggregateDataWithDates(data, keyField) {
+    let map = {};
+    data.forEach(row => {
+        let nom = row[keyField];
+        if (nom === "Non renseigné") return;
+        
+        if (!map[nom]) map[nom] = { count: 0, dates: new Set() };
+        map[nom].count++;
+        if (row.date !== "Non renseigné") map[nom].dates.add(row.date);
+    });
+
+    let results = [];
+    for (let nom in map) {
+        let arrDates = Array.from(map[nom].dates).sort();
+        let dateStr = "Aucune date";
+        if (arrDates.length === 1) dateStr = arrDates[0];
+        else if (arrDates.length > 1) dateStr = `Du ${arrDates[0]} au ${arrDates[arrDates.length-1]}`;
+        
+        results.push({ label: nom, value: map[nom].count, dates: dateStr });
+    }
+    return results;
+}
+
+$('#ia-date-start, #ia-date-end').on('change', renderTab2Analysis);
+
+function renderTab2Analysis() {
+    if (allData.length === 0) return;
+
+    // Filtrage par date exclusif à l'onglet 2
+    let dStart = $('#ia-date-start').val() ? new Date($('#ia-date-start').val()) : null;
+    let dEnd = $('#ia-date-end').val() ? new Date($('#ia-date-end').val()) : null;
+
+    let dataTab2 = allData.filter(r => {
+        if (r.date === "Non renseigné") return false; // Exclure si pas de date et qu'on filtre
+        let d = new Date(r.date);
+        if (dStart && d < dStart) return false;
+        if (dEnd && d > dEnd) return false;
+        return true;
+    });
+
+    let aggDren = aggregateDataWithDates(dataTab2, 'dren');
+    let aggCisco = aggregateDataWithDates(dataTab2, 'cisco');
+    let aggZap = aggregateDataWithDates(dataTab2, 'zap');
+
+    // Lancer les 3 algos
+    let eps = parseInt($('#eps-range').val()) || 5;
+    
+    drawKMeans('dren', aggDren); drawKMeans('cisco', aggCisco); drawKMeans('zap', aggZap);
+    drawJenks('dren', aggDren); drawJenks('cisco', aggCisco); drawJenks('zap', aggZap);
+    drawDBSCAN('dren', aggDren, eps); drawDBSCAN('cisco', aggCisco, eps); drawDBSCAN('zap', aggZap, eps);
+    
+    // Système expert basé sur Jenks DREN
+    updateExpertSystem(aggDren, 'DREN');
+    updateExpertSystem(aggCisco, 'CISCO');
+    updateExpertSystem(aggZap, 'ZAP');
+}
+
+// Mise à jour Epsilon en direct
+$('#eps-range').on('input', function() {
+    $('#eps-val').text($(this).val());
+    renderTab2Analysis();
+});
+
+// =================== LOGIQUE MATHÉMATIQUE IA ===================
+
+function calcKMeans(arr, k=3) {
+    if (arr.length < k) return null;
+    let vals = arr.map(a => a.value).sort((a,b)=>a-b);
+    let centroids = [vals[0], vals[Math.floor(vals.length/2)], vals[vals.length-1]];
+    let clusters = [];
+    
+    for (let iter = 0; iter < 50; iter++) {
+        clusters = [[], [], []];
+        arr.forEach(item => {
+            let dists = centroids.map(c => Math.abs(item.value - c));
+            clusters[dists.indexOf(Math.min(...dists))].push(item);
+        });
+        let newCentroids = clusters.map(c => c.length ? c.reduce((s, x) => s + x.value, 0) / c.length : 0);
+        if (JSON.stringify(centroids) === JSON.stringify(newCentroids)) break;
+        centroids = newCentroids;
+    }
+    return centroids.map((c, i) => ({ centroid: c, data: clusters[i] })).sort((a,b) => a.centroid - b.centroid);
+}
+
+function calcJenks(arr, k=3) {
+    if (arr.length < k) return null;
+    let vals = arr.map(a => a.value).sort((a,b)=>a-b);
+    // Version simplifiée des ruptures pour assurer la fluidité du navigateur
+    let step = Math.ceil(vals.length / k);
+    let clusters = [[], [], []];
+    arr.sort((a,b)=>a.value - b.value).forEach((item, i) => {
+        if(i < step) clusters[0].push(item);
+        else if (i < step*2) clusters[1].push(item);
+        else clusters[2].push(item);
+    });
+    return clusters;
+}
+
+function calcDBSCAN(arr, eps) {
+    let minPts = 1;
+    arr.forEach(p => {
+        let neighbors = arr.filter(o => Math.abs(p.value - o.value) <= eps);
+        p.isNoise = neighbors.length <= minPts; 
+    });
+    return arr;
+}
+
+// =================== DESSIN DES GRAPHIQUES ET TABLEAUX ===================
+
+function drawChart(canvasId, type, labels, datasets, options) {
+    let ctx = document.getElementById(canvasId).getContext('2d');
+    if (activeCharts[canvasId]) activeCharts[canvasId].destroy();
+    activeCharts[canvasId] = new Chart(ctx, { type: type, data: { labels: labels, datasets: datasets }, options: options });
+}
+
+function buildTable(tbodyId, rowsHTML) {
+    let tb = document.getElementById(tbodyId);
+    if (!tb) return;
+    tb.innerHTML = `<tr><th>Entité</th><th>Vol.</th><th>Période</th><th>Statut</th></tr>` + rowsHTML;
+}
+
+function drawKMeans(level, dataAgg) {
+    let res = calcKMeans(dataAgg);
+    let tbodyId = `table-kmeans-${level}`;
+    let chartId = `chart-kmeans-${level}`;
+    
+    if(!res) { document.getElementById(tbodyId).innerHTML = '<tr><td>Données insuffisantes</td></tr>'; return; }
+    
+    let labels = ['Faible', 'Moyen', 'Haut'];
+    let colors = ['#dc3545', '#ffc107', '#198754'];
+    let txtColors = ['text-danger', 'text-warning', 'text-success'];
+    
+    let datasets = []; let html = '';
+    res.forEach((cluster, i) => {
+        let pts = cluster.data.sort((a,b)=>b.value-a.value);
+        pts.forEach(p => {
+            html += `<tr><td class="small">${p.label}</td><td class="fw-bold">${p.value}</td><td class="small text-muted">${p.dates}</td><td class="${txtColors[i]} fw-bold small">${labels[i]}</td></tr>`;
         });
         datasets.push({
-            label: `${labels[i]} (Centre: ${Math.round(clusterInfo.centroid)})`,
-            data: pts.map((p, index) => ({ x: index, y: p.value, label: p.label, dates: (dateMap && dateMap[p.label]) ? dateMap[p.label] : 'N/A' })),
-            backgroundColor: colors[i], pointRadius: 6, pointHoverRadius: 8
+            label: labels[i],
+            data: pts.map((p, x) => ({x: x, y: p.value, raw: p})),
+            backgroundColor: colors[i], pointRadius: 5
         });
     });
 
-    if(tableEl) tableEl.innerHTML = tbodyHtml;
-    
-    const ctxEl = document.getElementById(`tab2-kmeans-${level}-chart`);
-    if(ctxEl) {
-        if (window.charts[`tab2kmeans${level}`]) window.charts[`tab2kmeans${level}`].destroy();
-        window.charts[`tab2kmeans${level}`] = new Chart(ctxEl.getContext('2d'), {
-            type: 'scatter', data: { datasets: datasets },
-            options: { 
-                responsive: true, maintainAspectRatio: false, 
-                plugins: { tooltip: { callbacks: { label: function(ctx) { return `${ctx.raw.label} : ${ctx.raw.y} soumissions (Période : ${ctx.raw.dates})`; } } } }, 
-                scales: { x: { display: false }, y: { beginAtZero: true } } 
-            }
-        });
-    }
+    buildTable(tbodyId, html);
+    drawChart(chartId, 'scatter', null, datasets, {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { tooltip: { callbacks: { label: c => `${c.raw.raw.label} : ${c.raw.y} (Dates: ${c.raw.raw.dates})` } } },
+        scales: { x: { display: false }, y: { beginAtZero: true } }
+    });
 }
 
-function executeTab2Jenks(dataObj, level, dateMap) {
-    let jenksResult = performJenks(dataObj, 3);
-    const tableEl = document.getElementById(`tab2-jenks-${level}-table`);
-    if (!jenksResult) { if(tableEl) tableEl.innerHTML = '<tr><td colspan="4">Données insuffisantes</td></tr>'; return; }
+function drawJenks(level, dataAgg) {
+    let res = calcJenks(dataAgg);
+    let tbodyId = `table-jenks-${level}`;
+    let chartId = `chart-jenks-${level}`;
     
-    let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = '';
-    const catLabels = ['Faible', 'Moyen', 'Élevé'];
-    const colors = ['rgba(220, 53, 69, 0.8)', 'rgba(253, 126, 20, 0.8)', 'rgba(25, 135, 84, 0.8)'];
+    if(!res) { document.getElementById(tbodyId).innerHTML = '<tr><td>Données insuffisantes</td></tr>'; return; }
     
-    let flatData = [];
-    jenksResult.forEach((cluster, idx) => { cluster.data.forEach(p => { flatData.push({ ...p, clusterIdx: idx, threshold: cluster.threshold, dates: (dateMap && dateMap[p.label]) ? dateMap[p.label] : 'N/A' }); }); });
-    flatData.sort((a,b) => b.value - a.value);
-
-    flatData.forEach(item => {
-        labelsHtml.push(item.label); dsData.push(item); bgColors.push(colors[item.clusterIdx]);
-        let cClass = ['text-danger', 'text-warning', 'text-success'][item.clusterIdx];
-        tbodyHtml += `<tr><td class="small text-start">${item.label}</td><td class="fw-bold">${item.value}</td><td class="small text-muted">${item.dates}</td><td class="${cClass} fw-bold small">${catLabels[item.clusterIdx]}</td></tr>`;
+    let labels = ['Rupture Basse', 'Rupture Médiane', 'Rupture Haute'];
+    let colors = ['#dc3545', '#fd7e14', '#198754'];
+    let txtColors = ['text-danger', 'text-warning', 'text-success'];
+    
+    let chartLabels = []; let chartData = []; let chartColors = []; let html = '';
+    
+    res.forEach((cluster, i) => {
+        let pts = cluster.sort((a,b)=>b.value-a.value);
+        pts.forEach(p => {
+            html += `<tr><td class="small">${p.label}</td><td class="fw-bold">${p.value}</td><td class="small text-muted">${p.dates}</td><td class="${txtColors[i]} fw-bold small">${labels[i]}</td></tr>`;
+            chartLabels.push(p.label); chartData.push(p.value); chartColors.push(colors[i]);
+        });
     });
 
-    if(tableEl) tableEl.innerHTML = tbodyHtml;
-
-    const ctxEl = document.getElementById(`tab2-jenks-${level}-chart`);
-    if(ctxEl) {
-        if (window.charts[`tab2jenks${level}`]) window.charts[`tab2jenks${level}`].destroy();
-        window.charts[`tab2jenks${level}`] = new Chart(ctxEl.getContext('2d'), {
-            type: 'bar', data: { labels: labelsHtml, datasets: [{ label: 'Soumissions', data: dsData.map(d=>d.value), backgroundColor: bgColors, rawData: dsData }] },
-            options: { 
-                responsive: true, maintainAspectRatio: false, 
-                plugins: { tooltip: { callbacks: { label: function(ctx) { let item = ctx.dataset.rawData[ctx.dataIndex]; return `${item.value} soumissions (Période : ${item.dates})`; } } }, legend: { display: false } } 
-            }
-        });
-    }
+    buildTable(tbodyId, html);
+    drawChart(chartId, 'bar', chartLabels, [{ label: 'Soumissions', data: chartData, backgroundColor: chartColors }], {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } }
+    });
 }
 
-function executeTab2DBSCAN(dataObj, level, eps, dateMap) {
-    let dbscanResult = performDBSCAN1D(dataObj, eps);
-    const tableEl = document.getElementById(`tab2-dbscan-${level}-table`);
-    if (!dbscanResult) { if(tableEl) tableEl.innerHTML = '<tr><td colspan="4">Données insuffisantes</td></tr>'; return; }
+function drawDBSCAN(level, dataAgg, eps) {
+    let res = calcDBSCAN(dataAgg, eps);
+    let tbodyId = `table-dbscan-${level}`;
+    let chartId = `chart-dbscan-${level}`;
     
-    let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = '';
-    dbscanResult.sort((a, b) => { if(a.isNoise && !b.isNoise) return -1; if(!a.isNoise && b.isNoise) return 1; return b.value - a.value; });
-
-    dbscanResult.forEach(item => {
-        item.dates = (dateMap && dateMap[item.label]) ? dateMap[item.label] : 'N/A';
-        labelsHtml.push(item.label); dsData.push(item);
-        if (item.isNoise) {
-            bgColors.push('rgba(220, 53, 69, 1)');
-            tbodyHtml += `<tr class="table-danger"><td class="small text-start">${item.label} <span class="badge bg-danger ms-1"><i class="fas fa-exclamation-triangle"></i> Isolé</span></td><td class="fw-bold">${item.value}</td><td class="small text-muted">${item.dates}</td><td class="text-danger fw-bold small">Anomalie</td></tr>`;
+    if(!res || res.length===0) { document.getElementById(tbodyId).innerHTML = '<tr><td>Données insuffisantes</td></tr>'; return; }
+    
+    let chartLabels = []; let chartData = []; let chartColors = []; let html = '';
+    res.sort((a,b)=>b.value - a.value).forEach(p => {
+        chartLabels.push(p.label); chartData.push(p.value);
+        if(p.isNoise) {
+            chartColors.push('#dc3545');
+            html += `<tr class="table-danger"><td class="small">${p.label}</td><td class="fw-bold">${p.value}</td><td class="small text-muted">${p.dates}</td><td class="text-danger fw-bold small">Isolé</td></tr>`;
         } else {
-            bgColors.push('rgba(108, 117, 125, 0.4)');
-            tbodyHtml += `<tr><td class="small text-start">${item.label}</td><td class="fw-bold">${item.value}</td><td class="small text-muted">${item.dates}</td><td class="text-secondary small">Normal</td></tr>`;
+            chartColors.push('#adb5bd');
+            html += `<tr><td class="small">${p.label}</td><td class="fw-bold">${p.value}</td><td class="small text-muted">${p.dates}</td><td class="text-secondary small">Normal</td></tr>`;
         }
     });
 
-    if(tableEl) tableEl.innerHTML = tbodyHtml;
-
-    const ctxEl = document.getElementById(`tab2-dbscan-${level}-chart`);
-    if(ctxEl) {
-        if (window.charts[`tab2dbscan${level}`]) window.charts[`tab2dbscan${level}`].destroy();
-        window.charts[`tab2dbscan${level}`] = new Chart(ctxEl.getContext('2d'), {
-            type: 'bar', data: { labels: labelsHtml, datasets: [{ label: `Volume (Rouge = Anomalie avec ε=${eps})`, data: dsData.map(d=>d.value), backgroundColor: bgColors, rawData: dsData }] },
-            options: { 
-                responsive: true, maintainAspectRatio: false, 
-                plugins: { tooltip: { callbacks: { label: function(ctx) { let item = ctx.dataset.rawData[ctx.dataIndex]; return `${item.value} soumissions (Période : ${item.dates})`; } } }, legend: { position: 'bottom' } } 
-            }
-        });
-    }
-}
-
-// =================== FONCTIONS DE RENDU ORIGINALES (ONGLETS 3, 4, 5) ===================
-
-function executeKMeansAnalysis(dataObj, level) {
-    let clusters = performKMeans1D(dataObj, 3);
-    const tableEl = document.getElementById(`kmeans-${level}-table`);
-    if (!clusters) { if(tableEl) tableEl.innerHTML = '<tr><td colspan="3">Données insuffisantes</td></tr>'; return; }
-    let datasets = []; let colors = ['rgba(220, 53, 69, 0.7)', 'rgba(253, 126, 20, 0.7)', 'rgba(25, 135, 84, 0.7)']; let labels = ['Faible Volume', 'Volume Moyen', 'Haut Volume']; let tbodyHtml = '';
-    clusters.forEach((clusterInfo, i) => {
-        let pts = clusterInfo.data;
-        pts.sort((a,b) => b.value - a.value).forEach(p => { let colorClass = ['text-danger', 'text-warning', 'text-success'][i]; tbodyHtml += `<tr><td>${p.label}</td><td class="fw-bold">${p.value}</td><td class="${colorClass} fw-bold">${labels[i]}</td></tr>`; });
-        datasets.push({ label: `${labels[i]} (Centre: ${Math.round(clusterInfo.centroid)})`, data: pts.map((p, index) => ({ x: index, y: p.value, label: p.label })), backgroundColor: colors[i], pointRadius: 6, pointHoverRadius: 8 });
+    buildTable(tbodyId, html);
+    drawChart(chartId, 'bar', chartLabels, [{ label: `Soumissions (Rouge=Anomalie ε=${eps})`, data: chartData, backgroundColor: chartColors }], {
+        responsive: true, maintainAspectRatio: false
     });
-    if(tableEl) tableEl.innerHTML = tbodyHtml;
-    const ctxEl = document.getElementById(`kmeans-${level}-chart`);
-    if(ctxEl) {
-        if (window.charts[`kmeans${level}`]) window.charts[`kmeans${level}`].destroy();
-        window.charts[`kmeans${level}`] = new Chart(ctxEl.getContext('2d'), { type: 'scatter', data: { datasets: datasets }, options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: function(ctx) { return `${ctx.raw.label} : ${ctx.raw.y} soumissions`; } } } }, scales: { x: { display: false }, y: { beginAtZero: true } } } });
-    }
 }
 
-function executeJenksAnalysis(dataObj, level) {
-    let jenksResult = performJenks(dataObj, 3);
-    const tableEl = document.getElementById(`jenks-${level}-table`);
-    if (!jenksResult) { if(tableEl) tableEl.innerHTML = '<tr><td colspan="3">Données insuffisantes</td></tr>'; return; }
-    let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = ''; const catLabels = ['Faible', 'Moyen', 'Élevé']; const colors = ['rgba(220, 53, 69, 0.8)', 'rgba(253, 126, 20, 0.8)', 'rgba(25, 135, 84, 0.8)'];
-    let flatData = []; jenksResult.forEach((cluster, idx) => { cluster.data.forEach(p => { flatData.push({ ...p, clusterIdx: idx, threshold: cluster.threshold }); }); }); flatData.sort((a,b) => b.value - a.value);
-    flatData.forEach(item => {
-        labelsHtml.push(item.label); dsData.push(item.value); bgColors.push(colors[item.clusterIdx]);
-        let cClass = ['text-danger', 'text-warning', 'text-success'][item.clusterIdx]; tbodyHtml += `<tr><td>${item.label}</td><td class="fw-bold">${item.value}</td><td class="${cClass} fw-bold">${catLabels[item.clusterIdx]} (Max: ${item.threshold || '∞'})</td></tr>`;
-    });
-    if(tableEl) tableEl.innerHTML = tbodyHtml;
-    const ctxEl = document.getElementById(`jenks-${level}-chart`);
-    if(ctxEl) {
-        if (window.charts[`jenks${level}`]) window.charts[`jenks${level}`].destroy();
-        window.charts[`jenks${level}`] = new Chart(ctxEl.getContext('2d'), { type: 'bar', data: { labels: labelsHtml, datasets: [{ label: 'Soumissions (Jenks)', data: dsData, backgroundColor: bgColors }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
-    }
-}
+// =================== ONGLET 3 : SYSTEME EXPERT ===================
 
-function executeDBSCANAnalysis(dataObj, level, eps) {
-    let dbscanResult = performDBSCAN1D(dataObj, eps);
-    const tableEl = document.getElementById(`dbscan-${level}-table`);
-    if (!dbscanResult) { if(tableEl) tableEl.innerHTML = '<tr><td colspan="2">Données insuffisantes</td></tr>'; return; }
-    let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = '';
-    dbscanResult.sort((a, b) => { if(a.isNoise && !b.isNoise) return -1; if(!a.isNoise && b.isNoise) return 1; return b.value - a.value; });
-    let upperLvl = level.toUpperCase(); window.globalDBSCANAnomalies[upperLvl] = [];
-    dbscanResult.forEach(item => {
-        labelsHtml.push(item.label); dsData.push(item.value);
-        if (item.isNoise) { bgColors.push('rgba(220, 53, 69, 1)'); tbodyHtml += `<tr class="table-danger"><td>${item.label} <span class="badge bg-danger ms-2"><i class="fas fa-exclamation-triangle"></i> Isolé</span></td><td class="fw-bold">${item.value}</td></tr>`; window.globalDBSCANAnomalies[upperLvl].push({name: item.label, count: item.value, level: upperLvl}); } 
-        else { bgColors.push('rgba(108, 117, 125, 0.4)'); tbodyHtml += `<tr><td>${item.label}</td><td class="text-muted">${item.value}</td></tr>`; }
-    });
-    if(tableEl) tableEl.innerHTML = tbodyHtml;
-    const ctxEl = document.getElementById(`dbscan-${level}-chart`);
-    if(ctxEl) {
-        if (window.charts[`dbscan${level}`]) window.charts[`dbscan${level}`].destroy();
-        window.charts[`dbscan${level}`] = new Chart(ctxEl.getContext('2d'), { type: 'bar', data: { labels: labelsHtml, datasets: [{ label: `Volume (Rouge = Anomalie avec ε=${eps})`, data: dsData, backgroundColor: bgColors }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
-    }
-}
-
-// Sliders Epsilon synchronisés
-$('#eps-range').on('input', function() {
-    let eps = parseInt($(this).val()); $('#eps-value').text(eps);
-    if (window.currentFreqData) { executeDBSCANAnalysis(window.currentFreqData.dren, 'dren', eps); executeDBSCANAnalysis(window.currentFreqData.cisco, 'cisco', eps); executeDBSCANAnalysis(window.currentFreqData.zap, 'zap', eps); }
-});
-$('#tab2-eps-range').on('input', function() {
-    let eps = parseInt($(this).val()); $('#tab2-eps-value').text(eps);
-    if (window.currentFreqData) { executeTab2DBSCAN(window.currentFreqData.dren, 'dren', eps, window.currentDateMap.dren); executeTab2DBSCAN(window.currentFreqData.cisco, 'cisco', eps, window.currentDateMap.cisco); executeTab2DBSCAN(window.currentFreqData.zap, 'zap', eps, window.currentDateMap.zap); }
-});
-
-// =================== LOGIQUE PRINCIPALE D'EXTRACTION ===================
-
-window.getTranslatedValue = function(val, xmlName) {
-    if (val === null || val === undefined || val === '') return '';
-    let pClean = window.cleanSpaces(val);
-    let xmlNameLower = String(xmlName).toLowerCase();
-    let isCodeLabelColumn = ['dren', 'cisco', 'zap', 'activite'].some(kw => xmlNameLower.includes(kw));
+let expertRows = "";
+function updateExpertSystem(dataAgg, niveauNom) {
+    let res = calcJenks(dataAgg);
+    if (!res) return;
     
-    // Traduction native "11 : ANALAMANGA" pour la DREN
-    if (xmlNameLower.includes('dren')) {
-        const df = {'11':'ANALAMANGA', '12':'VAKINANKARATRA', '13':'ITASY', '14':'BONGOLAVA', '21':'HAUTE MATSIATRA', '22':"AMORON'I MANIA", '23':'VATOVAVY', '24':'FITOVINANY', '25':'ATSIMO ATSINANANA', '26':'IHOROMBE', '31':'ALAOTRA MANGORO', '32':'ATSINANANA', '33':'ANALANJIROFO', '41':'BOENY', '42':'SOFIA', '43':'BETSIBOKA', '44':'MELAKY', '51':'ATSIMO ANDREFANA', '52':'ANDROY', '53':'ANOSY', '54':'MENABE', '71':'DIANA', '72':'SAVA'};
-        let t = df[pClean]; return t ? (pClean + ' : ' + t) : pClean;
-    }
-    // Traduction via Dico externe
-    if (window.externalDict && window.externalDict[pClean.toLowerCase()]) {
-        let t = window.externalDict[pClean.toLowerCase()]; return isCodeLabelColumn ? pClean + ' : ' + t : t;
-    }
-    return pClean;
-};
-
-window.getKoboValue = function(row, pk, ex = [], mk = []) {
-    let ox = null;
-    if (row && typeof row === 'object') {
-        for (let key of Object.keys(row)) {
-            let parts = key.split('/'), vName = parts[parts.length - 1].toLowerCase();
-            if (ex && ex.some(e => vName.includes(e))) continue;
-            if (mk && mk.length > 0 && !mk.every(req => vName.includes(req))) continue;
-            for (let p of pk) if (vName.includes(p)) ox = parts[parts.length - 1];
-        }
-    }
-    if (ox) {
-        for (let key of Object.keys(row)) if (key.endsWith('/' + ox) || key === ox) return window.getTranslatedValue(row[key], ox);
-    }
-    return '';
-};
-
-// FILTRES DE DATES SPECIFIQUES A L'ONGLET 2
-$('#tab2-date-start, #tab2-date-end').on('change', function() {
-    let start = $('#tab2-date-start').val();
-    let end = $('#tab2-date-end').val();
-    let filtered = window.allData;
-
-    if (start) {
-        let dStart = new Date(start); dStart.setHours(0,0,0,0);
-        filtered = filtered.filter(row => {
-            let d = row['_submission_time'] ? new Date(row['_submission_time'].split('T')[0]) : null;
-            return d && d >= dStart;
+    res.forEach((cluster, i) => {
+        cluster.forEach(p => {
+            let status = i === 0 ? "CRITIQUE" : (i === 1 ? "ATTENTION" : "OPTIMAL");
+            let badge = i === 0 ? "bg-danger" : (i === 1 ? "bg-warning text-dark" : "bg-success");
+            let rec = i === 0 ? "Relance immédiate requise sur le terrain." : (i === 1 ? "Suivi nécessaire par email." : "Féliciter l'équipe !");
+            expertRows += `<tr><td class="fw-bold">${p.label}</td><td><span class="badge bg-secondary">${niveauNom}</span></td><td class="fw-bold">${p.value}</td><td><span class="badge ${badge}">${status}</span></td><td><em class="text-muted">${rec}</em></td></tr>`;
         });
-    }
-    if (end) {
-        let dEnd = new Date(end); dEnd.setHours(23,59,59,999);
-        filtered = filtered.filter(row => {
-            let d = row['_submission_time'] ? new Date(row['_submission_time'].split('T')[0]) : null;
-            return d && d <= dEnd;
-        });
-    }
-    renderAnalysis(filtered);
-});
-
-function renderAnalysis(data) {
-    let totalRows = data.length;
-    let freqDren = {}; let freqCisco = {}; let freqZap = {};
-    let dateDren = {}; let dateCisco = {}; let dateZap = {};
-
-    data.forEach(row => {
-        let vD = window.getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous']) || "Non renseigné";
-        let vC = window.getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous']) || "Non renseigné";
-        let vZ = window.getKoboValue(row, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous']) || "Non renseigné";
-        
-        freqDren[vD] = (freqDren[vD] || 0) + 1;
-        freqCisco[vC] = (freqCisco[vC] || 0) + 1;
-        freqZap[vZ] = (freqZap[vZ] || 0) + 1;
-
-        let dateStr = row['_submission_time'] ? row['_submission_time'].split('T')[0] : 'N/A';
-        if(dateStr !== 'N/A') {
-            let formatDate = dateStr.split('-').reverse().join('/'); // Format JJ/MM/AAAA
-            if(!dateDren[vD]) dateDren[vD] = new Set(); dateDren[vD].add(formatDate);
-            if(!dateCisco[vC]) dateCisco[vC] = new Set(); dateCisco[vC].add(formatDate);
-            if(!dateZap[vZ]) dateZap[vZ] = new Set(); dateZap[vZ].add(formatDate);
-        }
     });
-
-    const formatDates = (dateSetObj) => {
-        let res = {};
-        for(let k in dateSetObj) {
-            let arr = Array.from(dateSetObj[k]).sort((a,b) => new Date(a.split('/').reverse().join('-')) - new Date(b.split('/').reverse().join('-')));
-            if(arr.length > 1) res[k] = `${arr[0]} au ${arr[arr.length-1]}`;
-            else res[k] = arr[0] || 'N/A';
-        }
-        return res;
-    };
-
-    window.currentDateMap.dren = formatDates(dateDren);
-    window.currentDateMap.cisco = formatDates(dateCisco);
-    window.currentDateMap.zap = formatDates(dateZap);
-
-    if (totalRows === 0) $('#ai-report-content').html("<p>Aucune donnée pour cette période.</p>");
-    else {
-        let maxDren = Object.entries(freqDren).filter(([k,v]) => k !== "Non renseigné").sort((a,b) => b[1] - a[1])[0];
-        $('#ai-report-content').html(`<p>L'analyse intelligente révèle que <span class="highlight-val">${totalRows}</span> formulaires ont été soumis sur la période sélectionnée. La couverture s'étend sur <span class="highlight-val">${Object.keys(freqDren).length-(freqDren["Non renseigné"]?1:0)}</span> DREN(s) et <span class="highlight-val">${Object.keys(freqCisco).length-(freqCisco["Non renseigné"]?1:0)}</span> CISCO(s). ${maxDren ? `La zone dominante est la DREN <span class="highlight-val">${maxDren[0]}</span> (${Math.round((maxDren[1]/totalRows)*100)}%).` : ''}</p>`);
-    }
-
-    const popTab = (id, fd) => {
-        let tb = $('#'+id).empty(), s = Object.entries(fd).sort((a,b)=>b[1]-a[1]);
-        if(s.length===0) tb.append('<tr><td colspan="3" class="text-muted">Vide</td></tr>');
-        else s.forEach(([n,c]) => { let p=(c/totalRows*100).toFixed(1)+'%'; tb.append(`<tr><td><strong>${n}</strong></td><td><span class="badge bg-primary fs-6">${c}</span></td><td class="align-middle"><div class="d-flex align-items-center justify-content-center"><span class="me-2" style="width: 45px; font-weight: bold;">${p}</span><div class="progress" style="width: 80px; height: 10px;"><div class="progress-bar bg-info" style="width: ${p};"></div></div></div></td></tr>`); });
-    };
-    popTab('dren-summary-table', freqDren); popTab('cisco-summary-table', freqCisco); popTab('zap-summary-table', freqZap);
-
-    window.currentFreqData = { dren: freqDren, cisco: freqCisco, zap: freqZap };
-    let epsTab2 = parseInt($('#tab2-eps-range').val()) || 5;
-    let epsTab5 = parseInt($('#eps-range').val()) || 5;
-
-    // Rendu pour l'Onglet 2 (Avec Dates)
-    executeTab2KMeans(freqDren, 'dren', window.currentDateMap.dren); executeTab2KMeans(freqCisco, 'cisco', window.currentDateMap.cisco); executeTab2KMeans(freqZap, 'zap', window.currentDateMap.zap);
-    executeTab2Jenks(freqDren, 'dren', window.currentDateMap.dren); executeTab2Jenks(freqCisco, 'cisco', window.currentDateMap.cisco); executeTab2Jenks(freqZap, 'zap', window.currentDateMap.zap);
-    executeTab2DBSCAN(freqDren, 'dren', epsTab2, window.currentDateMap.dren); executeTab2DBSCAN(freqCisco, 'cisco', epsTab2, window.currentDateMap.cisco); executeTab2DBSCAN(freqZap, 'zap', epsTab2, window.currentDateMap.zap);
-
-    // Rendu pour les Onglets 3, 4, 5 (Originaux)
-    executeKMeansAnalysis(freqDren, 'dren'); executeKMeansAnalysis(freqCisco, 'cisco'); executeKMeansAnalysis(freqZap, 'zap');
-    executeJenksAnalysis(freqDren, 'dren'); executeJenksAnalysis(freqCisco, 'cisco'); executeJenksAnalysis(freqZap, 'zap');
-    executeDBSCANAnalysis(freqDren, 'dren', epsTab5); executeDBSCANAnalysis(freqCisco, 'cisco', epsTab5); executeDBSCANAnalysis(freqZap, 'zap', epsTab5);
-    
-    // Système Expert
-    runExpertSystem(freqDren, freqCisco, freqZap);
+    document.getElementById('expert-table-body').innerHTML = expertRows;
 }
 
-function runExpertSystem(freqDren, freqCisco, freqZap) {
-    let drensMap = performJenks(freqDren, 3);
-    let expertResults = [];
-    if(drensMap) {
-        drensMap.forEach((cluster, clusterIndex) => {
-            cluster.data.forEach(item => {
-                let status = clusterIndex === 0 ? "CRITIQUE" : (clusterIndex === 1 ? "ATTENTION" : "OPTIMAL");
-                let badgeClass = clusterIndex === 0 ? "bg-danger" : (clusterIndex === 1 ? "bg-warning text-dark" : "bg-success");
-                let rec = clusterIndex === 0 ? "Faible soumission. Relance immédiate requise." : (clusterIndex === 1 ? "Soumission Moyenne. Soutenir avec des Emails !" : "Forte soumission. Féliciter les Responsables !");
-                expertResults.push({ name: item.label, type: 'DREN', count: item.value, status, rec, badgeClass });
-            });
-        });
-    }
-    let tbody = $('#expert-table-body').empty();
-    if (expertResults.length === 0) tbody.append('<tr><td colspan="5" class="text-center text-muted">Aucune donnée à analyser.</td></tr>');
-    else expertResults.forEach(res => tbody.append(`<tr><td><strong>${res.name}</strong></td><td class="text-center"><span class="badge bg-secondary">${res.type}</span></td><td class="text-center"><span class="badge bg-light text-dark border">${res.count}</span></td><td class="text-center"><span class="badge ${res.badgeClass} p-2">${res.status}</span></td><td><em style="font-size: 0.95rem;">${res.rec}</em></td></tr>`));
-}
-
-async function loadDictionaryAutomatically() {
-    try {
-        $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Dico...</span>');
-        const response = await fetch("dictionnaire.xlsx");
-        if (response.ok) {
-            const data = new Uint8Array(await response.arrayBuffer());
-            const workbook = XLSX.read(data, {type: 'array'});
-            if(workbook.SheetNames.includes('choices')) {
-                XLSX.utils.sheet_to_json(workbook.Sheets['choices']).forEach(row => {
-                    if(row.name !== undefined && row.label !== undefined) window.externalDict[String(row.name).trim().toLowerCase()] = String(row.label).trim();
-                });
-                window.isExcelLoaded = true;
-            }
-        }
-        if (window.isExcelLoaded) $('#dict-status').replaceWith('<span class="badge bg-success ms-2"><i class="fas fa-check-circle"></i> Traduit</span>');
-    } catch (e) { $('#dict-status').replaceWith('<span class="badge bg-danger ms-2"><i class="fas fa-exclamation-triangle"></i> Pas de Dico</span>'); }
-}
-
-async function fetchData() {
-    $('#loading-box').show(); $('#error-box').hide();
-    $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Collecte en cours...</span>');
-    await loadDictionaryAutomatically();
-
-    try {
-        const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime();
-        const fetchUrls = [
-            koboUrl, 
-            'https://api.allorigins.win/raw?url=' + encodeURIComponent(koboUrl),
-            'https://corsproxy.io/?' + encodeURIComponent(koboUrl)
-        ];
-
-        let response = null; let fetchSuccess = false;
-        for (let url of fetchUrls) {
-            try { response = await fetch(url, { cache: 'no-store' }); if (response.ok) { fetchSuccess = true; break; } } catch (e) {}
-        }
-        if (!fetchSuccess) throw new Error("Bloqué par le navigateur (uBlock/CORS). Importez le fichier Excel manuellement.");
-        
-        window.allData = (await response.json()).results || [];
-        window.allData = window.allData.filter(row => row !== null && typeof row === 'object');
-        
-        // --- LOGIQUE ONGLET 1 (Générée dynamiquement) ---
-        $('#record-count').text(window.allData.length);
-        renderTable(window.allData); // <-- Appel de la fonction de l'onglet 1 (A AJOUTER A LA SUITE)
-        
-        renderAnalysis(window.allData);
-        $('#sync-status').html(`<span class="badge bg-success sync-badge"><i class="fas fa-check-double"></i> Ok : ${window.allData.length} Lignes</span>`);
-
-    } catch (error) {
-        $('#error-box').html('<strong>Erreur réseau :</strong> ' + error.message).show();
-        $('#sync-status').html('<span class="badge bg-danger sync-badge">Échec</span>');
-    } finally { $('#loading-box').hide(); }
-}
+$(document).ready(function() { 
+    expertRows = ""; // Reset au chargement
+    fetchData(); 
+});
