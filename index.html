@@ -239,13 +239,33 @@
                     <div class="tab-pane fade" id="analyse" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                             <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
+                            <!-- BOUTONS EXPORT ET PARTAGE POUR L'ONGLET ANALYSE -->
+                            <div class="d-flex align-items-center flex-wrap gap-3">
+                                <div class="btn-group shadow-sm">
+                                    <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter</button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="exportAnalysisToCSV('analyse_pma')"><i class="fas fa-file-csv text-success"></i> Exporter CSV</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportAnalysisToExcel('analyse_pma')"><i class="fas fa-file-excel text-success"></i> Exporter Excel</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportAnalysisToHTML('analyse_pma')"><i class="fas fa-file-code text-primary"></i> Enregistrer HTML</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportAnalysisToJSONFile('analyse_pma')"><i class="fas fa-file-alt text-warning"></i> Exporter JSON</a></li>
+                                    </ul>
+                                </div>
+                                <div class="btn-group shadow-sm">
+                                    <button type="button" class="btn btn-info btn-sm text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-share-alt"></i> Partager</button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="sendAnalysisToGmail()"><i class="fas fa-envelope text-danger"></i> Envoyer vers Gmail</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="sendAnalysisToWhatsApp()"><i class="fab fa-whatsapp text-success"></i> WhatsApp</a></li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                         <div class="ai-insights shadow-sm" id="ai-report-container">
                             <h5><i class="fas fa-robot text-primary"></i> Rapport d'Analyse Intelligente (Généré automatiquement)</h5>
                             <div id="ai-report-content"></div>
                         </div>
+                        <!-- TROIS COLONNES EGALES POUR DREN, CISCO ET ZAP -->
                         <div class="row">
-                            <div class="col-md-6 mb-4">
+                            <div class="col-md-4 mb-4">
                                 <div class="analysis-card shadow-sm h-100">
                                     <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par DREN</h5>
                                     <input type="text" id="search-dren-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale DREN..." autocomplete="off">
@@ -257,7 +277,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-4">
+                            <div class="col-md-4 mb-4">
                                 <div class="analysis-card shadow-sm h-100">
                                     <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par CISCO</h5>
                                     <input type="text" id="search-cisco-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale CISCO..." autocomplete="off">
@@ -265,6 +285,19 @@
                                         <table class="table table-sm table-bordered table-hover text-center align-middle" id="cisco-summary-table-container">
                                             <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;"><tr><th>Nom de la CISCO</th><th>Soumissions</th><th>Part (%)</th></tr></thead>
                                             <tbody id="cisco-summary-table"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- LE TABLEAU DE LA ZAP QUI MANQUAIT EST ICI -->
+                            <div class="col-md-4 mb-4">
+                                <div class="analysis-card shadow-sm h-100">
+                                    <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par ZAP</h5>
+                                    <input type="text" id="search-zap-table" class="form-control form-control-sm mb-3" placeholder="Recherche locale ZAP..." autocomplete="off">
+                                    <div class="table-responsive" style="max-height: 350px;">
+                                        <table class="table table-sm table-bordered table-hover text-center align-middle" id="zap-summary-table-container">
+                                            <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;"><tr><th>Nom de la ZAP</th><th>Soumissions</th><th>Part (%)</th></tr></thead>
+                                            <tbody id="zap-summary-table"></tbody>
                                         </table>
                                     </div>
                                 </div>
