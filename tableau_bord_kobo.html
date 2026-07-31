@@ -264,6 +264,16 @@
                             <input type="date" id="filter-date-fin" class="form-control filter-input">
                         </div>
 
+                        <!-- NOUVEAU : BOUTON AFFICHER LES DOUBLONS -->
+                        <div class="col-md-12 mt-3">
+                            <div class="form-check form-switch border p-2 rounded bg-white shadow-sm d-inline-block">
+                                <input class="form-check-input filter-input" type="checkbox" id="filter-only-doublons" style="cursor: pointer; transform: scale(1.2); margin-top: 6px;">
+                                <label class="form-check-label text-danger fw-bold ms-2" for="filter-only-doublons" style="cursor: pointer;">
+                                    <i class="fas fa-exclamation-triangle"></i> Afficher Tous Les DOUBLONS
+                                </label>
+                            </div>
+                        </div>
+
                     </div>
                     <div class="mt-3 text-end">
                         <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
@@ -395,6 +405,7 @@
                     </div>
                 </div>
             </div>
+			
 			
 			
 			
@@ -1275,40 +1286,57 @@
             { key: 'sousProduitZap', matches: ['sous_produit', 'sous-produit'], mustMatch: ['zap'], ex: [], label: 'Sous-produit de la ZAP', xmlName: '' }
         ];
 
-        // ================= FONCTION D'EXTRACTION NETTE DU MATRICULE =================
+        // ================= FONCTION D'EXTRACTION NETTE DU MATRICULE / CIN (Filtrage Regex) =================
         function extractMatricules(row) {
             let mats = [];
+            
+            // Filtre strict (Regex) : Valide uniquement 6 ou 12 chiffres (ignore les "image/jpeg", etc.)
+            const validateID = (val) => {
+                if (!val) return null;
+                let cleanVal = String(val).replace(/[\s.-]/g, ''); 
+                if (/^\d{6}$/.test(cleanVal) || /^\d{12}$/.test(cleanVal)) {
+                    return cleanVal;
+                }
+                return null;
+            };
+
             for (let key in row) {
+                // Ignore formellement les métadonnées internes de Kobo (_attachments etc.)
+                if (key.startsWith('_')) continue;
+
                 let val = row[key];
+                
                 if (Array.isArray(val)) {
-                    // C'est un groupe répété (Repeat Group Kobo) comme "personnes"
                     val.forEach(item => {
                         if (typeof item === 'object' && item !== null) {
                             let foundMat = false;
                             for (let subKey in item) {
                                 let lowSub = subKey.toLowerCase();
-                                // Si Kobo nomme explicitement la sous-colonne "matricule" ou "cin"
                                 if (lowSub.includes('matricule') || lowSub.includes('cin')) {
-                                    mats.push(String(item[subKey]).trim());
-                                    foundMat = true;
+                                    let validId = validateID(item[subKey]);
+                                    if (validId) { 
+                                        mats.push(validId); 
+                                        foundMat = true; 
+                                    }
                                 }
                             }
-                            // Sinon, on prend directement la 2ème valeur (comme dans votre exemple "1 | 852149 | Nom")
                             if (!foundMat) {
-                                let values = Object.values(item);
-                                if (values.length >= 2) mats.push(String(values[1]).trim());
+                                Object.values(item).forEach(v => {
+                                    let validId = validateID(v);
+                                    if (validId) mats.push(validId);
+                                });
                             }
                         }
                     });
                 } else if (typeof val === 'string' || typeof val === 'number') {
-                    // C'est un champ classique
                     let lowKey = key.toLowerCase();
                     if (lowKey.endsWith('/matricule') || lowKey.endsWith('/cin') || lowKey.includes('numero_matricule_ou_cin')) {
-                        mats.push(String(val).trim());
+                        let validId = validateID(val);
+                        if (validId) mats.push(validId);
                     }
                 }
             }
-            // On enlève les doublons internes et on assemble avec un point-virgule si plusieurs personnes
+            
             return [...new Set(mats)].filter(Boolean).join(' ; ');
         }
 
@@ -1365,7 +1393,6 @@
             return `${prefix}_${ts}_kobo.${extension}`;
         }
 
-        // ================= IA : K-MEANS =================
         function perform1DKMeans(data, k) {
             if (data.length === 0) return [];
             let uniqueData = [...new Set(data)].sort((a,b)=>a-b);
@@ -1398,7 +1425,6 @@
             return assignments.map(a => rankMap[a]);
         }
 
-        // ================= IA : JENKS =================
         function getJenksBreaks(data, numclass) {
             data = data.slice().sort((a, b) => a - b);
             if (data.length <= numclass) return data;
@@ -1450,7 +1476,6 @@
             });
         }
 
-        // ================= IA : DBSCAN 1D =================
         function performDBSCAN(data) {
             if (data.length === 0) return { assignments: [], numClusters: 0, eps: 0 };
             let max = Math.max(...data), min = Math.min(...data);
@@ -1495,7 +1520,6 @@
             return { assignments: labels, numClusters: clusterId, eps: eps };
         }
 
-        // ================= MOTEUR D'INFÉRENCE : SYSTÈME EXPERT =================
         function getClusterMap(freqData, k) {
             let entries = Object.entries(freqData).filter(([key,v]) => key !== "Non renseigné");
             entries.sort((a,b) => a[1] - b[1]);
@@ -1604,7 +1628,6 @@
             });
         });
 
-        // ================= LOGIQUE GENERALE =================
         async function loadDictionaryAutomatically() {
             try {
                 $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Récupération du dictionnaire...</span>');
@@ -1803,6 +1826,7 @@
             } finally { $('#loading-box').hide(); }
         }
 
+        // ================= NOUVELLE FONCTION DE RENDU AVEC MARQUEUR DE DOUBLONS (ONGLET 1) =================
         function renderTable(data) {
             const tbody = $('#table-body').empty(), gHeaderTr = $('#table-group-header-row').empty(), sHeaderTr = $('#table-sub-header-row').empty();
             if (data.length === 0) {
@@ -1823,11 +1847,50 @@
 
             let exKeys = Array.from(exSet), mtKeys = Array.from(mtSet);
 
-            gHeaderTr.append(`<th class="group-header-survey" style="background-color: #f39c12 !important;"><i class="fas fa-bolt"></i> Action</th>`);
+            // 1) PRÉ-CALCUL DES DOUBLONS AVEC SIGNATURE STRICTE
+            let signatureMap = {};
+            data.forEach((r, idx) => {
+                let valDren = cleanSpaces(getKoboValue(r, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous'], []));
+                let valCisco = cleanSpaces(getKoboValue(r, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous'], []));
+                let valZap = cleanSpaces(getKoboValue(r, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous'], []));
+                let valAct = cleanSpaces(getKoboValue(r, ['activite', 'activité'], ['sous_activite', 'sous-activite'], []));
+                let valProd = cleanSpaces(getKoboValue(r, ['produit'], ['sous_produit', 'sous-produit'], []));
+                let valSAct = cleanSpaces(getKoboValue(r, ['sous_activite', 'sous-activite'], [], []));
+                
+                let matsRaw = extractMatricules(r);
+                let matsArray = matsRaw ? matsRaw.split(';').map(m => m.trim()).filter(Boolean) : ["Non renseigné"];
+                
+                matsArray.forEach(mat => {
+                    let sig = [valDren, valCisco, valZap, valAct, valProd, valSAct, mat].join("|||");
+                    if (!signatureMap[sig]) signatureMap[sig] = [];
+                    signatureMap[sig].push(idx);
+                });
+            });
+            
+            let doublonCounter = 1;
+            let rowToDoublonIds = {};
+            
+            for (let sig in signatureMap) {
+                if (signatureMap[sig].length > 1) {
+                    let dName = "Doublon " + doublonCounter;
+                    doublonCounter++;
+                    signatureMap[sig].forEach(rowIdx => {
+                        if (!rowToDoublonIds[rowIdx]) rowToDoublonIds[rowIdx] = [];
+                        if (!rowToDoublonIds[rowIdx].includes(dName)) {
+                            rowToDoublonIds[rowIdx].push(dName);
+                        }
+                    });
+                }
+            }
+
+            // 2) CRÉATION DES EN-TÊTES
+            gHeaderTr.append(`<th class="group-header-survey" colspan="2" style="background-color: #f39c12 !important;"><i class="fas fa-bolt"></i> Statut & Action</th>`);
             if (baseColsInfo.length + exKeys.length > 0) gHeaderTr.append(`<th colspan="${baseColsInfo.length + exKeys.length}" class="group-header-survey"><i class="fas fa-edit"></i> Matrice Complète</th>`);
             if (mtKeys.length > 0) gHeaderTr.append(`<th colspan="${mtKeys.length}" class="group-header-meta"><i class="fas fa-cogs"></i> Métadonnées</th>`);
 
+            sHeaderTr.append(`<th class="sub-header-survey" style="background-color: #c0392b !important; color: white; width: 100px;">DOUBLON</th>`);
             sHeaderTr.append(`<th class="sub-header-survey" style="background-color: #e67e22 !important; width: 100px;">Éditer (Kobo)</th>`);
+            
             baseColsInfo.forEach(col => sHeaderTr.append(`<th class="sub-header-survey">${col.label}</th>`));
             exKeys.forEach(key => sHeaderTr.append(`<th class="sub-header-survey">${getTranslatedHeader(key.split('/').pop())}</th>`));
             mtKeys.forEach(key => sHeaderTr.append(`<th class="sub-header-meta">${getTranslatedHeader(key.split('/').pop())}</th>`));
@@ -1861,9 +1924,8 @@
                 }).join(' ; '));
             }
 
-            let tableRowsHtml = [];
-            
-            data.forEach(row => {
+            // 3) REMPLISSAGE DU TABLEAU
+            data.forEach((row, idx) => {
                 const tr = $('<tr></tr>'); let sData = {};
                 
                 let colZap = baseColsInfo.find(c => c.key === 'zap');
@@ -1875,6 +1937,19 @@
                 
                 let entityName = vZap || vCisco || vDren || "cette soumission";
                 
+                // Insertion de la cellule Doublon
+                let doublonsForRow = rowToDoublonIds[idx] || [];
+                sData.isDoublon = doublonsForRow.length > 0; // IMPORTANT POUR LE BOUTON FILTRE
+
+                let doublonHtml = doublonsForRow.length > 0 
+                    ? doublonsForRow.map(d => `<span class="badge bg-danger shadow-sm mb-1" style="font-size: 0.85rem;"><i class="fas fa-exclamation-triangle"></i> ${d}</span>`).join('<br>')
+                    : `<span class="badge bg-success shadow-sm" style="font-size: 0.85rem;"><i class="fas fa-check"></i> Unique</span>`;
+                
+                let doublonText = doublonsForRow.length > 0 ? doublonsForRow.join(', ') : 'Unique';
+                
+                tr.append($('<td></td>').attr('data-csv', doublonText).html(doublonHtml));
+                
+                // Bouton Éditer
                 let editUrl = '#';
                 let editBtnHtml = '';
                 if (row['_id']) {
@@ -2124,7 +2199,8 @@
                 sAct: cleanSpaces($('#filter-sous-activite').val()), 
                 sProd: cleanSpaces($('#filter-sous-produit').val()),
                 dateDebut: $('#filter-date-debut').val(),
-                dateFin: $('#filter-date-fin').val()
+                dateFin: $('#filter-date-fin').val(),
+                onlyDoublons: $('#filter-only-doublons').is(':checked') // NOUVEAU FILTRE DOUBLON
             };
 
             let dStart = f.dateDebut ? new Date(f.dateDebut) : null;
@@ -2149,12 +2225,26 @@
                     dateMatch = false;
                 }
 
-                if (mD && mC && mZ && mA && mP && mSA && mSP && dateMatch) { $(this).show(); vC++; } else { $(this).hide(); }
+                // APPLICATION DE LA RÈGLE DOUBLON
+                let doublonMatch = true;
+                if (f.onlyDoublons && !s.isDoublon) {
+                    doublonMatch = false;
+                }
+
+                if (mD && mC && mZ && mA && mP && mSA && mSP && dateMatch && doublonMatch) { 
+                    $(this).show(); vC++; 
+                } else { 
+                    $(this).hide(); 
+                }
             });
             $('#record-count').text(vC);
         }
 
-        function clearFilters() { $('.filter-input').val(''); applyFilters(); }
+        function clearFilters() { 
+            $('.filter-input').not('[type="checkbox"]').val(''); 
+            $('#filter-only-doublons').prop('checked', false);
+            applyFilters(); 
+        }
         
         function getCurrentFilters() { 
             return { 
@@ -2166,7 +2256,8 @@
                 "Sous-activité": cleanSpaces($('#filter-sous-activite').val()) || "Tous", 
                 "Sous-produit": cleanSpaces($('#filter-sous-produit').val()) || "Tous",
                 "Date de début": $('#filter-date-debut').val() || "Toutes",
-                "Date de fin": $('#filter-date-fin').val() || "Toutes"
+                "Date de fin": $('#filter-date-fin').val() || "Toutes",
+                "Filtre Strict Doublons": $('#filter-only-doublons').is(':checked') ? "Activé" : "Désactivé"
             }; 
         }
         
@@ -2175,7 +2266,12 @@
         function getAnalysisFilters() { return { "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune", "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune", "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune" }; }
         function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
 
-        // ================= EXPORTS ET PARTAGE =================
+
+
+
+
+
+// ================= EXPORTS ET PARTAGE =================
         function downloadFile(b, fn) { let a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = fn; a.style.display="none"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
 
         function exportTableToCSV(pfx) {
@@ -3025,11 +3121,7 @@ Date : ${getFormattedDateTime()}
         });
     </script>
 
-
-
-
-
-<!-- Script Module pour l'IA Sémantique (Transformers.js) -->
+    <!-- Script Module pour l'IA Sémantique (Transformers.js) -->
     <script type="module">
         import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.16.0';
 
@@ -3177,9 +3269,11 @@ Date : ${getFormattedDateTime()}
                 $('#cons-progress-bar').css('width', '100%').text('Modèle chargé !');
 
                 const consTasks = [
-                    { textKey: 'activiteDren', entityKey: 'dren', resId: 'res-cons-act-dren', name: 'Activités DREN' },
-                    { textKey: 'activiteCisco', entityKey: 'cisco', resId: 'res-cons-act-cisco', name: 'Activités CISCO' },
-                    { textKey: 'activiteZap', entityKey: 'zap', resId: 'res-cons-act-zap', name: 'Activités ZAP' },
+                    // Affiche les Sous-Activités pour les 3 premières tâches (Onglet 10)
+                    { textKey: 'sousActiviteDren', entityKey: 'dren', resId: 'res-cons-act-dren', name: 'Activités DREN' },
+                    { textKey: 'sousActiviteCisco', entityKey: 'cisco', resId: 'res-cons-act-cisco', name: 'Activités CISCO' },
+                    { textKey: 'sousActiviteZap', entityKey: 'zap', resId: 'res-cons-act-zap', name: 'Activités ZAP' },
+                    
                     { textKey: 'produitDren', entityKey: 'dren', resId: 'res-cons-prod-dren', name: 'Produits DREN' },
                     { textKey: 'produitCisco', entityKey: 'cisco', resId: 'res-cons-prod-cisco', name: 'Produits CISCO' },
                     { textKey: 'produitZap', entityKey: 'zap', resId: 'res-cons-prod-zap', name: 'Produits ZAP' },
@@ -3207,7 +3301,7 @@ Date : ${getFormattedDateTime()}
                                 let e = (entity && entity !== 'Non renseigné') ? entity : 'Inconnue';
                                 let subDate = r['_submission_time'] ? r['_submission_time'] : 'Date inconnue';
                                 
-                                // --- NOUVELLE LOGIQUE DE SIGNATURE STRICTE POUR LES DOUBLONS ---
+                                // Construction de la signature stricte
                                 let valDren = cleanSpaces(getKoboValue(r, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous'], []));
                                 let valCisco = cleanSpaces(getKoboValue(r, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous'], []));
                                 let valZap = cleanSpaces(getKoboValue(r, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous'], []));
@@ -3215,18 +3309,19 @@ Date : ${getFormattedDateTime()}
                                 let valProd = cleanSpaces(getKoboValue(r, ['produit'], ['sous_produit', 'sous-produit'], []));
                                 let valSAct = cleanSpaces(getKoboValue(r, ['sous_activite', 'sous-activite'], [], []));
                                 
-                                // Extraction du matricule via la fonction dédiée
-                                let valMatricule = extractMatricules(r);
+                                let valMatriculesRaw = extractMatricules(r);
                                 
-                                // On fusionne tous ces champs pour créer l'empreinte digitale unique de la soumission
-                                let rowSignature = [valDren, valCisco, valZap, valAct, valProd, valSAct, valMatricule].join("|||");
-                                let matriculeDisplay = valMatricule || "Non renseigné";
-                                
-                                let key = text + "|||" + e + "|||" + rowSignature;
-                                
-                                if (!map[key]) map[key] = { text: text, entity: e, matricule: matriculeDisplay, count: 0, dates: [] };
-                                map[key].count++;
-                                map[key].dates.push(subDate);
+                                // Séparation par point-virgule pour isoler chaque agent
+                                let matsArray = valMatriculesRaw ? valMatriculesRaw.split(';').map(m => m.trim()).filter(Boolean) : ["Non renseigné"];
+
+                                matsArray.forEach(singleMatricule => {
+                                    let rowSignature = [valDren, valCisco, valZap, valAct, valProd, valSAct, singleMatricule].join("|||");
+                                    let key = text + "|||" + e + "|||" + rowSignature;
+                                    
+                                    if (!map[key]) map[key] = { text: text, entity: e, matricule: singleMatricule, count: 0, dates: [] };
+                                    map[key].count++;
+                                    map[key].dates.push(subDate);
+                                });
                             }
                         });
                         
@@ -3242,7 +3337,6 @@ Date : ${getFormattedDateTime()}
                                 c.items.forEach(txt => {
                                     let matchingItems = items.filter(i => i.text === txt);
                                     matchingItems.forEach(mi => {
-                                        // Ajout du matricule dans l'objet final
                                         tableData.push({ theme: themeName, text: mi.text, entity: mi.entity, matricule: mi.matricule, count: mi.count, dates: mi.dates });
                                     });
                                 });
@@ -3261,7 +3355,7 @@ Date : ${getFormattedDateTime()}
                     }
                 }
                 $('#cons-status').text("✅ Analyse des soumissions terminée avec succès !");
-                window.filterSoumissionsTables(); // Applique le filtre automatiquement après analyse
+                window.filterSoumissionsTables(); 
                 setTimeout(() => $('#cons-progress-container').hide(), 5000);
             } catch(e) {
                 $('#cons-status').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Erreur lors de l'analyse : ${e.message}</span>`);
@@ -3275,14 +3369,13 @@ Date : ${getFormattedDateTime()}
                 return;
             }
 
-            globalSemanticResults = {}; // Remise à zéro des résultats
+            globalSemanticResults = {}; 
 
             $('#semantic-progress-container').show();
             $('#semantic-status').text("Téléchargement et initialisation du modèle IA (SBERT)... Cela peut prendre une minute.");
             $('#semantic-progress-bar').css('width', '5%').text('5%');
 
             try {
-                // Utilisation du modèle multilingue léger de Xenova
                 let extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', {
                     progress_callback: x => {
                         if (x.status === 'progress') {
@@ -3332,4 +3425,4 @@ Date : ${getFormattedDateTime()}
         };
     </script>
 </body>
-</html>	
+</html>		
