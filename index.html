@@ -11,6 +11,15 @@
     
     <!-- LIAISON AVEC VOTRE FICHIER CSS -->
     <link href="style.css" rel="stylesheet">
+
+    <!-- STYLES SPECIFIQUES AU SOUS-MODULE AVANCÉ (Onglet 2) -->
+    <style>
+        .adv-table-responsive { max-height: 600px; overflow-y: auto; }
+        .adv-table-responsive thead th { position: sticky; top: 0; background-color: #343a40; color: white; z-index: 10; }
+        .adv-image-cell img { max-width: 50px; cursor: pointer; border-radius: 4px; }
+        .adv-image-cell img:hover { transform: scale(2); transition: 0.3s; z-index: 1000; position: relative; }
+        .adv-analysis-card { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
+    </style>
 </head>
 <body>
     <div id="image-preview-tooltip"><img id="preview-img" src="" alt="Aperçu de l'image"></div>
@@ -236,7 +245,7 @@
                         </div>
                     </div>
 
-                    <!-- ONGLET 2 : ANALYSE & IA -->
+                    <!-- ONGLET 2 : ANALYSE & IA (AVEC MODULE AVANCÉ INTÉGRÉ) -->
                     <div class="tab-pane fade" id="analyse" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                             <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
@@ -304,6 +313,135 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- DEBUT DE L'INTEGRATION EXACTE DU FICHIER JOINT (SOUS-MODULE AVANCÉ) -->
+                        <hr class="my-5 border-primary border-2 opacity-25">
+                        
+                        <div class="alert alert-primary shadow-sm mb-4 border-primary" style="background: linear-gradient(135deg, #e0f7fa 0%, #d4e6f1 100%);">
+                            <h4 class="fw-bold text-primary mb-2"><i class="fas fa-cogs"></i> Module Analytique Avancé & Impression de Rapports</h4>
+                            <p class="mb-0 text-dark">Ce sous-module indépendant vous permet d'importer une version Excel spécifique ("bdd_suivi_pma"), d'isoler certaines analyses IA, et surtout d'<strong>imprimer ou envoyer par mail des rapports PDF/HTML détaillés</strong> grâce à sa propre barre d'outils.</p>
+                        </div>
+
+                        <div class="adv-module-container p-4 bg-white rounded border shadow-sm">
+                            <h3 class="text-center text-primary mb-3"><i class="fas fa-microscope"></i> Dashboard Analytique Avancé KoboToolBox</h3>
+                            
+                            <div class="text-center mb-4 bg-light p-4 rounded shadow-sm border">
+                                <label for="adv-excel-file" class="form-label fw-bold text-secondary fs-5"><i class="fas fa-file-excel text-success"></i> Importer la base "bdd_suivi_pma" (Fichier Excel)</label>
+                                <input type="file" id="adv-excel-file" class="form-control w-50 mx-auto border-success" accept=".xlsx, .xls">
+                                <small class="text-muted mt-2 d-block">Le traitement est 100% local et sécurisé.</small>
+                            </div>
+
+                            <div id="adv-loading-indicator" class="text-center my-5" style="display: none;">
+                                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+                                <h5 class="mt-3 text-secondary">Lecture, nettoyage et analyse par l'IA en cours...</h5>
+                            </div>
+
+                            <div id="adv-main-content" style="display: none;">
+                                <ul class="nav nav-tabs mb-4" id="adv-mainTabs" role="tablist">
+                                    <li class="nav-item"><button class="nav-link active fw-bold" id="adv-data-tab" data-bs-toggle="tab" data-bs-target="#adv-data-view"><i class="fas fa-table"></i> 1. Données & Filtres</button></li>
+                                    <li class="nav-item"><button class="nav-link fw-bold text-primary" id="adv-kmeans-tab" data-bs-toggle="tab" data-bs-target="#adv-kmeans-view"><i class="fas fa-bullseye"></i> 2. IA K-Means</button></li>
+                                    <li class="nav-item"><button class="nav-link fw-bold text-success" id="adv-jenks-tab" data-bs-toggle="tab" data-bs-target="#adv-jenks-view"><i class="fas fa-layer-group"></i> 3. IA Jenks</button></li>
+                                    <li class="nav-item"><button class="nav-link fw-bold text-danger" id="adv-dbscan-tab" data-bs-toggle="tab" data-bs-target="#adv-dbscan-view"><i class="fas fa-satellite-dish"></i> 4. IA DBSCAN (Anomalies)</button></li>
+                                </ul>
+
+                                <div class="tab-content">
+                                    <div class="tab-pane fade show active" id="adv-data-view">
+                                        <div class="row mb-3">
+                                            <div class="col-md-9">
+                                                <div id="adv-filters-container" class="d-flex flex-wrap gap-2 bg-light p-3 rounded shadow-sm border"></div>
+                                            </div>
+                                            <div class="col-md-3 text-end">
+                                                <h5 class="mt-2 text-secondary">Lignes : <span id="adv-record-count" class="badge bg-primary">0</span></h5>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between mb-3 bg-light p-2 rounded border">
+                                            <button class="btn btn-outline-secondary btn-sm" id="adv-toggle-images" onclick="adv_toggleImages()">
+                                                <i class="fas fa-image"></i> Afficher Images
+                                            </button>
+                                            
+                                            <div class="btn-group shadow-sm">
+                                                <button class="btn btn-success btn-sm" onclick="adv_exportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+                                                <button class="btn btn-success btn-sm" onclick="adv_exportCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+                                                <button class="btn btn-warning btn-sm text-dark" onclick="adv_exportJSON()"><i class="fas fa-file-code"></i> JSON</button>
+                                                <button class="btn btn-primary btn-sm" onclick="adv_exportHTML()"><i class="fas fa-globe"></i> HTML</button>
+                                                <button class="btn btn-info btn-sm text-white" onclick="adv_shareEmail()"><i class="fas fa-envelope"></i> Email</button>
+                                                <button class="btn btn-success btn-sm text-white" onclick="adv_shareWhatsApp()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                                                <button class="btn btn-dark btn-sm" id="adv-print-btn" onclick="adv_printReport()"><i class="fas fa-print"></i> Imprimer / PDF</button>
+                                            </div>
+                                        </div>
+
+                                        <div class="adv-table-responsive shadow-sm border bg-white">
+                                            <table class="table table-striped table-hover table-sm align-middle mb-0" id="adv-data-table">
+                                                <thead></thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div class="tab-pane fade" id="adv-kmeans-view">
+                                        <h4 class="text-primary"><i class="fas fa-project-diagram"></i> Classification K-Means (Centres de gravité)</h4>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="adv-analysis-card" style="height: 300px;"><canvas id="adv-kmeans-dren-chart" ></canvas></div>
+                                                <table class="table table-sm text-center"><tbody id="adv-kmeans-dren-table"></tbody></table>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="adv-analysis-card" style="height: 300px;"><canvas id="adv-kmeans-cisco-chart" ></canvas></div>
+                                                <table class="table table-sm text-center"><tbody id="adv-kmeans-cisco-table"></tbody></table>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="adv-analysis-card" style="height: 300px;"><canvas id="adv-kmeans-zap-chart" ></canvas></div>
+                                                <table class="table table-sm text-center"><tbody id="adv-kmeans-zap-table"></tbody></table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="tab-pane fade" id="adv-jenks-view">
+                                        <h4 class="text-success"><i class="fas fa-layer-group"></i> Optimisation de Jenks (Ruptures Naturelles)</h4>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="adv-analysis-card" style="height: 300px;"><canvas id="adv-jenks-dren-chart" ></canvas></div>
+                                                <table class="table table-sm text-center"><tbody id="adv-jenks-dren-table"></tbody></table>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="adv-analysis-card" style="height: 300px;"><canvas id="adv-jenks-cisco-chart" ></canvas></div>
+                                                <table class="table table-sm text-center"><tbody id="adv-jenks-cisco-table"></tbody></table>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="adv-analysis-card" style="height: 300px;"><canvas id="adv-jenks-zap-chart" ></canvas></div>
+                                                <table class="table table-sm text-center"><tbody id="adv-jenks-zap-table"></tbody></table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="tab-pane fade" id="adv-dbscan-view">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h4 class="text-danger m-0"><i class="fas fa-satellite-dish"></i> DBSCAN (Détection des anomalies isolées)</h4>
+                                            <div class="d-flex align-items-center bg-white p-2 rounded border">
+                                                <label class="fw-bold text-danger me-2">Tolérance (Epsilon) : <span id="adv-eps-value">5</span></label>
+                                                <input type="range" class="form-range" id="adv-eps-range" min="1" max="50" step="1" value="5" style="width: 150px;">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="adv-analysis-card border-danger" style="height: 300px;"><canvas id="adv-dbscan-dren-chart" ></canvas></div>
+                                                <table class="table table-sm text-center"><tbody id="adv-dbscan-dren-table"></tbody></table>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="adv-analysis-card border-danger" style="height: 300px;"><canvas id="adv-dbscan-cisco-chart" ></canvas></div>
+                                                <table class="table table-sm text-center"><tbody id="adv-dbscan-cisco-table"></tbody></table>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="adv-analysis-card border-danger" style="height: 300px;"><canvas id="adv-dbscan-zap-chart" ></canvas></div>
+                                                <table class="table table-sm text-center"><tbody id="adv-dbscan-zap-table"></tbody></table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- FIN DE L'INTEGRATION EXACTE DU FICHIER JOINT -->
                     </div>
 
                     <!-- ONGLET 3 : K-MEANS -->
@@ -915,6 +1053,755 @@
     <!-- FICHIERS JAVASCRIPT SEPARES -->
     <script src="app.js"></script>
     <script type="module" src="semantic.js"></script>
+
+    <!-- ===================================================================== -->
+    <!-- SCRIPT DU SOUS-MODULE AVANCÉ (ISOLÉ ET SÉCURISÉ)                     -->
+    <!-- ===================================================================== -->
+    <script>
+        // Le code est encapsulé dans une fonction anonyme (IIFE) pour ne pas polluer l'application principale
+        (function() {
+            let adv_rawData = [];
+            let adv_filteredData = [];
+            let adv_globalHeaders = [];
+            let adv_imageMode = 'url';
+            let adv_currentEpsilon = 5;
+            let adv_charts = {
+                kmeansDren: null, kmeansCisco: null, kmeansZap: null,
+                jenksDren: null, jenksCisco: null, jenksZap: null,
+                dbscanDren: null, dbscanCisco: null, dbscanZap: null
+            };
+
+            const adv_koboImageRegex = /[a-zA-Z0-9_-]+\.(jpg|jpeg|png)$/i;
+
+            function adv_cleanKoboHeader(header) {
+                if (!header) return "";
+                let parts = header.split('/');
+                return parts[parts.length - 1].replace(/_\d+$/, '');
+            }
+
+            const excelInput = document.getElementById('adv-excel-file');
+            if(excelInput) {
+                excelInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    document.getElementById('adv-loading-indicator').style.display = 'block';
+                    document.getElementById('adv-main-content').style.display = 'none';
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, {type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd'});
+                            
+                            const targetSheetName = "bdd_suivi_pma";
+                            if (!workbook.SheetNames.includes(targetSheetName)) {
+                                alert(`ERREUR CRITIQUE: La feuille de calcul nommée "${targetSheetName}" est introuvable.\nFeuilles détectées : ${workbook.SheetNames.join(', ')}`);
+                                document.getElementById('adv-loading-indicator').style.display = 'none';
+                                document.getElementById('adv-main-content').style.display = 'block';
+                                return;
+                            }
+
+                            const worksheet = workbook.Sheets[targetSheetName];
+                            const rawJsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1, raw: false});
+                            
+                            if (rawJsonData.length === 0) {
+                                alert("La feuille 'bdd_suivi_pma' est vide !");
+                                document.getElementById('adv-loading-indicator').style.display = 'none';
+                                return;
+                            }
+
+                            const originalHeaders = rawJsonData[0];
+                            adv_globalHeaders = originalHeaders.map(h => adv_cleanKoboHeader(h));
+                            
+                            adv_rawData = [];
+                            for (let i = 1; i < rawJsonData.length; i++) {
+                                let row = rawJsonData[i];
+                                if (row.length === 0 || row.every(cell => cell === undefined || cell === "")) continue;
+                                
+                                let obj = {};
+                                adv_globalHeaders.forEach((header, index) => {
+                                    obj[header] = row[index] !== undefined ? row[index] : "";
+                                });
+                                adv_rawData.push(obj);
+                            }
+
+                            adv_filteredData = [...adv_rawData];
+                            
+                            adv_buildFilters();
+                            adv_renderTable();
+                            
+                            document.getElementById('adv-loading-indicator').style.display = 'none';
+                            document.getElementById('adv-main-content').style.display = 'block';
+
+                            adv_executeKMeansAnalysis();
+                            
+                        } catch (error) {
+                            console.error("Erreur lors de la lecture du fichier :", error);
+                            alert("Erreur de traitement. Assurez-vous que le fichier est un document Excel valide (.xlsx ou .xls) non corrompu.");
+                            document.getElementById('adv-loading-indicator').style.display = 'none';
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            function adv_buildFilters() {
+                const filterContainer = document.getElementById('adv-filters-container');
+                if(!filterContainer) return;
+                filterContainer.innerHTML = ''; 
+
+                const dateColIndex = adv_globalHeaders.findIndex(h => h && h.toLowerCase().includes('submission_time'));
+                let dates = [];
+                if (dateColIndex > -1) {
+                    const dateColName = adv_globalHeaders[dateColIndex];
+                    dates = adv_rawData.map(row => row[dateColName]).filter(d => d).map(d => {
+                        return String(d).split('T')[0].split(' ')[0];
+                    }).filter(d => d.match(/^\d{4}-\d{2}-\d{2}$/));
+                    dates = [...new Set(dates)].sort();
+                }
+
+                const drenCol = adv_globalHeaders.find(h => h && h.toLowerCase() === 'dren');
+                if (drenCol) {
+                    let drens = [...new Set(adv_rawData.map(row => row[drenCol]).filter(v => v))].sort();
+                    let select = document.createElement('select');
+                    select.className = 'form-select form-select-sm';
+                    select.id = 'adv-filter-dren';
+                    select.innerHTML = `<option value="">Toutes les DREN (${drens.length})</option>` + 
+                                       drens.map(d => `<option value="${d}">${d}</option>`).join('');
+                    select.addEventListener('change', adv_applyFilters);
+                    filterContainer.appendChild(select);
+                }
+
+                const ciscoCol = adv_globalHeaders.find(h => h && h.toLowerCase() === 'cisco');
+                if (ciscoCol) {
+                    let ciscos = [...new Set(adv_rawData.map(row => row[ciscoCol]).filter(v => v))].sort();
+                    let select = document.createElement('select');
+                    select.className = 'form-select form-select-sm';
+                    select.id = 'adv-filter-cisco';
+                    select.innerHTML = `<option value="">Toutes les CISCO (${ciscos.length})</option>` + 
+                                       ciscos.map(c => `<option value="${c}">${c}</option>`).join('');
+                    select.addEventListener('change', adv_applyFilters);
+                    filterContainer.appendChild(select);
+                }
+
+                const zapCol = adv_globalHeaders.find(h => h && h.toLowerCase() === 'zap');
+                if (zapCol) {
+                    let zaps = [...new Set(adv_rawData.map(row => row[zapCol]).filter(v => v))].sort();
+                    let select = document.createElement('select');
+                    select.className = 'form-select form-select-sm';
+                    select.id = 'adv-filter-zap';
+                    select.innerHTML = `<option value="">Toutes les ZAP (${zaps.length})</option>` + 
+                                       zaps.map(z => `<option value="${z}">${z}</option>`).join('');
+                    select.addEventListener('change', adv_applyFilters);
+                    filterContainer.appendChild(select);
+                }
+
+                if (dates.length > 0) {
+                    let dateGroup = document.createElement('div');
+                    dateGroup.className = 'd-flex gap-2 align-items-center w-100 mt-2';
+                    
+                    let span = document.createElement('span');
+                    span.className = 'text-muted small fw-bold text-nowrap';
+                    span.innerHTML = '<i class="fas fa-calendar-alt"></i> Période :';
+                    
+                    let startInput = document.createElement('input');
+                    startInput.type = 'date';
+                    startInput.className = 'form-control form-control-sm';
+                    startInput.id = 'adv-filter-date-start';
+                    startInput.min = dates[0];
+                    startInput.max = dates[dates.length - 1];
+                    startInput.value = dates[0];
+                    startInput.addEventListener('change', adv_applyFilters);
+
+                    let endInput = document.createElement('input');
+                    endInput.type = 'date';
+                    endInput.className = 'form-control form-control-sm';
+                    endInput.id = 'adv-filter-date-end';
+                    endInput.min = dates[0];
+                    endInput.max = dates[dates.length - 1];
+                    endInput.value = dates[dates.length - 1];
+                    endInput.addEventListener('change', adv_applyFilters);
+                    
+                    dateGroup.appendChild(span);
+                    dateGroup.appendChild(startInput);
+                    dateGroup.appendChild(document.createTextNode(' - '));
+                    dateGroup.appendChild(endInput);
+                    
+                    filterContainer.appendChild(dateGroup);
+                }
+            }
+
+            function adv_applyFilters() {
+                const drenFilter = document.getElementById('adv-filter-dren') ? document.getElementById('adv-filter-dren').value : "";
+                const ciscoFilter = document.getElementById('adv-filter-cisco') ? document.getElementById('adv-filter-cisco').value : "";
+                const zapFilter = document.getElementById('adv-filter-zap') ? document.getElementById('adv-filter-zap').value : "";
+
+                const dateStartInput = document.getElementById('adv-filter-date-start');
+                const dateEndInput = document.getElementById('adv-filter-date-end');
+                
+                const dateStart = dateStartInput ? new Date(dateStartInput.value) : null;
+                const dateEnd = dateEndInput ? new Date(dateEndInput.value) : null;
+                
+                if (dateEnd) {
+                    dateEnd.setHours(23, 59, 59, 999);
+                }
+
+                const drenCol = adv_globalHeaders.find(h => h && h.toLowerCase() === 'dren');
+                const ciscoCol = adv_globalHeaders.find(h => h && h.toLowerCase() === 'cisco');
+                const zapCol = adv_globalHeaders.find(h => h && h.toLowerCase() === 'zap');
+                const dateColIndex = adv_globalHeaders.findIndex(h => h && h.toLowerCase().includes('submission_time'));
+                const dateColName = dateColIndex > -1 ? adv_globalHeaders[dateColIndex] : null;
+
+                adv_filteredData = adv_rawData.filter(row => {
+                    let match = true;
+                    if (drenFilter && row[drenCol] !== drenFilter) match = false;
+                    if (ciscoFilter && row[ciscoCol] !== ciscoFilter) match = false;
+                    if (zapFilter && row[zapCol] !== zapFilter) match = false;
+
+                    if (dateColName && (dateStart || dateEnd)) {
+                        let rowDateStr = String(row[dateColName]);
+                        if (rowDateStr) {
+                            let cleanDateStr = rowDateStr.split('T')[0].split(' ')[0];
+                            let rowDate = new Date(cleanDateStr);
+                            if (!isNaN(rowDate.getTime())) {
+                                if (dateStart && rowDate < dateStart) match = false;
+                                if (dateEnd && rowDate > dateEnd) match = false;
+                            }
+                        }
+                    }
+                    return match;
+                });
+
+                adv_renderTable();
+                adv_updateActiveAI();
+            }
+
+            function adv_renderTable() {
+                const thead = document.querySelector('#adv-data-table thead');
+                const tbody = document.querySelector('#adv-data-table tbody');
+                const counter = document.getElementById('adv-record-count');
+                if(!thead || !tbody) return;
+
+                thead.innerHTML = '';
+                tbody.innerHTML = '';
+                if(counter) counter.innerText = `${adv_filteredData.length} enregistrement(s)`;
+
+                if (adv_filteredData.length === 0) return;
+
+                const trHead = document.createElement('tr');
+                const thIndex = document.createElement('th');
+                thIndex.innerText = '#';
+                trHead.appendChild(thIndex);
+                
+                adv_globalHeaders.forEach(header => {
+                    const th = document.createElement('th');
+                    th.innerText = header;
+                    trHead.appendChild(th);
+                });
+                
+                const thAction = document.createElement('th');
+                thAction.innerText = 'Action';
+                trHead.appendChild(thAction);
+                thead.appendChild(trHead);
+
+                let latCol = null;
+                let lonCol = null;
+                adv_globalHeaders.forEach(h => {
+                    let hLower = h.toLowerCase();
+                    if (hLower.includes('lat') && !hLower.includes('plat')) latCol = h; 
+                    if (hLower.includes('lon') || hLower.includes('lng')) lonCol = h;
+                });
+
+                const fragment = document.createDocumentFragment();
+
+                adv_filteredData.forEach((row, index) => {
+                    const tr = document.createElement('tr');
+                    
+                    const tdIndex = document.createElement('td');
+                    tdIndex.innerText = index + 1;
+                    tdIndex.className = 'text-muted fw-bold bg-light';
+                    tr.appendChild(tdIndex);
+
+                    adv_globalHeaders.forEach(header => {
+                        const td = document.createElement('td');
+                        let cellValue = row[header];
+
+                        if (cellValue === undefined || cellValue === null || cellValue === "") {
+                            td.innerHTML = '<span class="text-muted small">N/A</span>';
+                        } 
+                        else if (typeof cellValue === 'string' && adv_koboImageRegex.test(cellValue)) {
+                            td.className = 'adv-image-cell';
+                            let baseDir = "images/"; 
+                            if (adv_imageMode === 'url') {
+                                td.innerHTML = `<span class="badge bg-secondary text-truncate" style="max-width: 150px;" title="${cellValue}"><i class="fas fa-file-image me-1"></i>${cellValue}</span>`;
+                            } else {
+                                const img = document.createElement('img');
+                                img.src = baseDir + cellValue;
+                                img.alt = cellValue;
+                                img.onerror = function() {
+                                    this.onerror = null; 
+                                    this.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%20preserveAspectRatio%3D%22none%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20fill%3D%22%23eeeeee%22%2F%3E%3Cpath%20d%3D%22M20%2014L14%2026h12z%22%20fill%3D%22%23cccccc%22%2F%3E%3C%2Fsvg%3E';
+                                    this.title = "Image locale introuvable";
+                                };
+                                td.appendChild(img);
+                            }
+                        }
+                        else {
+                            td.innerText = cellValue;
+                        }
+                        tr.appendChild(td);
+                    });
+
+                    const tdAction = document.createElement('td');
+                    if (latCol && lonCol) {
+                        const lat = parseFloat(row[latCol]);
+                        const lon = parseFloat(row[lonCol]);
+                        
+                        if (!isNaN(lat) && !isNaN(lon)) {
+                            const btn = document.createElement('a');
+                            btn.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+                            btn.target = '_blank';
+                            btn.className = 'btn btn-sm btn-outline-primary shadow-sm';
+                            btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> MAP';
+                            btn.title = `Ouvrir ${lat}, ${lon} sur Google Maps`;
+                            tdAction.appendChild(btn);
+                        } else {
+                            tdAction.innerHTML = '<span class="text-muted small">Pas de GPS</span>';
+                        }
+                    }
+                    tr.appendChild(tdAction);
+                    fragment.appendChild(tr);
+                });
+
+                tbody.appendChild(fragment);
+            }
+
+            window.adv_toggleImages = function() {
+                adv_imageMode = adv_imageMode === 'url' ? 'img' : 'url';
+                document.getElementById('adv-toggle-images').innerHTML = adv_imageMode === 'url' ? 
+                    '<i class="fas fa-image"></i> Afficher Images' : 
+                    '<i class="fas fa-font"></i> Afficher Chemins';
+                adv_renderTable();
+            };
+
+            function adv_aggregateData(key) {
+                const col = adv_globalHeaders.find(h => h && h.toLowerCase() === key.toLowerCase());
+                if (!col) return null;
+                let counts = {};
+                adv_filteredData.forEach(row => {
+                    let val = row[col];
+                    if (val) { counts[val] = (counts[val] || 0) + 1; }
+                });
+                return counts;
+            }
+
+            function adv_performKMeans1D(dataObj, k = 3) {
+                let points = Object.keys(dataObj).map(key => ({ label: key, value: dataObj[key] }));
+                if (points.length < k) return null;
+
+                let values = points.map(p => p.value).sort((a,b) => a-b);
+                let centroids = [
+                    values[0],
+                    values[Math.floor(values.length / 2)],
+                    values[values.length - 1]
+                ];
+
+                let clusters = [];
+                let oldCentroids = [];
+                let iterations = 0;
+                const MAX_ITER = 100;
+
+                while (iterations < MAX_ITER) {
+                    clusters = Array.from({length: k}, () => []);
+                    points.forEach(point => {
+                        let minList = centroids.map(c => Math.abs(point.value - c));
+                        let minDistance = Math.min(...minList);
+                        let clusterIndex = minList.indexOf(minDistance);
+                        clusters[clusterIndex].push(point);
+                    });
+
+                    oldCentroids = [...centroids];
+                    for (let i = 0; i < k; i++) {
+                        if (clusters[i].length > 0) {
+                            let sum = clusters[i].reduce((acc, curr) => acc + curr.value, 0);
+                            centroids[i] = sum / clusters[i].length;
+                        }
+                    }
+
+                    let hasConverged = true;
+                    for (let i = 0; i < k; i++) {
+                        if (Math.abs(oldCentroids[i] - centroids[i]) > 0.001) {
+                            hasConverged = false;
+                            break;
+                        }
+                    }
+                    if (hasConverged) break;
+                    iterations++;
+                }
+
+                return centroids.map((c, i) => ({ centroid: c, data: clusters[i] }))
+                                .sort((a, b) => a.centroid - b.centroid);
+            }
+
+            function adv_getJenksBreaks(data, numClasses) {
+                if (data.length < numClasses) return null;
+                data.sort(function (a, b) { return a - b; });
+                var mat1 = [];
+                for (var i = 0; i <= data.length; i++) {
+                    var temp = [];
+                    for (var j = 0; j <= numClasses; j++) temp.push(0);
+                    mat1.push(temp);
+                }
+                var mat2 = [];
+                for (var i = 0; i <= data.length; i++) {
+                    var temp = [];
+                    for (var j = 0; j <= numClasses; j++) temp.push(0);
+                    mat2.push(temp);
+                }
+                for (var i = 1; i <= numClasses; i++) {
+                    mat1[1][i] = 1; mat2[1][i] = 0;
+                    for (var j = 2; j <= data.length; j++) mat2[j][i] = Infinity;
+                }
+                var v = 0;
+                for (var l = 2; l <= data.length; l++) {
+                    var s1 = 0; var s2 = 0; var w = 0;
+                    for (var m = 1; m <= l; m++) {
+                        var i3 = l - m + 1;
+                        var val = parseFloat(data[i3 - 1]);
+                        s2 += val * val; s1 += val; w += 1;
+                        v = s2 - (s1 * s1) / w;
+                        var i4 = i3 - 1;
+                        if (i4 != 0) {
+                            for (var j = 2; j <= numClasses; j++) {
+                                if (mat2[l][j] >= (v + mat2[i4][j - 1])) {
+                                    mat1[l][j] = i3; mat2[l][j] = v + mat2[i4][j - 1];
+                                }
+                            }
+                        }
+                    }
+                    mat1[l][1] = 1; mat2[l][1] = v;
+                }
+                var k = data.length; var kclass = [];
+                for (var i = 0; i <= numClasses; i++) { kclass.push(0); }
+                kclass[numClasses] = parseFloat(data[data.length - 1]);
+                var countNum = numClasses;
+                while (countNum >= 2) {
+                    var id = parseInt((mat1[k][countNum]) - 2);
+                    kclass[countNum - 1] = data[id];
+                    k = parseInt((mat1[k][countNum] - 1));
+                    countNum -= 1;
+                }
+                return kclass;
+            }
+
+            function adv_performJenks(dataObj, k = 3) {
+                let points = Object.keys(dataObj).map(key => ({ label: key, value: dataObj[key] }));
+                if (points.length < k) return null;
+                let values = points.map(p => p.value);
+                let breaks = adv_getJenksBreaks(values, k);
+                if(!breaks) return null;
+
+                let clusters = [[], [], []];
+                points.forEach(point => {
+                    if (point.value <= breaks[1]) clusters[0].push(point);
+                    else if (point.value <= breaks[2]) clusters[1].push(point);
+                    else clusters[2].push(point);
+                });
+                return [
+                    { threshold: breaks[1], data: clusters[0] },
+                    { threshold: breaks[2], data: clusters[1] },
+                    { threshold: breaks[3], data: clusters[2] }
+                ];
+            }
+
+            function adv_performDBSCAN1D(dataObj, eps) {
+                let points = Object.keys(dataObj).map(key => ({ label: key, value: dataObj[key], isNoise: false, visited: false }));
+                let minPts = 1;
+                points.forEach(p => {
+                    if(p.visited) return;
+                    p.visited = true;
+                    let neighbors = points.filter(other => Math.abs(p.value - other.value) <= eps && other.label !== p.label);
+                    if(neighbors.length < minPts) p.isNoise = true;
+                });
+                return points;
+            }
+
+            function adv_updateActiveAI() {
+                if (adv_filteredData.length === 0) return;
+                const activeTab = document.querySelector('#adv-mainTabs .nav-link.active').getAttribute('id');
+                if (activeTab === 'adv-kmeans-tab') adv_executeKMeansAnalysis();
+                if (activeTab === 'adv-jenks-tab') adv_executeJenksAnalysis();
+                if (activeTab === 'adv-dbscan-tab') adv_executeDBSCANAnalysis();
+            }
+
+            document.querySelectorAll('#adv-mainTabs button[data-bs-toggle="tab"]').forEach(tabBtn => {
+                tabBtn.addEventListener('shown.bs.tab', function (event) {
+                    adv_updateActiveAI();
+                });
+            });
+
+            const advEpsRange = document.getElementById('adv-eps-range');
+            if(advEpsRange) {
+                advEpsRange.addEventListener('input', function(e) {
+                    adv_currentEpsilon = e.target.value;
+                    document.getElementById('adv-eps-value').innerText = adv_currentEpsilon;
+                    if (document.querySelector('#adv-mainTabs .nav-link.active').getAttribute('id') === 'adv-dbscan-tab') {
+                        adv_executeDBSCANAnalysis();
+                    }
+                });
+            }
+
+            function adv_renderChart(canvasId, type, labels, datasets, chartRefKey) {
+                const ctx = document.getElementById(canvasId);
+                if(!ctx) return;
+                if (adv_charts[chartRefKey]) adv_charts[chartRefKey].destroy();
+                adv_charts[chartRefKey] = new Chart(ctx.getContext('2d'), {
+                    type: type,
+                    data: { labels: labels, datasets: datasets },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                });
+            }
+
+            function adv_executeKMeansAnalysis() {
+                ['DREN', 'CISCO', 'ZAP'].forEach(level => {
+                    let data = adv_aggregateData(level);
+                    if (!data) return;
+                    let clusters = adv_performKMeans1D(data, 3);
+                    if (!clusters) return;
+
+                    let datasets = [];
+                    let colors = ['rgba(220, 53, 69, 0.7)', 'rgba(253, 126, 20, 0.7)', 'rgba(25, 135, 84, 0.7)'];
+                    let labels = ['Faible Volume', 'Volume Moyen', 'Haut Volume'];
+                    let tbodyHtml = '';
+
+                    clusters.forEach((clusterInfo, i) => {
+                        let pts = clusterInfo.data;
+                        pts.sort((a,b) => b.value - a.value).forEach(p => {
+                            let colorClass = ['text-danger', 'text-warning', 'text-success'][i];
+                            tbodyHtml += `<tr><td>${p.label}</td><td class="fw-bold">${p.value}</td><td class="${colorClass} fw-bold">${labels[i]}</td></tr>`;
+                        });
+                        datasets.push({
+                            label: `${labels[i]} (Centre: ${Math.round(clusterInfo.centroid)})`,
+                            data: pts.map((p, index) => ({ x: index, y: p.value, label: p.label })),
+                            backgroundColor: colors[i],
+                            pointRadius: 6, pointHoverRadius: 8
+                        });
+                    });
+
+                    const tableEl = document.getElementById(`adv-kmeans-${level.toLowerCase()}-table`);
+                    if(tableEl) tableEl.innerHTML = tbodyHtml;
+                    
+                    const ctx = document.getElementById(`adv-kmeans-${level.toLowerCase()}-chart`);
+                    if(ctx) {
+                        if (adv_charts[`kmeans${level}`]) adv_charts[`kmeans${level}`].destroy();
+                        adv_charts[`kmeans${level}`] = new Chart(ctx.getContext('2d'), {
+                            type: 'scatter',
+                            data: { datasets: datasets },
+                            options: {
+                                responsive: true, maintainAspectRatio: false,
+                                plugins: { tooltip: { callbacks: { label: function(ctx) { return `${ctx.raw.label} : ${ctx.raw.y} soumission(s)`; } } } },
+                                scales: { x: { display: false }, y: { beginAtZero: true, title: { display: true, text: 'Volume de soumissions' } } }
+                            }
+                        });
+                    }
+                });
+            }
+
+            function adv_executeJenksAnalysis() {
+                ['DREN', 'CISCO', 'ZAP'].forEach(level => {
+                    let data = adv_aggregateData(level);
+                    if (!data) return;
+                    let jenksResult = adv_performJenks(data, 3);
+                    if (!jenksResult) return;
+
+                    let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = '';
+                    const catLabels = ['Faible', 'Moyen', 'Élevé'];
+                    const colors = ['rgba(220, 53, 69, 0.8)', 'rgba(253, 126, 20, 0.8)', 'rgba(25, 135, 84, 0.8)'];
+                    
+                    let flatData = [];
+                    jenksResult.forEach((cluster, idx) => {
+                        cluster.data.forEach(p => { flatData.push({ ...p, clusterIdx: idx, threshold: cluster.threshold }); });
+                    });
+                    flatData.sort((a,b) => b.value - a.value);
+
+                    flatData.forEach(item => {
+                        labelsHtml.push(item.label);
+                        dsData.push(item.value);
+                        bgColors.push(colors[item.clusterIdx]);
+                        let cClass = ['text-danger', 'text-warning', 'text-success'][item.clusterIdx];
+                        tbodyHtml += `<tr><td>${item.label}</td><td class="fw-bold">${item.value}</td><td class="${cClass} fw-bold">${catLabels[item.clusterIdx]} (Max: ${item.threshold || '∞'})</td></tr>`;
+                    });
+
+                    const tableEl = document.getElementById(`adv-jenks-${level.toLowerCase()}-table`);
+                    if(tableEl) tableEl.innerHTML = tbodyHtml;
+
+                    adv_renderChart(`adv-jenks-${level.toLowerCase()}-chart`, 'bar', labelsHtml, [{ label: 'Soumissions (Jenks Breaks)', data: dsData, backgroundColor: bgColors, borderWidth: 1 }], `jenks${level}`);
+                });
+            }
+
+            function adv_executeDBSCANAnalysis() {
+                let eps = parseInt(adv_currentEpsilon);
+                ['DREN', 'CISCO', 'ZAP'].forEach(level => {
+                    let data = adv_aggregateData(level);
+                    if (!data) return;
+                    let dbscanResult = adv_performDBSCAN1D(data, eps);
+                    if (!dbscanResult) return;
+
+                    let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = '';
+                    dbscanResult.sort((a, b) => {
+                        if(a.isNoise && !b.isNoise) return -1;
+                        if(!a.isNoise && b.isNoise) return 1;
+                        return b.value - a.value;
+                    });
+
+                    dbscanResult.forEach(item => {
+                        labelsHtml.push(item.label);
+                        dsData.push(item.value);
+                        if (item.isNoise) {
+                            bgColors.push('rgba(220, 53, 69, 1)');
+                            tbodyHtml += `<tr class="table-danger"><td>${item.label} <span class="badge bg-danger ms-2"><i class="fas fa-exclamation-triangle"></i> Isolé</span></td><td class="fw-bold">${item.value}</td></tr>`;
+                        } else {
+                            bgColors.push('rgba(108, 117, 125, 0.4)');
+                            tbodyHtml += `<tr><td>${item.label}</td><td class="text-muted">${item.value}</td></tr>`;
+                        }
+                    });
+
+                    const tableEl = document.getElementById(`adv-dbscan-${level.toLowerCase()}-table`);
+                    if(tableEl) tableEl.innerHTML = tbodyHtml;
+
+                    adv_renderChart(`adv-dbscan-${level.toLowerCase()}-chart`, 'bar', labelsHtml, [{ label: `Volume (Rouge = Anomalie avec ε=${eps})`, data: dsData, backgroundColor: bgColors, borderWidth: 1 }], `dbscan${level}`);
+                });
+            }
+
+            function adv_escapeCSV(str) {
+                if (str === null || str === undefined) return '';
+                str = str.toString();
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    str = '"' + str.replace(/"/g, '""') + '"'; 
+                }
+                return str;
+            }
+
+            window.adv_exportCSV = function() {
+                if (adv_filteredData.length === 0) { alert("Aucune donnée à exporter."); return; }
+                let csvContent = adv_globalHeaders.map(adv_escapeCSV).join(',') + "\r\n";
+                adv_filteredData.forEach(row => {
+                    let rowArray = adv_globalHeaders.map(h => adv_escapeCSV(row[h]));
+                    csvContent += rowArray.join(',') + "\r\n";
+                });
+                let blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+                let link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `KoboToolBox_Export_${new Date().toISOString().slice(0,10)}.csv`;
+                link.click();
+            };
+
+            window.adv_exportExcel = function() {
+                if (adv_filteredData.length === 0) { alert("Aucune donnée à exporter."); return; }
+                let htmlTable = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body><table border="1"><tr>`;
+                adv_globalHeaders.forEach(h => { htmlTable += `<th style="background-color:#4F81BD;color:white;">${h}</th>`; });
+                htmlTable += '</tr>';
+                adv_filteredData.forEach(row => {
+                    htmlTable += '<tr>';
+                    adv_globalHeaders.forEach(h => {
+                        let val = row[h] !== undefined ? row[h] : '';
+                        htmlTable += `<td>${val}</td>`;
+                    });
+                    htmlTable += '</tr>';
+                });
+                htmlTable += '</table></body></html>';
+                let blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel' });
+                let link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `PMA_Dataset_${new Date().getTime()}.xls`;
+                link.click();
+            };
+
+            window.adv_exportJSON = function() {
+                if (adv_filteredData.length === 0) { alert("Aucune donnée à exporter."); return; }
+                let jsonStr = JSON.stringify(adv_filteredData, null, 2);
+                let blob = new Blob([jsonStr], { type: "application/json" });
+                let link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `kobo_data_${new Date().toISOString().slice(0,10)}.json`;
+                link.click();
+            };
+
+            window.adv_shareEmail = function() {
+                if (adv_filteredData.length === 0) { alert("Aucune donnée à partager."); return; }
+                let subject = encodeURIComponent("Rapport KoboToolBox - Analyse Suivi PMA");
+                let bodyText = `Bonjour,\n\nVeuillez trouver ci-dessous le résumé des ${adv_filteredData.length} enregistrements actuels.\n\n`;
+                let maxRows = Math.min(adv_filteredData.length, 100);
+                for(let i = 0; i < maxRows; i++) {
+                    let rowText = [];
+                    let limitCols = adv_globalHeaders.slice(0, 5);
+                    limitCols.forEach(h => { rowText.push(`${h}: ${adv_filteredData[i][h]}`); });
+                    bodyText += `- Ligne ${i+1}: ${rowText.join(' | ')}\n`;
+                }
+                if (adv_filteredData.length > 100) bodyText += `\n... et ${adv_filteredData.length - 100} autres lignes non affichées.`;
+                window.location.href = `mailto:?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+            };
+
+            window.adv_shareWhatsApp = function() {
+                if (adv_filteredData.length === 0) { alert("Aucune donnée à partager."); return; }
+                let message = `📊 *Rapport KoboToolBox - Suivi PMA*\n• Total enregistrements : ${adv_filteredData.length}\n• Date du rapport : ${new Date().toLocaleDateString()}\n\nRésumé des 5 premiers éléments :\n`;
+                let maxRows = Math.min(adv_filteredData.length, 5);
+                for(let i = 0; i < maxRows; i++) {
+                    let r = adv_filteredData[i];
+                    let dren = r['dren'] || r['DREN'] || 'N/A';
+                    let cisco = r['cisco'] || r['CISCO'] || 'N/A';
+                    message += `${i+1}. DREN: ${dren} | CISCO: ${cisco}\n`;
+                }
+                if(adv_filteredData.length > 5) message += `... et ${adv_filteredData.length - 5} autres enregistrements.`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+            };
+
+            window.adv_exportHTML = function() {
+                if (adv_filteredData.length === 0) { alert("Aucune donnée à exporter."); return; }
+                let tableHTML = document.getElementById('adv-data-table').outerHTML;
+                let fullHtml = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Snapshot KoboToolBox - ${new Date().toISOString().slice(0,10)}</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"></head><body class="p-4"><div class="container"><h2 class="mb-3 text-primary"><i class="fas fa-table"></i> Snapshot des Données Filtrées</h2><p class="text-muted">Généré le ${new Date().toLocaleString()} - Total : ${adv_filteredData.length} enregistrements.</p><div class="table-responsive">${tableHTML}</div></div></body></html>`;
+                let blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+                let link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `Snapshot_Tableau_${new Date().toISOString().slice(0,10)}.html`;
+                link.click();
+            };
+
+            window.adv_printReport = async function() {
+                if (adv_filteredData.length === 0) { alert("Aucune donnée à imprimer."); return; }
+                const btn = document.getElementById('adv-print-btn');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Préparation...';
+                btn.disabled = true;
+
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    const printWindow = window.open('', '_blank', 'width=1000,height=800');
+                    if (!printWindow) throw new Error("Le navigateur a bloqué l'ouverture de la fenêtre popup.");
+
+                    let tableNode = document.getElementById('adv-data-table').cloneNode(true);
+                    let actionCols = tableNode.querySelectorAll('th:last-child, td:last-child');
+                    actionCols.forEach(col => col.remove());
+
+                    let printDoc = `<!DOCTYPE html><html><head><title>Rapport d'Impression - Suivi PMA</title><meta charset="utf-8"><style>body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; color: #333; } .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #0d6efd; } h1 { color: #0d6efd; margin: 0; } .meta-info { margin-top: 10px; font-size: 14px; color: #666; } table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 11px; } th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f8f9fa; font-weight: bold; } tr:nth-child(even) { background-color: #fcfcfc; } .footer { margin-top: 40px; font-size: 10px; text-align: center; color: #999; border-top: 1px solid #eee; padding-top: 10px; } @media print { body { -webkit-print-color-adjust: exact; padding: 0; } table { page-break-inside: auto; } tr { page-break-inside: avoid; page-break-after: auto; } thead { display: table-header-group; } tfoot { display: table-footer-group; } }</style></head><body><div class="header"><h1>Rapport Analytique KoboToolBox</h1><div class="meta-info">Projet : Suivi PMA | Document généré le : ${new Date().toLocaleString('fr-FR')}<br>Nombre total d'enregistrements : <strong>${adv_filteredData.length}</strong></div></div>${tableNode.outerHTML}<div class="footer">Rapport automatisé généré par le Dashboard Analytique Avancé.<br>Système de filtrage local avec rendu DOM virtuel.</div></body></html>`;
+
+                    printWindow.document.open();
+                    printWindow.document.write(printDoc);
+                    printWindow.document.close();
+                    printWindow.focus();
+                    setTimeout(() => { printWindow.print(); }, 500);
+
+                } catch (error) {
+                    console.error("Erreur lors de la préparation à l'impression :", error);
+                    alert("Erreur lors de la préparation de l'impression : " + error.message);
+                } finally {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+            };
+        })();
+    </script>
 
 </body>
 </html>
