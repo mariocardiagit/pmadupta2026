@@ -73,6 +73,7 @@
                 </ul>
 
                 <div class="tab-content" id="dashboardTabsContent">
+                    
                     <!-- ONGLET 1 : VISUALISATION -->
                     <div class="tab-pane fade show active" id="visualisation" role="tabpanel">
                         <div class="filter-card shadow-sm">
@@ -289,7 +290,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- LE TABLEAU DE LA ZAP QUI MANQUAIT EST ICI -->
+                            <!-- LE TABLEAU DE LA ZAP EST ICI -->
                             <div class="col-md-4 mb-4">
                                 <div class="analysis-card shadow-sm h-100">
                                     <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Détail des Soumissions par ZAP</h5>
@@ -475,48 +476,76 @@
                     <!-- ONGLET 7 : DETAILS ALGOS IA -->
                     <div class="tab-pane fade" id="details-ia" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="text-info m-0"><i class="fas fa-book-open"></i> Explicabilité (XAI) : Détails et Démonstrations Mathématiques</h4>
+                            <h4 class="text-info m-0"><i class="fas fa-book-open"></i> Explicabilité (XAI) : Transparence et Objectivité Mathématique</h4>
                         </div>
                         <div class="ai-insights shadow-sm mb-4 border-info" style="border-left-color: #17a2b8 !important; background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);">
-                            <h5 style="color: #0c5460;"><i class="fas fa-info-circle"></i> Pourquoi utiliser ces algorithmes ?</h5>
-                            <p style="color: #0c5460;">Le regroupement des données ne peut pas se fier à des seuils humains arbitraires. La vraie Intelligence Artificielle écoute la structure intrinsèque de la donnée. Nous combinons des philosophies mathématiques différentes pour assurer une objectivité totale.</p>
+                            <h5 style="color: #0c5460;"><i class="fas fa-shield-alt"></i> Pourquoi les dirigeants peuvent-ils faire confiance à cette IA ?</h5>
+                            <p style="color: #0c5460;">Le regroupement des performances des STD (Services Techniques Déconcentrés) ne se fie à aucun seuil humain arbitraire (qui pourrait être accusé de favoritisme). La machine écoute la structure intrinsèque des données. En combinant trois philosophies mathématiques différentes, le système garantit une <strong>objectivité totale</strong> dans l'évaluation des DREN, CISCO et ZAP.</p>
                         </div>
                         
+                        <!-- K-MEANS -->
                         <div class="card mb-4 shadow-sm">
                             <div class="card-header bg-primary text-white fw-bold fs-5">
                                 <i class="fas fa-project-diagram"></i> Algorithme 1 : K-Means (Centre de Gravité)
                             </div>
                             <div class="card-body">
-                                <p>Le K-Means est un algorithme de partitionnement géométrique. Son but est de regrouper $N$ observations en $K$ clusters en minimisant l'inertie intra-classe.</p>
-                                <div class="demo-box">
-                                    <h6 class="fw-bold text-primary"><i class="fas fa-microscope"></i> Démonstration Mathématique :</h6>
-                                    <p class="mb-2">Imaginons 5 ZAP ayant respectivement soumis : <strong>X = { 2, 3, 10, 12, 25 }</strong> formulaires. L'IA cherche à les diviser en K=3 groupes.</p>
-                                    <div class="demo-step"><strong>Étape 1 :</strong> Initialisation des centres de gravité moyens. Supposons &mu;<sub>1</sub> = 2.5 (Faible), &mu;<sub>2</sub> = 11 (Moyen), &mu;<sub>3</sub> = 25 (Fort).</div>
-                                    <div class="demo-step"><strong>Étape 2 :</strong> Assignation des ZAP aux centres les plus proches.</div>
-                                    <div class="demo-step"><strong>Étape 3 :</strong> L'algorithme calcule son score d'erreur (Inertie J).</div>
-                                    <p class="mt-2 mb-0 text-muted"><em>L'algorithme tourne jusqu'à trouver le "J" minimum absolu.</em></p>
+                                <p>Le K-Means est l'algorithme de référence pour créer des groupes équitables. Il cherche le point d'équilibre parfait (le centre de gravité) entre les entités.</p>
+                                <div class="demo-box" style="border-left-color: #0d6efd;">
+                                    <h6 class="fw-bold text-primary"><i class="fas fa-microscope"></i> Cas concret KoboToolbox (Niveau CISCO) :</h6>
+                                    <p class="mb-2">Imaginons 6 CISCO ayant soumis respectivement : <strong>{ 12, 15, 45, 50, 110, 125 }</strong> formulaires d'inspection. La Direction souhaite identifier les niveaux de performance (K=3 : Faible, Moyen, Fort).</p>
+                                    <div class="demo-step"><strong>Action de l'IA :</strong> Au lieu de dire arbitrairement "moins de 30 c'est faible", l'IA place des points virtuels et calcule les distances.</div>
+                                    <div class="demo-step"><strong>Résultat de l'algorithme :</strong><br>
+                                        - Cluster Faible : { 12, 15 } (Moyenne : 13.5)<br>
+                                        - Cluster Moyen : { 45, 50 } (Moyenne : 47.5)<br>
+                                        - Cluster Fort : { 110, 125 } (Moyenne : 117.5)
+                                    </div>
+                                    <div class="mt-3 p-2 rounded" style="background-color: #e9ecef; border-left: 4px solid #6c757d;">
+                                        <strong><i class="fas fa-lightbulb text-warning"></i> Interprétation pour les Dirigeants :</strong><br>
+                                        Ce résultat justifie scientifiquement les allocations de budget ou d'appui technique. L'écart mathématique entre la CISCO à 15 soumissions et celle à 45 est trop grand pour qu'elles soient dans le même groupe. Le système prouve que les CISCOs à 12 et 15 nécessitent une mission de renforcement des capacités urgente, sans qu'aucune contestation de subjectivité ne soit possible.
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- JENKS -->
                         <div class="card mb-4 shadow-sm">
                             <div class="card-header bg-success text-white fw-bold fs-5">
-                                <i class="fas fa-layer-group"></i> Algorithme 2 : Jenks (Natural Breaks)
+                                <i class="fas fa-layer-group"></i> Algorithme 2 : Jenks (Ruptures Naturelles)
                             </div>
                             <div class="card-body">
-                                <p>Conçu spécifiquement pour les données unidimensionnelles (1D), c'est l'algorithme le plus précis pour cette plateforme. Il procède de manière déterministe pour trouver les "ruptures" optimales en cherchant à maximiser le critère GVF.</p>
-                                <div class="text-center mb-3">
-                                    <span class="math-box text-success"><strong>GVF = ( SDTM - SDIC ) / SDTM</strong></span>
+                                <p>Cet algorithme est le roi de la précision unidimensionnelle. Il calcule toutes les combinaisons possibles pour trouver les "cassures" (écarts soudains) naturelles dans l'effort des agents.</p>
+                                <div class="demo-box" style="border-left-color: #198754;">
+                                    <h6 class="fw-bold text-success"><i class="fas fa-microscope"></i> Cas concret KoboToolbox (Niveau ZAP) :</h6>
+                                    <p class="mb-2">Voici les réalisations (kits distribués) de 5 ZAP : <strong>{ 200, 210, 215, 600, 610 }</strong>.</p>
+                                    <div class="demo-step"><strong>Analyse de Variance :</strong> L'algorithme compare la variance totale avec la variance interne des sous-groupes (Critère GVF).</div>
+                                    <div class="demo-step"><strong>La coupure optimale :</strong> Jenks place une rupture nette entre 215 et 600, car c'est là que la différence (le saut) est mathématiquement la plus violente.</div>
+                                    <div class="mt-3 p-2 rounded" style="background-color: #d1e7dd; border-left: 4px solid #198754;">
+                                        <strong><i class="fas fa-lightbulb text-warning"></i> Interprétation pour les Dirigeants :</strong><br>
+                                        Jenks révèle la <em>réalité du terrain</em>. Il montre à la Direction qu'il y a une "cassure naturelle" majeure dans le travail des ZAP : soit elles distribuent autour de 200 kits, soit autour de 600. Il n'y a pas de milieu. Cela signale immédiatement à la direction un potentiel problème logistique de transport ou d'approvisionnement dans la zone des ZAP à ~200.
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
+                        <!-- DBSCAN -->
                         <div class="card mb-4 shadow-sm">
                             <div class="card-header bg-danger text-white fw-bold fs-5">
-                                <i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Détection Anomalies)
+                                <i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Détection des Anomalies Bruitées)
                             </div>
                             <div class="card-body">
-                                <p>DBSCAN ne force pas la répartition des données dans 3 groupes prédéfinis. Il "scanne" la liste pour trouver les zones où les entités sont très concentrées, et isole celles qui sont mathématiquement trop éloignées (Bruit / Anomalie).</p>
+                                <p>Le DBSCAN agit comme un radar de densité. Il repère les masses normales et isole impitoyablement les comportements statistiques aberrants (nommés "Bruit").</p>
+                                <div class="demo-box" style="border-left-color: #dc3545;">
+                                    <h6 class="fw-bold text-danger"><i class="fas fa-microscope"></i> Cas concret KoboToolbox (Niveau DREN) :</h6>
+                                    <p class="mb-2">Soumissions mensuelles par DREN : <strong>{ 45, 48, 50, 47, 52, 980 }</strong>. Paramètres : Tolérance (Epsilon) dynamique, Voisins requis (MinPts) = 2.</p>
+                                    <div class="demo-step"><strong>Action de l'IA :</strong> Le radar balaie la zone des ~50 soumissions et trouve un groupe compact et cohérent (elles sont toutes voisines de ±5). </div>
+                                    <div class="demo-step"><strong>Détection :</strong> La valeur <strong>980</strong> n'a aucun "voisin" à proximité. Elle est rejetée du calcul normal et classée <span class="badge bg-danger">Anomalie</span>.</div>
+                                    <div class="mt-3 p-2 rounded" style="background-color: #f8d7da; border-left: 4px solid #dc3545;">
+                                        <strong><i class="fas fa-lightbulb text-warning"></i> Interprétation pour les Dirigeants :</strong><br>
+                                        DBSCAN est le "lanceur d'alerte" de la plateforme. La valeur 980 est statistiquement impossible par rapport à la moyenne nationale. L'IA indique à la direction qu'il y a soit :<br>
+                                        1. Un agent DREN très zélé qui fait un travail exceptionnel (Mérite d'être primé).<br>
+                                        2. <strong>Plus probablement :</strong> Un dysfonctionnement de la tablette, un script automatique, ou une tentative de fraude (remplissage massif de faux formulaires). Une vérification d'audit s'impose immédiatement sur cette DREN spécifique !
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -635,10 +664,51 @@
                         </div>
                         
                         <div class="ai-insights shadow-sm mb-4" style="background: linear-gradient(135deg, #eaeded 0%, #d5dbdb 100%); border-left: 5px solid #2c3e50;">
-                            <h5 class="text-explication"><i class="fas fa-server"></i> Comment l'IA comprend-elle le sens des phrases sans serveur externe ?</h5>
-                            <p>La version actuelle de cette plateforme utilise une architecture <strong>Serverless</strong> innovante via la librairie <em>Transformers.js</em>. Cela permet de faire fonctionner une Intelligence Artificielle de Traitement du Langage Naturel (NLP) directement dans votre navigateur web.</p>
+                            <h5 class="text-explication"><i class="fas fa-server"></i> Révolution Serverless & NLP (Traitement du Langage Naturel)</h5>
+                            <p>Comment l'IA parvient-elle à comprendre que des phrases rédigées différemment par divers agents sur le terrain signifient exactement la même chose ? Cette plateforme embarque un modèle de langage "Sentence-BERT" directement dans le navigateur, fonctionnant en 2 étapes mathématiques strictes.</p>
                         </div>
-                        <div class="row"><div class="col-md-12 mb-4"><div class="card shadow-sm border-0"><div class="card-header text-white fw-bold fs-5" style="background-color: #2c3e50;"><i class="fas fa-vector-square"></i> Étape 1 : Le Plongement Lexical (Embeddings)</div><div class="card-body"><p>L'ordinateur ne comprend pas les lettres. Le modèle d'IA <strong>Sentence-BERT (SBERT)</strong> prend chaque activité rédigée par une DREN, CISCO ou ZAP et la traduit en un vecteur mathématique (un gigantesque tableau de plusieurs centaines de nombres).</p></div></div></div></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="card shadow-sm border-0 h-100">
+                                    <div class="card-header text-white fw-bold fs-5" style="background-color: #34495e;"><i class="fas fa-vector-square"></i> Étape 1 : Plongement Lexical (Embeddings)</div>
+                                    <div class="card-body bg-light">
+                                        <p>L'ordinateur ne lit pas les lettres. Le modèle d'IA traduit chaque "Activité" soumise dans KoboToolbox en un gigantesque tableau de nombres (vecteurs de 384 dimensions) représentant son "sens profond".</p>
+                                        <div class="p-3 bg-white border rounded">
+                                            <strong>Exemple ZAP A :</strong> <em>"Distribution de kits scolaires"</em><br>
+                                            <span class="text-muted small">Vecteur ➔ [0.12, -0.45, 0.89, 0.02, ...]</span><br><br>
+                                            
+                                            <strong>Exemple ZAP B :</strong> <em>"Remise de fournitures aux élèves"</em><br>
+                                            <span class="text-muted small">Vecteur ➔ [0.11, -0.42, 0.87, 0.05, ...]</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <div class="card shadow-sm border-0 h-100">
+                                    <div class="card-header text-white fw-bold fs-5" style="background-color: #2c3e50;"><i class="fas fa-subscript"></i> Étape 2 : Similarité Cosinus</div>
+                                    <div class="card-body bg-light">
+                                        <p>L'algorithme calcule l'angle géométrique entre ces vecteurs mathématiques pour vérifier s'ils "pointent" dans la même direction sémantique.</p>
+                                        <div class="p-3 bg-white border rounded">
+                                            <p class="mb-2"><strong>Résultat du calcul entre ZAP A et ZAP B :</strong></p>
+                                            <div class="progress mb-2" style="height: 25px;">
+                                                <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width: 92%;">Score de similarité : 92%</div>
+                                            </div>
+                                            <p class="small text-muted mb-0">Le score étant supérieur au seuil de 75%, l'IA ordonne le regroupement automatique de ces deux textes sous une seule <strong>Thématique unique</strong> dans l'Onglet 10.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert mt-2 shadow-sm" style="background-color: #fff3cd; border-left: 5px solid #ffc107;">
+                            <h5 class="fw-bold" style="color: #856404;"><i class="fas fa-briefcase"></i> Utilité direct pour le Management des STD</h5>
+                            <ul class="mb-0 text-dark">
+                                <li class="mb-2"><strong>Nettoyage Automatique :</strong> Dans la base KoboToolbox brute, vous avez des centaines de formulations désordonnées. L'IA nettoie et unifie la base de données <em>sans aucune intervention humaine</em>.</li>
+                                <li class="mb-2"><strong>Détection des Fraudes & Doublons :</strong> Couplé à l'onglet 10, le regroupement sémantique permet de repérer si un agent d'une CISCO a saisi 10 fois la "même" activité en changeant légèrement les mots pour simuler plus de travail. Le système détectera que le sens (et le matricule) est identique et lèvera une alerte <span class="badge bg-danger">DOUBLON</span>.</li>
+                            </ul>
+                        </div>
                     </div>
 
                     <!-- ONGLET 10 : CONSOLIDATION KOBO -->
