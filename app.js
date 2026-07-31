@@ -1,24 +1,28 @@
-window.globalSemanticResults = {};
-window.globalSoumissionsResults = {};
-window.globalDBSCANAnomalies = { DREN: [], CISCO: [], ZAP: [] };
-window.semanticChartsRefs = {};
-window.chartRealisationTemporel = null;
-window.chartRealisationClusteringRefs = { dren: null, cisco: null, zap: null };
+var globalSemanticResults = {};
+var globalSoumissionsResults = {};
+var globalDBSCANAnomalies = { DREN: [], CISCO: [], ZAP: [] };
+var semanticChartsRefs = {};
+var chartRealisationTemporel = null;
+var chartRealisationClusteringRefs = { dren: null, cisco: null, zap: null };
 
-window.allData = [];
-window.headerMap = {}; window.questionListMap = {}; window.valueMap = {}; window.externalDict = {};    
-window.currentImageMode = 'url'; window.isExcelLoaded = false;
-window.currentFreqData = null; // Pour le slider DBSCAN
+var allData = [];
+var headerMap = {}; var questionListMap = {}; var valueMap = {}; var externalDict = {};    
+var currentImageMode = 'url'; var isExcelLoaded = false;
+var currentFreqData = null; 
 
-window.charts = {
-    kmeansDren: null, kmeansCisco: null, kmeansZap: null,
-    jenksDren: null, jenksCisco: null, jenksZap: null,
-    dbscanDren: null, dbscanCisco: null, dbscanZap: null
+var charts = {
+    kmeansdren: null, kmeanscisco: null, kmeanszap: null,
+    jenksdren: null, jenkscisco: null, jenkszap: null,
+    dbscandren: null, dbscancisco: null, dbscanzap: null,
+    // Graphiques de l'Onglet 2
+    tab2kmeansdren: null, tab2kmeanscisco: null, tab2kmeanszap: null,
+    tab2jenksdren: null, tab2jenkscisco: null, tab2jenkszap: null,
+    tab2dbscandren: null, tab2dbscancisco: null, tab2dbscanzap: null
 };
 
-window.metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
+const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
-window.baseColsInfo = [
+var baseColsInfo = [
     { key: 'dren', matches: ['dren'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'DREN', xmlName: '' },
     { key: 'cisco', matches: ['cisco'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'CISCO', xmlName: '' },
     { key: 'zap', matches: ['zap'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'ZAP', xmlName: '' },
@@ -74,7 +78,7 @@ window.extractMatricules = function(row) {
     return [...new Set(mats)].filter(Boolean).join(' ; ');
 };
 
-// =================== ALGORITHMES IA (Depuis graphe_kobo.html) ===================
+// =================== MOTEUR IA (K-MEANS, JENKS, DBSCAN) ===================
 
 function performKMeans1D(dataObj, k = 3) {
     let points = Object.keys(dataObj).map(key => ({ label: key, value: dataObj[key] }));
@@ -156,11 +160,12 @@ function performDBSCAN1D(dataObj, eps) {
     return points;
 }
 
-// =================== EXECUTION DES GRAPHIQUES ===================
+// =================== FONCTIONS DE RENDU DES GRAPHIQUES ===================
 
-function executeKMeansAnalysis(dataObj, level) {
+// Rendu pour l'Onglet 2 (tab2-...)
+function executeTab2KMeans(dataObj, level) {
     let clusters = performKMeans1D(dataObj, 3);
-    if (!clusters) { document.getElementById(`kmeans-${level}-table`).innerHTML = '<tr><td colspan="3">Données insuffisantes</td></tr>'; return; }
+    if (!clusters) { document.getElementById(`tab2-kmeans-${level}-table`).innerHTML = '<tr><td colspan="3">Données insuffisantes</td></tr>'; return; }
     
     let datasets = [];
     let colors = ['rgba(220, 53, 69, 0.7)', 'rgba(253, 126, 20, 0.7)', 'rgba(25, 135, 84, 0.7)'];
@@ -180,19 +185,19 @@ function executeKMeansAnalysis(dataObj, level) {
         });
     });
 
-    document.getElementById(`kmeans-${level}-table`).innerHTML = tbodyHtml;
+    document.getElementById(`tab2-kmeans-${level}-table`).innerHTML = tbodyHtml;
     
-    const ctxId = `kmeans-${level}-chart`;
-    if (window.charts[`kmeans${level}`]) window.charts[`kmeans${level}`].destroy();
-    window.charts[`kmeans${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), {
+    const ctxId = `tab2-kmeans-${level}-chart`;
+    if (window.charts[`tab2kmeans${level}`]) window.charts[`tab2kmeans${level}`].destroy();
+    window.charts[`tab2kmeans${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), {
         type: 'scatter', data: { datasets: datasets },
         options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: function(ctx) { return `${ctx.raw.label} : ${ctx.raw.y} soumissions`; } } } }, scales: { x: { display: false }, y: { beginAtZero: true } } }
     });
 }
 
-function executeJenksAnalysis(dataObj, level) {
+function executeTab2Jenks(dataObj, level) {
     let jenksResult = performJenks(dataObj, 3);
-    if (!jenksResult) { document.getElementById(`jenks-${level}-table`).innerHTML = '<tr><td colspan="3">Données insuffisantes</td></tr>'; return; }
+    if (!jenksResult) { document.getElementById(`tab2-jenks-${level}-table`).innerHTML = '<tr><td colspan="3">Données insuffisantes</td></tr>'; return; }
     
     let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = '';
     const catLabels = ['Faible', 'Moyen', 'Élevé'];
@@ -208,60 +213,123 @@ function executeJenksAnalysis(dataObj, level) {
         tbodyHtml += `<tr><td>${item.label}</td><td class="fw-bold">${item.value}</td><td class="${cClass} fw-bold">${catLabels[item.clusterIdx]} (Max: ${item.threshold || '∞'})</td></tr>`;
     });
 
-    document.getElementById(`jenks-${level}-table`).innerHTML = tbodyHtml;
+    document.getElementById(`tab2-jenks-${level}-table`).innerHTML = tbodyHtml;
 
-    const ctxId = `jenks-${level}-chart`;
-    if (window.charts[`jenks${level}`]) window.charts[`jenks${level}`].destroy();
-    window.charts[`jenks${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), {
+    const ctxId = `tab2-jenks-${level}-chart`;
+    if (window.charts[`tab2jenks${level}`]) window.charts[`tab2jenks${level}`].destroy();
+    window.charts[`tab2jenks${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), {
         type: 'bar', data: { labels: labelsHtml, datasets: [{ label: 'Soumissions (Jenks)', data: dsData, backgroundColor: bgColors }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
 }
 
-function executeDBSCANAnalysis(dataObj, level, eps) {
+function executeTab2DBSCAN(dataObj, level, eps) {
     let dbscanResult = performDBSCAN1D(dataObj, eps);
-    if (!dbscanResult) { document.getElementById(`dbscan-${level}-table`).innerHTML = '<tr><td colspan="2">Données insuffisantes</td></tr>'; return; }
+    if (!dbscanResult) { document.getElementById(`tab2-dbscan-${level}-table`).innerHTML = '<tr><td colspan="2">Données insuffisantes</td></tr>'; return; }
     
     let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = '';
     dbscanResult.sort((a, b) => { if(a.isNoise && !b.isNoise) return -1; if(!a.isNoise && b.isNoise) return 1; return b.value - a.value; });
-
-    let upperLvl = level.toUpperCase();
-    window.globalDBSCANAnomalies[upperLvl] = [];
 
     dbscanResult.forEach(item => {
         labelsHtml.push(item.label); dsData.push(item.value);
         if (item.isNoise) {
             bgColors.push('rgba(220, 53, 69, 1)');
             tbodyHtml += `<tr class="table-danger"><td>${item.label} <span class="badge bg-danger ms-2"><i class="fas fa-exclamation-triangle"></i> Isolé</span></td><td class="fw-bold">${item.value}</td></tr>`;
-            window.globalDBSCANAnomalies[upperLvl].push({name: item.label, count: item.value, level: upperLvl});
         } else {
             bgColors.push('rgba(108, 117, 125, 0.4)');
             tbodyHtml += `<tr><td>${item.label}</td><td class="text-muted">${item.value}</td></tr>`;
         }
     });
 
-    document.getElementById(`dbscan-${level}-table`).innerHTML = tbodyHtml;
+    document.getElementById(`tab2-dbscan-${level}-table`).innerHTML = tbodyHtml;
 
-    const ctxId = `dbscan-${level}-chart`;
-    if (window.charts[`dbscan${level}`]) window.charts[`dbscan${level}`].destroy();
-    window.charts[`dbscan${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), {
+    const ctxId = `tab2-dbscan-${level}-chart`;
+    if (window.charts[`tab2dbscan${level}`]) window.charts[`tab2dbscan${level}`].destroy();
+    window.charts[`tab2dbscan${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), {
         type: 'bar', data: { labels: labelsHtml, datasets: [{ label: `Volume (Rouge = Anomalie avec ε=${eps})`, data: dsData, backgroundColor: bgColors }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 }
 
-// Lier le slider Epsilon
+// Rendu pour les Onglets 3, 4, 5 (originaux)
+function executeKMeansAnalysis(dataObj, level) {
+    let clusters = performKMeans1D(dataObj, 3);
+    if (!clusters) { document.getElementById(`kmeans-${level}-table`).innerHTML = '<tr><td colspan="3">Données insuffisantes</td></tr>'; return; }
+    let datasets = []; let colors = ['rgba(220, 53, 69, 0.7)', 'rgba(253, 126, 20, 0.7)', 'rgba(25, 135, 84, 0.7)']; let labels = ['Faible Volume', 'Volume Moyen', 'Haut Volume']; let tbodyHtml = '';
+    clusters.forEach((clusterInfo, i) => {
+        let pts = clusterInfo.data;
+        pts.sort((a,b) => b.value - a.value).forEach(p => { let colorClass = ['text-danger', 'text-warning', 'text-success'][i]; tbodyHtml += `<tr><td>${p.label}</td><td class="fw-bold">${p.value}</td><td class="${colorClass} fw-bold">${labels[i]}</td></tr>`; });
+        datasets.push({ label: `${labels[i]} (Centre: ${Math.round(clusterInfo.centroid)})`, data: pts.map((p, index) => ({ x: index, y: p.value, label: p.label })), backgroundColor: colors[i], pointRadius: 6, pointHoverRadius: 8 });
+    });
+    document.getElementById(`kmeans-${level}-table`).innerHTML = tbodyHtml;
+    const ctxId = `kmeans-${level}-chart`;
+    if (window.charts[`kmeans${level}`]) window.charts[`kmeans${level}`].destroy();
+    window.charts[`kmeans${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), { type: 'scatter', data: { datasets: datasets }, options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: function(ctx) { return `${ctx.raw.label} : ${ctx.raw.y} soumissions`; } } } }, scales: { x: { display: false }, y: { beginAtZero: true } } } });
+}
+
+function executeJenksAnalysis(dataObj, level) {
+    let jenksResult = performJenks(dataObj, 3);
+    if (!jenksResult) { document.getElementById(`jenks-${level}-table`).innerHTML = '<tr><td colspan="3">Données insuffisantes</td></tr>'; return; }
+    let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = ''; const catLabels = ['Faible', 'Moyen', 'Élevé']; const colors = ['rgba(220, 53, 69, 0.8)', 'rgba(253, 126, 20, 0.8)', 'rgba(25, 135, 84, 0.8)'];
+    let flatData = []; jenksResult.forEach((cluster, idx) => { cluster.data.forEach(p => { flatData.push({ ...p, clusterIdx: idx, threshold: cluster.threshold }); }); }); flatData.sort((a,b) => b.value - a.value);
+    flatData.forEach(item => {
+        labelsHtml.push(item.label); dsData.push(item.value); bgColors.push(colors[item.clusterIdx]);
+        let cClass = ['text-danger', 'text-warning', 'text-success'][item.clusterIdx]; tbodyHtml += `<tr><td>${item.label}</td><td class="fw-bold">${item.value}</td><td class="${cClass} fw-bold">${catLabels[item.clusterIdx]} (Max: ${item.threshold || '∞'})</td></tr>`;
+    });
+    document.getElementById(`jenks-${level}-table`).innerHTML = tbodyHtml;
+    const ctxId = `jenks-${level}-chart`;
+    if (window.charts[`jenks${level}`]) window.charts[`jenks${level}`].destroy();
+    window.charts[`jenks${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), { type: 'bar', data: { labels: labelsHtml, datasets: [{ label: 'Soumissions (Jenks)', data: dsData, backgroundColor: bgColors }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+}
+
+function executeDBSCANAnalysis(dataObj, level, eps) {
+    let dbscanResult = performDBSCAN1D(dataObj, eps);
+    if (!dbscanResult) { document.getElementById(`dbscan-${level}-table`).innerHTML = '<tr><td colspan="2">Données insuffisantes</td></tr>'; return; }
+    let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = '';
+    dbscanResult.sort((a, b) => { if(a.isNoise && !b.isNoise) return -1; if(!a.isNoise && b.isNoise) return 1; return b.value - a.value; });
+    let upperLvl = level.toUpperCase(); window.globalDBSCANAnomalies[upperLvl] = [];
+    dbscanResult.forEach(item => {
+        labelsHtml.push(item.label); dsData.push(item.value);
+        if (item.isNoise) { bgColors.push('rgba(220, 53, 69, 1)'); tbodyHtml += `<tr class="table-danger"><td>${item.label} <span class="badge bg-danger ms-2"><i class="fas fa-exclamation-triangle"></i> Isolé</span></td><td class="fw-bold">${item.value}</td></tr>`; window.globalDBSCANAnomalies[upperLvl].push({name: item.label, count: item.value, level: upperLvl}); } 
+        else { bgColors.push('rgba(108, 117, 125, 0.4)'); tbodyHtml += `<tr><td>${item.label}</td><td class="text-muted">${item.value}</td></tr>`; }
+    });
+    document.getElementById(`dbscan-${level}-table`).innerHTML = tbodyHtml;
+    const ctxId = `dbscan-${level}-chart`;
+    if (window.charts[`dbscan${level}`]) window.charts[`dbscan${level}`].destroy();
+    window.charts[`dbscan${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), { type: 'bar', data: { labels: labelsHtml, datasets: [{ label: `Volume (Rouge = Anomalie avec ε=${eps})`, data: dsData, backgroundColor: bgColors }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+}
+
+// Sliders Epsilon synchronisés
 $('#eps-range').on('input', function() {
-    let eps = parseInt($(this).val());
-    $('#eps-value').text(eps);
-    if (window.currentFreqData) {
-        executeDBSCANAnalysis(window.currentFreqData.dren, 'dren', eps);
-        executeDBSCANAnalysis(window.currentFreqData.cisco, 'cisco', eps);
-        executeDBSCANAnalysis(window.currentFreqData.zap, 'zap', eps);
-    }
+    let eps = parseInt($(this).val()); $('#eps-value').text(eps);
+    if (window.currentFreqData) { executeDBSCANAnalysis(window.currentFreqData.dren, 'dren', eps); executeDBSCANAnalysis(window.currentFreqData.cisco, 'cisco', eps); executeDBSCANAnalysis(window.currentFreqData.zap, 'zap', eps); }
+});
+$('#tab2-eps-range').on('input', function() {
+    let eps = parseInt($(this).val()); $('#tab2-eps-value').text(eps);
+    if (window.currentFreqData) { executeTab2DBSCAN(window.currentFreqData.dren, 'dren', eps); executeTab2DBSCAN(window.currentFreqData.cisco, 'cisco', eps); executeTab2DBSCAN(window.currentFreqData.zap, 'zap', eps); }
 });
 
-// =================== EXTRACTION DES DONNEES KOBO ===================
+// =================== LOGIQUE PRINCIPALE D'EXTRACTION KOBO ===================
+
+window.getTranslatedValue = function(val, xmlName) {
+    if (val === null || val === undefined || val === '') return '';
+    let pClean = window.cleanSpaces(val);
+    let xmlNameLower = String(xmlName).toLowerCase();
+    let isCodeLabelColumn = ['dren', 'cisco', 'zap', 'activite'].some(kw => xmlNameLower.includes(kw));
+    
+    // Traduction native "11 : ANALAMANGA" pour la DREN (Garantie de format)
+    if (xmlNameLower.includes('dren')) {
+        const df = {'11':'ANALAMANGA', '12':'VAKINANKARATRA', '13':'ITASY', '14':'BONGOLAVA', '21':'HAUTE MATSIATRA', '22':"AMORON'I MANIA", '23':'VATOVAVY', '24':'FITOVINANY', '25':'ATSIMO ATSINANANA', '26':'IHOROMBE', '31':'ALAOTRA MANGORO', '32':'ATSINANANA', '33':'ANALANJIROFO', '41':'BOENY', '42':'SOFIA', '43':'BETSIBOKA', '44':'MELAKY', '51':'ATSIMO ANDREFANA', '52':'ANDROY', '53':'ANOSY', '54':'MENABE', '71':'DIANA', '72':'SAVA'};
+        let t = df[pClean];
+        return t ? (pClean + ' : ' + t) : pClean;
+    }
+    // Idem pour CISCO / ZAP si chargés depuis externalDict
+    if (window.externalDict && window.externalDict[pClean.toLowerCase()]) {
+        let t = window.externalDict[pClean.toLowerCase()];
+        return isCodeLabelColumn ? pClean + ' : ' + t : t;
+    }
+    return pClean;
+};
 
 window.getKoboValue = function(row, pk, ex = [], mk = []) {
     let ox = null;
@@ -274,16 +342,16 @@ window.getKoboValue = function(row, pk, ex = [], mk = []) {
         }
     }
     if (ox) {
-        for (let key of Object.keys(row)) if (key.endsWith('/' + ox) || key === ox) return window.cleanSpaces(row[key]);
+        for (let key of Object.keys(row)) if (key.endsWith('/' + ox) || key === ox) return window.getTranslatedValue(row[key], ox);
     }
     return '';
 };
 
 function renderAnalysis(data) {
     let totalRows = data.length;
-    let freqDren = data.reduce((acc, row) => { let v = window.cleanSpaces(window.getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous'])); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
-    let freqCisco = data.reduce((acc, row) => { let v = window.cleanSpaces(window.getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous'])); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
-    let freqZap = data.reduce((acc, row) => { let v = window.cleanSpaces(window.getKoboValue(row, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous'])); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
+    let freqDren = data.reduce((acc, row) => { let v = window.getKoboValue(row, ['dren'], ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous']); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
+    let freqCisco = data.reduce((acc, row) => { let v = window.getKoboValue(row, ['cisco'], ['activite', 'produit', 'budget', 'dren', 'zap', 'sous']); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
+    let freqZap = data.reduce((acc, row) => { let v = window.getKoboValue(row, ['zap'], ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous']); let k = v || "Non renseigné"; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
 
     if (totalRows === 0) $('#ai-report-content').html("<p>Aucune donnée.</p>");
     else {
@@ -298,23 +366,44 @@ function renderAnalysis(data) {
     };
     popTab('dren-summary-table', freqDren); popTab('cisco-summary-table', freqCisco); popTab('zap-summary-table', freqZap);
 
-    // Mémoriser pour le slider
     window.currentFreqData = { dren: freqDren, cisco: freqCisco, zap: freqZap };
-    let eps = parseInt($('#eps-range').val()) || 5;
+    let epsTab2 = parseInt($('#tab2-eps-range').val()) || 5;
+    let epsTab5 = parseInt($('#eps-range').val()) || 5;
 
-    // Lancement des algos de graphe_kobo.html
+    // Rendu pour l'Onglet 2
+    executeTab2KMeans(freqDren, 'dren'); executeTab2KMeans(freqCisco, 'cisco'); executeTab2KMeans(freqZap, 'zap');
+    executeTab2Jenks(freqDren, 'dren'); executeTab2Jenks(freqCisco, 'cisco'); executeTab2Jenks(freqZap, 'zap');
+    executeTab2DBSCAN(freqDren, 'dren', epsTab2); executeTab2DBSCAN(freqCisco, 'cisco', epsTab2); executeTab2DBSCAN(freqZap, 'zap', epsTab2);
+
+    // Rendu pour les Onglets 3, 4, 5 (Intacts)
     executeKMeansAnalysis(freqDren, 'dren'); executeKMeansAnalysis(freqCisco, 'cisco'); executeKMeansAnalysis(freqZap, 'zap');
     executeJenksAnalysis(freqDren, 'dren'); executeJenksAnalysis(freqCisco, 'cisco'); executeJenksAnalysis(freqZap, 'zap');
-    executeDBSCANAnalysis(freqDren, 'dren', eps); executeDBSCANAnalysis(freqCisco, 'cisco', eps); executeDBSCANAnalysis(freqZap, 'zap', eps);
-
-    runExpertSystem(freqDren, freqCisco, freqZap);
+    executeDBSCANAnalysis(freqDren, 'dren', epsTab5); executeDBSCANAnalysis(freqCisco, 'cisco', epsTab5); executeDBSCANAnalysis(freqZap, 'zap', epsTab5);
 }
 
-// ... Les autres fonctions (fetchData, renderTable, applyFilters, getExpertJSONData) restent identiques ...
+async function loadDictionaryAutomatically() {
+    try {
+        $('#sync-status').append('<span class="badge bg-info text-dark ms-2" id="dict-status"><i class="fas fa-spinner fa-spin"></i> Dico...</span>');
+        const response = await fetch("dictionnaire.xlsx");
+        if (response.ok) {
+            const data = new Uint8Array(await response.arrayBuffer());
+            const workbook = XLSX.read(data, {type: 'array'});
+            if(workbook.SheetNames.includes('choices')) {
+                XLSX.utils.sheet_to_json(workbook.Sheets['choices']).forEach(row => {
+                    if(row.name !== undefined && row.label !== undefined) window.externalDict[String(row.name).trim().toLowerCase()] = String(row.label).trim();
+                });
+                window.isExcelLoaded = true;
+            }
+        }
+        if (window.isExcelLoaded) $('#dict-status').replaceWith('<span class="badge bg-success ms-2"><i class="fas fa-check-circle"></i> Traduit</span>');
+    } catch (e) { $('#dict-status').replaceWith('<span class="badge bg-danger ms-2"><i class="fas fa-exclamation-triangle"></i> Pas de Dico</span>'); }
+}
+
 async function fetchData() {
     $('#loading-box').show(); $('#error-box').hide();
-    $('#table-body').empty(); $('#table-group-header-row').empty(); $('#table-sub-header-row').empty();
     $('#sync-status').html('<span class="badge bg-warning text-dark sync-badge"><i class="fas fa-spinner fa-spin"></i> Collecte en cours...</span>');
+    await loadDictionaryAutomatically();
+
     try {
         const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime();
         const fetchUrls = [
@@ -322,42 +411,23 @@ async function fetchData() {
             'https://api.allorigins.win/raw?url=' + encodeURIComponent(koboUrl),
             'https://corsproxy.io/?' + encodeURIComponent(koboUrl)
         ];
+
         let response = null; let fetchSuccess = false;
         for (let url of fetchUrls) {
             try { response = await fetch(url, { cache: 'no-store' }); if (response.ok) { fetchSuccess = true; break; } } catch (e) {}
         }
         if (!fetchSuccess) throw new Error("Bloqué par le navigateur (uBlock/CORS). Importez le fichier Excel manuellement.");
+        
         window.allData = (await response.json()).results || [];
         window.allData = window.allData.filter(row => row !== null && typeof row === 'object');
+        
         renderAnalysis(window.allData);
         $('#sync-status').html(`<span class="badge bg-success sync-badge"><i class="fas fa-check-double"></i> Ok : ${window.allData.length} Lignes</span>`);
+
     } catch (error) {
         $('#error-box').html('<strong>Erreur réseau :</strong> ' + error.message).show();
         $('#sync-status').html('<span class="badge bg-danger sync-badge">Échec</span>');
     } finally { $('#loading-box').hide(); }
 }
 
-function runExpertSystem(freqDren, freqCisco, freqZap) {
-    let drensMap = performJenks(freqDren, 3);
-    let expertResults = [];
-    if(drensMap) {
-        drensMap.forEach((cluster, clusterIndex) => {
-            cluster.data.forEach(item => {
-                let status = clusterIndex === 0 ? "CRITIQUE" : (clusterIndex === 1 ? "ATTENTION" : "OPTIMAL");
-                let badgeClass = clusterIndex === 0 ? "bg-danger" : (clusterIndex === 1 ? "bg-warning text-dark" : "bg-success");
-                let rec = clusterIndex === 0 ? "Faible soumission. Relance immédiate requise." : (clusterIndex === 1 ? "Soumission Moyenne. Soutenir avec des Emails !" : "Forte soumission. Féliciter les Responsables !");
-                expertResults.push({ name: item.label, type: 'DREN', count: item.value, status, rec, badgeClass });
-            });
-        });
-    }
-    let tbody = $('#expert-table-body').empty();
-    if (expertResults.length === 0) tbody.append('<tr><td colspan="5" class="text-center text-muted">Aucune donnée à analyser.</td></tr>');
-    else expertResults.forEach(res => tbody.append(`<tr><td><strong>${res.name}</strong></td><td class="text-center"><span class="badge bg-secondary">${res.type}</span></td><td class="text-center"><span class="badge bg-light text-dark border">${res.count}</span></td><td class="text-center"><span class="badge ${res.badgeClass} p-2">${res.status}</span></td><td><em style="font-size: 0.95rem;">${res.rec}</em></td></tr>`));
-}
-
-// Raccourcis pour les exports DBSCAN (pour éviter les undefined)
-window.exportDBSCANToExcel = function() { alert("Export DBSCAN Excel activé."); };
-
-$(document).ready(function() {
-    fetchData();
-});
+$(document).ready(function() { fetchData(); });
