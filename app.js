@@ -1,17 +1,17 @@
-var globalSemanticResults = {};
-var globalSoumissionsResults = {};
-var globalDBSCANAnomalies = { DREN: [], CISCO: [], ZAP: [] };
-var semanticChartsRefs = {};
-var chartRealisationTemporel = null;
-var chartRealisationClusteringRefs = { dren: null, cisco: null, zap: null };
+window.globalSemanticResults = {};
+window.globalSoumissionsResults = {};
+window.globalDBSCANAnomalies = { DREN: [], CISCO: [], ZAP: [] };
+window.semanticChartsRefs = {};
+window.chartRealisationTemporel = null;
+window.chartRealisationClusteringRefs = { dren: null, cisco: null, zap: null };
 
-var allData = [];
-var headerMap = {}; var questionListMap = {}; var valueMap = {}; var externalDict = {};    
-var currentImageMode = 'url'; var isExcelLoaded = false;
-var currentFreqData = null; 
-var currentDateMap = { dren: {}, cisco: {}, zap: {} };
+window.allData = [];
+window.headerMap = {}; window.questionListMap = {}; window.valueMap = {}; window.externalDict = {};    
+window.currentImageMode = 'url'; window.isExcelLoaded = false;
+window.currentFreqData = null; 
+window.currentDateMap = { dren: {}, cisco: {}, zap: {} };
 
-var charts = {
+window.charts = {
     kmeansDren: null, kmeansCisco: null, kmeansZap: null,
     jenksDren: null, jenksCisco: null, jenksZap: null,
     dbscanDren: null, dbscanCisco: null, dbscanZap: null,
@@ -20,9 +20,9 @@ var charts = {
     tab2dbscandren: null, tab2dbscancisco: null, tab2dbscanzap: null
 };
 
-const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
+window.metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
-var baseColsInfo = [
+window.baseColsInfo = [
     { key: 'dren', matches: ['dren'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'DREN', xmlName: '' },
     { key: 'cisco', matches: ['cisco'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'CISCO', xmlName: '' },
     { key: 'zap', matches: ['zap'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'ZAP', xmlName: '' },
@@ -162,7 +162,8 @@ function performDBSCAN1D(dataObj, eps) {
 
 function executeTab2KMeans(dataObj, level, dateMap) {
     let clusters = performKMeans1D(dataObj, 3);
-    if (!clusters) { document.getElementById(`tab2-kmeans-${level}-table`).innerHTML = '<tr><td colspan="4">Données insuffisantes</td></tr>'; return; }
+    const tableEl = document.getElementById(`tab2-kmeans-${level}-table`);
+    if (!clusters) { if(tableEl) tableEl.innerHTML = '<tr><td colspan="4">Données insuffisantes</td></tr>'; return; }
     
     let datasets = [];
     let colors = ['rgba(220, 53, 69, 0.7)', 'rgba(253, 126, 20, 0.7)', 'rgba(25, 135, 84, 0.7)'];
@@ -173,40 +174,43 @@ function executeTab2KMeans(dataObj, level, dateMap) {
         let pts = clusterInfo.data;
         pts.sort((a,b) => b.value - a.value).forEach(p => {
             let colorClass = ['text-danger', 'text-warning', 'text-success'][i];
-            let dates = dateMap[p.label] || 'N/A';
+            let dates = (dateMap && dateMap[p.label]) ? dateMap[p.label] : 'N/A';
             tbodyHtml += `<tr><td class="small text-start">${p.label}</td><td class="fw-bold">${p.value}</td><td class="small text-muted">${dates}</td><td class="${colorClass} fw-bold small">${labels[i]}</td></tr>`;
         });
         datasets.push({
             label: `${labels[i]} (Centre: ${Math.round(clusterInfo.centroid)})`,
-            data: pts.map((p, index) => ({ x: index, y: p.value, label: p.label, dates: dateMap[p.label] || 'N/A' })),
+            data: pts.map((p, index) => ({ x: index, y: p.value, label: p.label, dates: (dateMap && dateMap[p.label]) ? dateMap[p.label] : 'N/A' })),
             backgroundColor: colors[i], pointRadius: 6, pointHoverRadius: 8
         });
     });
 
-    document.getElementById(`tab2-kmeans-${level}-table`).innerHTML = tbodyHtml;
+    if(tableEl) tableEl.innerHTML = tbodyHtml;
     
-    const ctxId = `tab2-kmeans-${level}-chart`;
-    if (window.charts[`tab2kmeans${level}`]) window.charts[`tab2kmeans${level}`].destroy();
-    window.charts[`tab2kmeans${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), {
-        type: 'scatter', data: { datasets: datasets },
-        options: { 
-            responsive: true, maintainAspectRatio: false, 
-            plugins: { tooltip: { callbacks: { label: function(ctx) { return `${ctx.raw.label} : ${ctx.raw.y} soumissions (Période : ${ctx.raw.dates})`; } } } }, 
-            scales: { x: { display: false }, y: { beginAtZero: true } } 
-        }
-    });
+    const ctxEl = document.getElementById(`tab2-kmeans-${level}-chart`);
+    if(ctxEl) {
+        if (window.charts[`tab2kmeans${level}`]) window.charts[`tab2kmeans${level}`].destroy();
+        window.charts[`tab2kmeans${level}`] = new Chart(ctxEl.getContext('2d'), {
+            type: 'scatter', data: { datasets: datasets },
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                plugins: { tooltip: { callbacks: { label: function(ctx) { return `${ctx.raw.label} : ${ctx.raw.y} soumissions (Période : ${ctx.raw.dates})`; } } } }, 
+                scales: { x: { display: false }, y: { beginAtZero: true } } 
+            }
+        });
+    }
 }
 
 function executeTab2Jenks(dataObj, level, dateMap) {
     let jenksResult = performJenks(dataObj, 3);
-    if (!jenksResult) { document.getElementById(`tab2-jenks-${level}-table`).innerHTML = '<tr><td colspan="4">Données insuffisantes</td></tr>'; return; }
+    const tableEl = document.getElementById(`tab2-jenks-${level}-table`);
+    if (!jenksResult) { if(tableEl) tableEl.innerHTML = '<tr><td colspan="4">Données insuffisantes</td></tr>'; return; }
     
     let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = '';
     const catLabels = ['Faible', 'Moyen', 'Élevé'];
     const colors = ['rgba(220, 53, 69, 0.8)', 'rgba(253, 126, 20, 0.8)', 'rgba(25, 135, 84, 0.8)'];
     
     let flatData = [];
-    jenksResult.forEach((cluster, idx) => { cluster.data.forEach(p => { flatData.push({ ...p, clusterIdx: idx, threshold: cluster.threshold, dates: dateMap[p.label] || 'N/A' }); }); });
+    jenksResult.forEach((cluster, idx) => { cluster.data.forEach(p => { flatData.push({ ...p, clusterIdx: idx, threshold: cluster.threshold, dates: (dateMap && dateMap[p.label]) ? dateMap[p.label] : 'N/A' }); }); });
     flatData.sort((a,b) => b.value - a.value);
 
     flatData.forEach(item => {
@@ -215,28 +219,31 @@ function executeTab2Jenks(dataObj, level, dateMap) {
         tbodyHtml += `<tr><td class="small text-start">${item.label}</td><td class="fw-bold">${item.value}</td><td class="small text-muted">${item.dates}</td><td class="${cClass} fw-bold small">${catLabels[item.clusterIdx]}</td></tr>`;
     });
 
-    document.getElementById(`tab2-jenks-${level}-table`).innerHTML = tbodyHtml;
+    if(tableEl) tableEl.innerHTML = tbodyHtml;
 
-    const ctxId = `tab2-jenks-${level}-chart`;
-    if (window.charts[`tab2jenks${level}`]) window.charts[`tab2jenks${level}`].destroy();
-    window.charts[`tab2jenks${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), {
-        type: 'bar', data: { labels: labelsHtml, datasets: [{ label: 'Soumissions', data: dsData.map(d=>d.value), backgroundColor: bgColors, rawData: dsData }] },
-        options: { 
-            responsive: true, maintainAspectRatio: false, 
-            plugins: { tooltip: { callbacks: { label: function(ctx) { let item = ctx.dataset.rawData[ctx.dataIndex]; return `${item.value} soumissions (Période : ${item.dates})`; } } }, legend: { display: false } } 
-        }
-    });
+    const ctxEl = document.getElementById(`tab2-jenks-${level}-chart`);
+    if(ctxEl) {
+        if (window.charts[`tab2jenks${level}`]) window.charts[`tab2jenks${level}`].destroy();
+        window.charts[`tab2jenks${level}`] = new Chart(ctxEl.getContext('2d'), {
+            type: 'bar', data: { labels: labelsHtml, datasets: [{ label: 'Soumissions', data: dsData.map(d=>d.value), backgroundColor: bgColors, rawData: dsData }] },
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                plugins: { tooltip: { callbacks: { label: function(ctx) { let item = ctx.dataset.rawData[ctx.dataIndex]; return `${item.value} soumissions (Période : ${item.dates})`; } } }, legend: { display: false } } 
+            }
+        });
+    }
 }
 
 function executeTab2DBSCAN(dataObj, level, eps, dateMap) {
     let dbscanResult = performDBSCAN1D(dataObj, eps);
-    if (!dbscanResult) { document.getElementById(`tab2-dbscan-${level}-table`).innerHTML = '<tr><td colspan="4">Données insuffisantes</td></tr>'; return; }
+    const tableEl = document.getElementById(`tab2-dbscan-${level}-table`);
+    if (!dbscanResult) { if(tableEl) tableEl.innerHTML = '<tr><td colspan="4">Données insuffisantes</td></tr>'; return; }
     
     let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = '';
     dbscanResult.sort((a, b) => { if(a.isNoise && !b.isNoise) return -1; if(!a.isNoise && b.isNoise) return 1; return b.value - a.value; });
 
     dbscanResult.forEach(item => {
-        item.dates = dateMap[item.label] || 'N/A';
+        item.dates = (dateMap && dateMap[item.label]) ? dateMap[item.label] : 'N/A';
         labelsHtml.push(item.label); dsData.push(item);
         if (item.isNoise) {
             bgColors.push('rgba(220, 53, 69, 1)');
@@ -247,57 +254,63 @@ function executeTab2DBSCAN(dataObj, level, eps, dateMap) {
         }
     });
 
-    document.getElementById(`tab2-dbscan-${level}-table`).innerHTML = tbodyHtml;
+    if(tableEl) tableEl.innerHTML = tbodyHtml;
 
-    const ctxId = `tab2-dbscan-${level}-chart`;
-    if (window.charts[`tab2dbscan${level}`]) window.charts[`tab2dbscan${level}`].destroy();
-    window.charts[`tab2dbscan${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), {
-        type: 'bar', data: { labels: labelsHtml, datasets: [{ label: `Volume (Rouge = Anomalie avec ε=${eps})`, data: dsData.map(d=>d.value), backgroundColor: bgColors, rawData: dsData }] },
-        options: { 
-            responsive: true, maintainAspectRatio: false, 
-            plugins: { tooltip: { callbacks: { label: function(ctx) { let item = ctx.dataset.rawData[ctx.dataIndex]; return `${item.value} soumissions (Période : ${item.dates})`; } } }, legend: { position: 'bottom' } } 
-        }
-    });
+    const ctxEl = document.getElementById(`tab2-dbscan-${level}-chart`);
+    if(ctxEl) {
+        if (window.charts[`tab2dbscan${level}`]) window.charts[`tab2dbscan${level}`].destroy();
+        window.charts[`tab2dbscan${level}`] = new Chart(ctxEl.getContext('2d'), {
+            type: 'bar', data: { labels: labelsHtml, datasets: [{ label: `Volume (Rouge = Anomalie avec ε=${eps})`, data: dsData.map(d=>d.value), backgroundColor: bgColors, rawData: dsData }] },
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                plugins: { tooltip: { callbacks: { label: function(ctx) { let item = ctx.dataset.rawData[ctx.dataIndex]; return `${item.value} soumissions (Période : ${item.dates})`; } } }, legend: { position: 'bottom' } } 
+            }
+        });
+    }
 }
 
+// =================== FONCTIONS DE RENDU ORIGINALES (ONGLETS 3, 4, 5) ===================
 
-
-
-
-// =================== FONCTIONS DE RENDU ORIGINALE (ONGLETS 3, 4, 5) ===================
 function executeKMeansAnalysis(dataObj, level) {
     let clusters = performKMeans1D(dataObj, 3);
-    if (!clusters) { document.getElementById(`kmeans-${level}-table`).innerHTML = '<tr><td colspan="3">Données insuffisantes</td></tr>'; return; }
+    const tableEl = document.getElementById(`kmeans-${level}-table`);
+    if (!clusters) { if(tableEl) tableEl.innerHTML = '<tr><td colspan="3">Données insuffisantes</td></tr>'; return; }
     let datasets = []; let colors = ['rgba(220, 53, 69, 0.7)', 'rgba(253, 126, 20, 0.7)', 'rgba(25, 135, 84, 0.7)']; let labels = ['Faible Volume', 'Volume Moyen', 'Haut Volume']; let tbodyHtml = '';
     clusters.forEach((clusterInfo, i) => {
         let pts = clusterInfo.data;
         pts.sort((a,b) => b.value - a.value).forEach(p => { let colorClass = ['text-danger', 'text-warning', 'text-success'][i]; tbodyHtml += `<tr><td>${p.label}</td><td class="fw-bold">${p.value}</td><td class="${colorClass} fw-bold">${labels[i]}</td></tr>`; });
         datasets.push({ label: `${labels[i]} (Centre: ${Math.round(clusterInfo.centroid)})`, data: pts.map((p, index) => ({ x: index, y: p.value, label: p.label })), backgroundColor: colors[i], pointRadius: 6, pointHoverRadius: 8 });
     });
-    document.getElementById(`kmeans-${level}-table`).innerHTML = tbodyHtml;
-    const ctxId = `kmeans-${level}-chart`;
-    if (window.charts[`kmeans${level}`]) window.charts[`kmeans${level}`].destroy();
-    window.charts[`kmeans${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), { type: 'scatter', data: { datasets: datasets }, options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: function(ctx) { return `${ctx.raw.label} : ${ctx.raw.y} soumissions`; } } } }, scales: { x: { display: false }, y: { beginAtZero: true } } } });
+    if(tableEl) tableEl.innerHTML = tbodyHtml;
+    const ctxEl = document.getElementById(`kmeans-${level}-chart`);
+    if(ctxEl) {
+        if (window.charts[`kmeans${level}`]) window.charts[`kmeans${level}`].destroy();
+        window.charts[`kmeans${level}`] = new Chart(ctxEl.getContext('2d'), { type: 'scatter', data: { datasets: datasets }, options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: function(ctx) { return `${ctx.raw.label} : ${ctx.raw.y} soumissions`; } } } }, scales: { x: { display: false }, y: { beginAtZero: true } } } });
+    }
 }
 
 function executeJenksAnalysis(dataObj, level) {
     let jenksResult = performJenks(dataObj, 3);
-    if (!jenksResult) { document.getElementById(`jenks-${level}-table`).innerHTML = '<tr><td colspan="3">Données insuffisantes</td></tr>'; return; }
+    const tableEl = document.getElementById(`jenks-${level}-table`);
+    if (!jenksResult) { if(tableEl) tableEl.innerHTML = '<tr><td colspan="3">Données insuffisantes</td></tr>'; return; }
     let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = ''; const catLabels = ['Faible', 'Moyen', 'Élevé']; const colors = ['rgba(220, 53, 69, 0.8)', 'rgba(253, 126, 20, 0.8)', 'rgba(25, 135, 84, 0.8)'];
     let flatData = []; jenksResult.forEach((cluster, idx) => { cluster.data.forEach(p => { flatData.push({ ...p, clusterIdx: idx, threshold: cluster.threshold }); }); }); flatData.sort((a,b) => b.value - a.value);
     flatData.forEach(item => {
         labelsHtml.push(item.label); dsData.push(item.value); bgColors.push(colors[item.clusterIdx]);
         let cClass = ['text-danger', 'text-warning', 'text-success'][item.clusterIdx]; tbodyHtml += `<tr><td>${item.label}</td><td class="fw-bold">${item.value}</td><td class="${cClass} fw-bold">${catLabels[item.clusterIdx]} (Max: ${item.threshold || '∞'})</td></tr>`;
     });
-    document.getElementById(`jenks-${level}-table`).innerHTML = tbodyHtml;
-    const ctxId = `jenks-${level}-chart`;
-    if (window.charts[`jenks${level}`]) window.charts[`jenks${level}`].destroy();
-    window.charts[`jenks${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), { type: 'bar', data: { labels: labelsHtml, datasets: [{ label: 'Soumissions (Jenks)', data: dsData, backgroundColor: bgColors }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+    if(tableEl) tableEl.innerHTML = tbodyHtml;
+    const ctxEl = document.getElementById(`jenks-${level}-chart`);
+    if(ctxEl) {
+        if (window.charts[`jenks${level}`]) window.charts[`jenks${level}`].destroy();
+        window.charts[`jenks${level}`] = new Chart(ctxEl.getContext('2d'), { type: 'bar', data: { labels: labelsHtml, datasets: [{ label: 'Soumissions (Jenks)', data: dsData, backgroundColor: bgColors }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+    }
 }
 
 function executeDBSCANAnalysis(dataObj, level, eps) {
     let dbscanResult = performDBSCAN1D(dataObj, eps);
-    if (!dbscanResult) { document.getElementById(`dbscan-${level}-table`).innerHTML = '<tr><td colspan="2">Données insuffisantes</td></tr>'; return; }
+    const tableEl = document.getElementById(`dbscan-${level}-table`);
+    if (!dbscanResult) { if(tableEl) tableEl.innerHTML = '<tr><td colspan="2">Données insuffisantes</td></tr>'; return; }
     let labelsHtml = [], dsData = [], bgColors = [], tbodyHtml = '';
     dbscanResult.sort((a, b) => { if(a.isNoise && !b.isNoise) return -1; if(!a.isNoise && b.isNoise) return 1; return b.value - a.value; });
     let upperLvl = level.toUpperCase(); window.globalDBSCANAnomalies[upperLvl] = [];
@@ -306,10 +319,12 @@ function executeDBSCANAnalysis(dataObj, level, eps) {
         if (item.isNoise) { bgColors.push('rgba(220, 53, 69, 1)'); tbodyHtml += `<tr class="table-danger"><td>${item.label} <span class="badge bg-danger ms-2"><i class="fas fa-exclamation-triangle"></i> Isolé</span></td><td class="fw-bold">${item.value}</td></tr>`; window.globalDBSCANAnomalies[upperLvl].push({name: item.label, count: item.value, level: upperLvl}); } 
         else { bgColors.push('rgba(108, 117, 125, 0.4)'); tbodyHtml += `<tr><td>${item.label}</td><td class="text-muted">${item.value}</td></tr>`; }
     });
-    document.getElementById(`dbscan-${level}-table`).innerHTML = tbodyHtml;
-    const ctxId = `dbscan-${level}-chart`;
-    if (window.charts[`dbscan${level}`]) window.charts[`dbscan${level}`].destroy();
-    window.charts[`dbscan${level}`] = new Chart(document.getElementById(ctxId).getContext('2d'), { type: 'bar', data: { labels: labelsHtml, datasets: [{ label: `Volume (Rouge = Anomalie avec ε=${eps})`, data: dsData, backgroundColor: bgColors }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+    if(tableEl) tableEl.innerHTML = tbodyHtml;
+    const ctxEl = document.getElementById(`dbscan-${level}-chart`);
+    if(ctxEl) {
+        if (window.charts[`dbscan${level}`]) window.charts[`dbscan${level}`].destroy();
+        window.charts[`dbscan${level}`] = new Chart(ctxEl.getContext('2d'), { type: 'bar', data: { labels: labelsHtml, datasets: [{ label: `Volume (Rouge = Anomalie avec ε=${eps})`, data: dsData, backgroundColor: bgColors }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+    }
 }
 
 // Sliders Epsilon synchronisés
@@ -322,17 +337,20 @@ $('#tab2-eps-range').on('input', function() {
     if (window.currentFreqData) { executeTab2DBSCAN(window.currentFreqData.dren, 'dren', eps, window.currentDateMap.dren); executeTab2DBSCAN(window.currentFreqData.cisco, 'cisco', eps, window.currentDateMap.cisco); executeTab2DBSCAN(window.currentFreqData.zap, 'zap', eps, window.currentDateMap.zap); }
 });
 
-// =================== EXTRACTION DES DONNEES KOBO ===================
+// =================== LOGIQUE PRINCIPALE D'EXTRACTION ===================
 
 window.getTranslatedValue = function(val, xmlName) {
     if (val === null || val === undefined || val === '') return '';
     let pClean = window.cleanSpaces(val);
     let xmlNameLower = String(xmlName).toLowerCase();
     let isCodeLabelColumn = ['dren', 'cisco', 'zap', 'activite'].some(kw => xmlNameLower.includes(kw));
+    
+    // Traduction native "11 : ANALAMANGA" pour la DREN
     if (xmlNameLower.includes('dren')) {
         const df = {'11':'ANALAMANGA', '12':'VAKINANKARATRA', '13':'ITASY', '14':'BONGOLAVA', '21':'HAUTE MATSIATRA', '22':"AMORON'I MANIA", '23':'VATOVAVY', '24':'FITOVINANY', '25':'ATSIMO ATSINANANA', '26':'IHOROMBE', '31':'ALAOTRA MANGORO', '32':'ATSINANANA', '33':'ANALANJIROFO', '41':'BOENY', '42':'SOFIA', '43':'BETSIBOKA', '44':'MELAKY', '51':'ATSIMO ANDREFANA', '52':'ANDROY', '53':'ANOSY', '54':'MENABE', '71':'DIANA', '72':'SAVA'};
         let t = df[pClean]; return t ? (pClean + ' : ' + t) : pClean;
     }
+    // Traduction via Dico externe
     if (window.externalDict && window.externalDict[pClean.toLowerCase()]) {
         let t = window.externalDict[pClean.toLowerCase()]; return isCodeLabelColumn ? pClean + ' : ' + t : t;
     }
@@ -504,8 +522,9 @@ async function fetchData() {
         window.allData = (await response.json()).results || [];
         window.allData = window.allData.filter(row => row !== null && typeof row === 'object');
         
-        // Logique pour l'Onglet 1 (Simplifié ici, conservé dans la vue)
+        // --- LOGIQUE ONGLET 1 (Générée dynamiquement) ---
         $('#record-count').text(window.allData.length);
+        renderTable(window.allData); // <-- Appel de la fonction de l'onglet 1 (A AJOUTER A LA SUITE)
         
         renderAnalysis(window.allData);
         $('#sync-status').html(`<span class="badge bg-success sync-badge"><i class="fas fa-check-double"></i> Ok : ${window.allData.length} Lignes</span>`);
@@ -515,5 +534,3 @@ async function fetchData() {
         $('#sync-status').html('<span class="badge bg-danger sync-badge">Échec</span>');
     } finally { $('#loading-box').hide(); }
 }
-
-$(document).ready(function() { fetchData(); });
