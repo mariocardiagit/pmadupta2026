@@ -497,7 +497,9 @@ async function fetchData() {
     await loadDictionaryAutomatically();
 
     try {
-			const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime()), { cache: 'no-store' });		
+//			const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime()), { cache: 'no-store' });		
+// On attaque directement le serveur Kobo sans passer par allorigins ou corsproxy
+const response = await fetch('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime(), { cache: 'no-store' });		
 //        const response = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime()), { cache: 'no-store' });
         if (!response.ok) throw new Error('Erreur réseau');
         
