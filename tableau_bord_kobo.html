@@ -230,14 +230,37 @@
                                 
                                 <div class="col-md-6 mt-3">
                                     <label class="filter-label text-primary"><i class="fas fa-calendar-alt"></i> Date de début (Soumission)</label>
-                                    <input type="date" id="filter-date-debut" class="form-control filter-input">
+                                    <input type="date" id="filter-date-debut" class="form-control filter-input border-primary">
                                 </div>
                                 <div class="col-md-6 mt-3">
                                     <label class="filter-label text-primary"><i class="fas fa-calendar-check"></i> Date de fin (Soumission)</label>
-                                    <input type="date" id="filter-date-fin" class="form-control filter-input">
+                                    <input type="date" id="filter-date-fin" class="form-control filter-input border-primary">
                                 </div>
 
-                                <div class="col-md-12 mt-3 d-flex flex-wrap gap-3">
+                                <!-- GROUPE : REALISATIONS DES SOUS ACTIVITES (VERT CLAIR) -->
+                                <div class="col-md-12 mt-4 border-top pt-3">
+                                    <label class="filter-label mb-3" style="color: #27ae60; font-size: 1rem;"><i class="fas fa-chart-line"></i> REALISATIONS des SOUS ACTIVITES</label>
+                                    <div class="row g-3 p-3 rounded shadow-sm" style="background-color: #eafaf1; border: 1px solid #2ecc71;">
+                                        <div class="col-md-3">
+                                            <label class="filter-label text-success"><i class="fas fa-calendar-alt"></i> Date de début (Suivi de la Réalisation)</label>
+                                            <input type="date" id="filter-date-debut-realisation" class="form-control filter-input border-success bg-white">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="filter-label text-success"><i class="fas fa-calendar-check"></i> Date de fin (Suivi de la Réalisation)</label>
+                                            <input type="date" id="filter-date-fin-realisation" class="form-control filter-input border-success bg-white">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="filter-label text-success"><i class="fas fa-arrow-down"></i> Valeur MINIMUM (Réalisation)</label>
+                                            <input type="number" id="filter-val-min-realisation" class="form-control filter-input border-success bg-white" placeholder="Ex: 5">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="filter-label text-success"><i class="fas fa-arrow-up"></i> Valeur MAXIMUM (Réalisation)</label>
+                                            <input type="number" id="filter-val-max-realisation" class="form-control filter-input border-success bg-white" placeholder="Ex: 100">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12 mt-4 d-flex flex-wrap gap-3 border-top pt-3">
                                     <div class="form-check form-switch border p-2 rounded bg-white shadow-sm d-inline-block">
                                         <input class="form-check-input filter-input" type="checkbox" id="filter-only-doublons" style="cursor: pointer; transform: scale(1.2); margin-top: 6px;">
                                         <label class="form-check-label text-danger fw-bold ms-2" for="filter-only-doublons" style="cursor: pointer;">
@@ -252,9 +275,9 @@
                                     </div>
                                 </div>
 
-                                <!-- NOUVEAU BLOC : 15 CASES A COCHER -->
+                                <!-- BLOC : 15 CASES A COCHER DE PRESENCE -->
                                 <div class="col-md-12 mt-4 border-top pt-3">
-                                    <label class="filter-label text-primary mb-3"><i class="fas fa-check-square"></i> Champs de recherche par présence (Cochez pour afficher uniquement si la donnée existe)</label>
+                                    <label class="filter-label text-primary mb-3"><i class="fas fa-check-square"></i> Filtres par présence (Cochez pour afficher uniquement les lignes où la donnée existe)</label>
                                     <div class="row g-2">
                                         <div class="col-lg-2 col-md-4">
                                             <div class="form-check"><input class="form-check-input filter-input" type="checkbox" id="chk-dren"><label class="form-check-label fw-bold text-secondary" style="font-size: 0.75rem;" for="chk-dren">Afficher Toutes Les DREN</label></div>
@@ -325,8 +348,19 @@
                             </table>
                         </div>
                     </div>
-
-                    <!-- ONGLET 2 : ANALYSE & IA -->
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+<!-- ONGLET 2 : ANALYSE & IA -->
                     <div class="tab-pane fade" id="analyse" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                             <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
@@ -362,16 +396,8 @@
                             </div>
                         </div>
                     </div>
-					
-					
-					
-					
-					
-					
-					
-					
-					
-<!-- ONGLET 3 : K-MEANS -->
+
+                    <!-- ONGLET 3 : K-MEANS -->
                     <div class="tab-pane fade" id="clustering" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4 class="text-primary m-0"><i class="fas fa-project-diagram"></i> Algorithme 1 : K-Means (Centre de Gravité)</h4>
@@ -946,7 +972,7 @@
                                             <th>Date de Soumission</th>
                                             <th>Niveau</th>
                                             <th>Entité Responsable</th>
-                                            <th>Activité / Produit concerné</th>
+                                            <th>Sous Activité concernée</th>
                                             <th class="bg-dark text-white"><i class="fas fa-hashtag"></i> Valeur de la Réalisation</th>
                                         </tr>
                                     </thead>
@@ -1525,6 +1551,52 @@
 
             let exKeys = Array.from(exSet), mtKeys = Array.from(mtSet);
 
+            // ====== TRI PERSONNALISÉ DES COLONNES ======
+            exKeys.sort((a, b) => {
+                let nameA = a.split('/').pop().toLowerCase();
+                let nameB = b.split('/').pop().toLowerCase();
+
+                let rank = (name) => {
+                    // 1. Date de suivi et Réalisations (Côte à côte au début de la matrice complète)
+                    if (name.includes('date_enq') || name.includes('date de suivi')) return -10;
+                    if (name.includes('realisation') || name.includes('quantit') || name.includes('effectif') || name.includes('montant')) return -9;
+                    
+                    // 3. Sous activité finale et Sa part X (À la toute fin)
+                    if (name.includes('sous_activite_finale') || name === 'sous_activite_finale') return 100;
+                    if (name.startsWith('sa_part')) return 101;
+                    
+                    // 2. Toutes les autres colonnes normales au milieu
+                    return 0; 
+                };
+
+                let rA = rank(nameA), rB = rank(nameB);
+
+                // Tri numérique pour que "Sa part 1" soit avant "Sa part 17"
+                if (rA === 101 && rB === 101) {
+                    let numA = parseInt(nameA.replace(/\D/g, '')) || 0;
+                    let numB = parseInt(nameB.replace(/\D/g, '')) || 0;
+                    return numA - numB;
+                }
+
+                if (rA !== rB) return rA - rB;
+                return nameA.localeCompare(nameB);
+            });
+
+            mtKeys.sort((a, b) => {
+                let nameA = a.split('/').pop().toLowerCase();
+                let nameB = b.split('/').pop().toLowerCase();
+                
+                let rank = (name) => {
+                    if (name === '_id' || name === 'id') return 1;
+                    if (name === '_uuid' || name === 'uuid') return 2;
+                    return 3;
+                };
+                let rA = rank(nameA), rB = rank(nameB);
+                if (rA !== rB) return rA - rB;
+                return nameA.localeCompare(nameB);
+            });
+            // ================================================================
+
             // 1) PRÉ-CALCUL DES DOUBLONS AVEC SIGNATURE STRICTE ET DÉCOUPAGE DES MATRICULES
             let signatureMap = {};
             data.forEach((r, idx) => {
@@ -1568,7 +1640,17 @@
             sHeaderTr.append(`<th class="sub-header-survey" style="background-color: #e67e22 !important; width: 100px;">Éditer (Kobo)</th>`);
             
             baseColsInfo.forEach(col => sHeaderTr.append(`<th class="sub-header-survey">${col.label}</th>`));
-            exKeys.forEach(key => sHeaderTr.append(`<th class="sub-header-survey">${getTranslatedHeader(key.split('/').pop())}</th>`));
+            
+            // ===== APPLICATION DU DESIGN SUR LES EN-TETES CIBLES =====
+            exKeys.forEach(key => {
+                let xmlName = key.split('/').pop();
+                let translatedHeader = getTranslatedHeader(xmlName);
+                let isHL = translatedHeader.toLowerCase().includes('date de suivi') || translatedHeader.toLowerCase().includes('réalisation') || translatedHeader.toLowerCase().includes('realisation') || xmlName.toLowerCase().includes('date_enq');
+                
+                let style = isHL ? 'background-color: #2ecc71 !important; color: white !important; font-size: 1.05rem; border: 2px solid #27ae60 !important; font-weight: 800;' : '';
+                sHeaderTr.append(`<th class="sub-header-survey" style="${style}">${translatedHeader}</th>`);
+            });
+            
             mtKeys.forEach(key => sHeaderTr.append(`<th class="sub-header-meta">${getTranslatedHeader(key.split('/').pop())}</th>`));
 
             function formatExtra(val, rowData, xmlName, isRaw) {
@@ -1640,9 +1722,30 @@
                     tr.append($('<td></td>').attr('data-csv', val).text(val)); sData[col.key] = cleanSpaces(String(val)).toLowerCase();
                     sData.subDateObj = row['_submission_time'] ? new Date(row['_submission_time']) : null;
                 });
+                
                 exKeys.concat(mtKeys).forEach(key => {
                     let xmlName = key.split('/').pop();
-                    tr.append($('<td></td>').attr('data-csv', formatExtra(row[key], row, xmlName, true)).html(formatExtra(row[key], row, xmlName, false)));
+                    let translatedHeader = getTranslatedHeader(xmlName);
+                    
+                    // ===== APPLICATION DU DESIGN SUR LES CELLULES CIBLES =====
+                    let isHL = translatedHeader.toLowerCase().includes('date de suivi') || translatedHeader.toLowerCase().includes('réalisation') || translatedHeader.toLowerCase().includes('realisation') || xmlName.toLowerCase().includes('date_enq');
+                    let style = isHL ? 'background-color: #eafaf1 !important; color: #1e8449 !important; font-weight: 900; font-size: 1.1rem; border-left: 2px solid #2ecc71 !important; border-right: 2px solid #2ecc71 !important;' : '';
+
+                    let td = $(`<td style="${style}"></td>`).attr('data-csv', formatExtra(row[key], row, xmlName, true)).html(formatExtra(row[key], row, xmlName, false));
+                    tr.append(td);
+                    
+                    // Ajout conditionnel de la date de réalisation pour le filtre si existante
+                    let xmlNameLow = xmlName.toLowerCase();
+                    if(xmlNameLow.includes('date') && (xmlNameLow.includes('realisation') || xmlNameLow.includes('enq'))) {
+                        let parsedD = new Date(row[key]);
+                        if(!isNaN(parsedD)) sData.realDateObj = parsedD;
+                    }
+                    
+                    // Ajout conditionnel de la valeur quantitative de réalisation pour le filtre
+                    if(xmlNameLow.includes('realisation') || xmlNameLow.includes('quantit') || xmlNameLow.includes('effectif') || xmlNameLow.includes('montant')) {
+                        let parsedVal = parseFloat(row[key]);
+                        if(!isNaN(parsedVal)) sData.realValue = parsedVal;
+                    }
                 });
                 tr.data('search', sData); tbody.append(tr);
             });
@@ -1872,6 +1975,11 @@
                 dateDebut: $('#filter-date-debut').val(), dateFin: $('#filter-date-fin').val(),
                 onlyDoublons: $('#filter-only-doublons').is(':checked'),
                 onlyAnomalies: $('#filter-only-anomalies').is(':checked'),
+                
+                // NOUVEAUX FILTRES REALISATIONS
+                dateDebutReal: $('#filter-date-debut-realisation').val(), dateFinReal: $('#filter-date-fin-realisation').val(),
+                valMinReal: $('#filter-val-min-realisation').val(), valMaxReal: $('#filter-val-max-realisation').val(),
+
                 // === NOUVELLES CASES A COCHER DE PRESENCE ===
                 chkDren: $('#chk-dren').is(':checked'), chkCisco: $('#chk-cisco').is(':checked'), chkZap: $('#chk-zap').is(':checked'),
                 chkActDren: $('#chk-act-dren').is(':checked'), chkActCisco: $('#chk-act-cisco').is(':checked'), chkActZap: $('#chk-act-zap').is(':checked'),
@@ -1882,6 +1990,9 @@
 
             let dStart = f.dateDebut ? new Date(f.dateDebut) : null; if (dStart) dStart.setHours(0, 0, 0, 0);
             let dEnd = f.dateFin ? new Date(f.dateFin) : null; if (dEnd) dEnd.setHours(23, 59, 59, 999);
+            
+            let dStartReal = f.dateDebutReal ? new Date(f.dateDebutReal) : null; if (dStartReal) dStartReal.setHours(0, 0, 0, 0);
+            let dEndReal = f.dateFinReal ? new Date(f.dateFinReal) : null; if (dEndReal) dEndReal.setHours(23, 59, 59, 999);
 
             let hasVal = (val) => val && val !== 'non renseigné' && val !== '';
 
@@ -1899,6 +2010,22 @@
                     if (dStart && s.subDateObj < dStart) dateMatch = false;
                     if (dEnd && s.subDateObj > dEnd) dateMatch = false;
                 } else if (dStart || dEnd) dateMatch = false;
+
+                // Application du filtre de date de réalisation
+                let dateRealMatch = true;
+                if (s.realDateObj) {
+                    if (dStartReal && s.realDateObj < dStartReal) dateRealMatch = false;
+                    if (dEndReal && s.realDateObj > dEndReal) dateRealMatch = false;
+                } else if (dStartReal || dEndReal) dateRealMatch = false;
+                
+                // Application du filtre de valeur de réalisation
+                let valRealMatch = true;
+                if (s.realValue !== undefined) {
+                    if (f.valMinReal !== "" && s.realValue < parseFloat(f.valMinReal)) valRealMatch = false;
+                    if (f.valMaxReal !== "" && s.realValue > parseFloat(f.valMaxReal)) valRealMatch = false;
+                } else if (f.valMinReal !== "" || f.valMaxReal !== "") {
+                    valRealMatch = false; // Si on filtre par valeur et que la ligne n'a pas de valeur de réalisation, on la masque
+                }
 
                 let doublonMatch = true; if (f.onlyDoublons && !s.isDoublon) doublonMatch = false;
                 let anomalyMatch = true; if (f.onlyAnomalies && !s.isAnomaly) anomalyMatch = false;
@@ -1925,7 +2052,7 @@
                 if (f.chkSprodCisco && !hasVal(s.sousProduitCisco)) chkMatch = false;
                 if (f.chkSprodZap && !hasVal(s.sousProduitZap)) chkMatch = false;
 
-                if (mD && mC && mZ && mA && mP && mSA && mSP && dateMatch && doublonMatch && anomalyMatch && chkMatch) { $(this).show(); vC++; } else { $(this).hide(); }
+                if (mD && mC && mZ && mA && mP && mSA && mSP && dateMatch && dateRealMatch && valRealMatch && doublonMatch && anomalyMatch && chkMatch) { $(this).show(); vC++; } else { $(this).hide(); }
             });
             $('#record-count').text(vC);
         }
@@ -1941,7 +2068,9 @@
                 "DREN": cleanSpaces($('#filter-dren').val()) || "Tous", "CISCO": cleanSpaces($('#filter-cisco').val()) || "Tous", "ZAP": cleanSpaces($('#filter-zap').val()) || "Tous", 
                 "Activité": cleanSpaces($('#filter-activite').val()) || "Tous", "Produit": cleanSpaces($('#filter-produit').val()) || "Tous", 
                 "Sous-activité": cleanSpaces($('#filter-sous-activite').val()) || "Tous", "Sous-produit": cleanSpaces($('#filter-sous-produit').val()) || "Tous",
-                "Date de début": $('#filter-date-debut').val() || "Toutes", "Date de fin": $('#filter-date-fin').val() || "Toutes",
+                "Date de début (Soumission)": $('#filter-date-debut').val() || "Toutes", "Date de fin (Soumission)": $('#filter-date-fin').val() || "Toutes",
+                "Date de début (Suivi de la Réalisation)": $('#filter-date-debut-realisation').val() || "Toutes", "Date de fin (Suivi de la Réalisation)": $('#filter-date-fin-realisation').val() || "Toutes",
+                "Valeur Minimum (Réalisation)": $('#filter-val-min-realisation').val() || "Aucune", "Valeur Maximum (Réalisation)": $('#filter-val-max-realisation').val() || "Aucune",
                 "Filtre Strict Doublons": $('#filter-only-doublons').is(':checked') ? "Activé" : "Désactivé",
                 "Filtre Strict Anomalies": $('#filter-only-anomalies').is(':checked') ? "Activé" : "Désactivé"
             }; 
@@ -1957,9 +2086,13 @@
             return filters;
         }
         
-        function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous" && f[k] !== "Toutes" && f[k] !== "Désactivé") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
+        function getFiltersPlainText() { let f = getCurrentFilters(), t = ""; for (let k in f) { if (f[k] !== "Tous" && f[k] !== "Toutes" && f[k] !== "Désactivé" && f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre (Toutes les données)" : t; }
         function getAnalysisFilters() { return { "Recherche Locale - Tableau DREN": cleanSpaces($('#search-dren-table').val()) || "Aucune", "Recherche Locale - Tableau CISCO": cleanSpaces($('#search-cisco-table').val()) || "Aucune", "Recherche Locale - Tableau ZAP": cleanSpaces($('#search-zap-table').val()) || "Aucune" }; }
         function getAnalysisFiltersPlainText() { let f = getAnalysisFilters(), t = ""; for (let k in f) { if (f[k] !== "Aucune") t += `- ${k} : ${f[k]}\n`; } return t === "" ? "- Aucun filtre local appliqué" : t; }
+
+
+
+
 
 
 
@@ -2586,48 +2719,6 @@
                 window.filterSoumissionsTables(); 
                 setTimeout(() => $('#cons-progress-container').hide(), 5000);
             } catch(e) { $('#cons-status').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Erreur lors de l'analyse : ${e.message}</span>`); }
-        };
-
-        window.runSemanticAnalysis = async function() {
-            if(allData.length === 0) { alert("Veuillez d'abord attendre le chargement des données."); return; }
-            globalSemanticResults = {}; 
-            $('#semantic-progress-container').show(); $('#semantic-status').text("Téléchargement du modèle IA (SBERT)... Cela peut prendre une minute."); $('#semantic-progress-bar').css('width', '5%').text('5%');
-
-            try {
-                let extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', {
-                    progress_callback: x => { if (x.status === 'progress') { let p = Math.round(x.progress); $('#semantic-progress-bar').css('width', p + '%').text(p + '%'); } }
-                });
-                $('#semantic-progress-bar').css('width', '100%').text('Modèle chargé !');
-
-                const semanticTasks = [
-                    { key: 'activiteDren', resId: 'res-act-dren', chartId: 'semanticChart-act-dren', chartCont: 'chart-container-act-dren', name: 'Activités DREN' },
-                    { key: 'activiteCisco', resId: 'res-act-cisco', chartId: 'semanticChart-act-cisco', chartCont: 'chart-container-act-cisco', name: 'Activités CISCO' },
-                    { key: 'activiteZap', resId: 'res-act-zap', chartId: 'semanticChart-act-zap', chartCont: 'chart-container-act-zap', name: 'Activités ZAP' },
-                    { key: 'produitDren', resId: 'res-prod-dren', chartId: 'semanticChart-prod-dren', chartCont: 'chart-container-prod-dren', name: 'Produits DREN' },
-                    { key: 'produitCisco', resId: 'res-prod-cisco', chartId: 'semanticChart-prod-cisco', chartCont: 'chart-container-prod-cisco', name: 'Produits CISCO' },
-                    { key: 'produitZap', resId: 'res-prod-zap', chartId: 'semanticChart-prod-zap', chartCont: 'chart-container-prod-zap', name: 'Produits ZAP' },
-                    { key: 'sousActiviteDren', resId: 'res-sact-dren', chartId: 'semanticChart-sact-dren', chartCont: 'chart-container-sact-dren', name: 'Sous-activités DREN' },
-                    { key: 'sousActiviteCisco', resId: 'res-sact-cisco', chartId: 'semanticChart-sact-cisco', chartCont: 'chart-container-sact-cisco', name: 'Sous-activités CISCO' },
-                    { key: 'sousActiviteZap', resId: 'res-sact-zap', chartId: 'semanticChart-sact-zap', chartCont: 'chart-container-sact-zap', name: 'Sous-activités ZAP' },
-                    { key: 'sousProduitDren', resId: 'res-sprod-dren', chartId: 'semanticChart-sprod-dren', chartCont: 'chart-container-sprod-dren', name: 'Sous-produits DREN' },
-                    { key: 'sousProduitCisco', resId: 'res-sprod-cisco', chartId: 'semanticChart-sprod-cisco', chartCont: 'chart-container-sprod-cisco', name: 'Sous-produits CISCO' },
-                    { key: 'sousProduitZap', resId: 'res-sprod-zap', chartId: 'semanticChart-sprod-zap', chartCont: 'chart-container-sprod-zap', name: 'Sous-produits ZAP' }
-                ];
-
-                for(let task of semanticTasks) {
-                    $('#semantic-status').text(`Analyse sémantique en cours : ${task.name}...`);
-                    let col = baseColsInfo.find(c => c.key === task.key);
-                    if(col) {
-                        let dataToProcess = [...new Set(allData.map(r => cleanSpaces(getKoboValue(r, col.matches, col.ex, col.mustMatch))).filter(v => v && v !== 'Non renseigné'))];
-                        let clusters = await clusterActivities(dataToProcess, extractor);
-                        globalSemanticResults[task.name] = clusters; 
-                        renderSemanticChart(clusters, task.chartId, task.chartCont);
-                        renderSemanticClusters(clusters, task.resId, task.name);
-                    }
-                }
-                $('#semantic-status').text("✅ Analyse sémantique de tous les niveaux terminée avec succès !");
-                setTimeout(() => $('#semantic-progress-container').hide(), 5000);
-            } catch(e) { $('#semantic-status').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Erreur lors de l'analyse : ${e.message}</span>`); }
         };
 
         function renderSoumissionsTable(data, containerId, title) {
