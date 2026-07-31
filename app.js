@@ -1,9 +1,9 @@
-let globalSemanticResults = {};
-let globalSoumissionsResults = {};
-let globalDBSCANAnomalies = { DREN: [], CISCO: [], ZAP: [] };
-let semanticChartsRefs = {};
-let chartRealisationTemporel = null;
-let chartRealisationClusteringRefs = { dren: null, cisco: null, zap: null };
+var globalSemanticResults = {};
+var globalSoumissionsResults = {};
+var globalDBSCANAnomalies = { DREN: [], CISCO: [], ZAP: [] };
+var semanticChartsRefs = {};
+var chartRealisationTemporel = null;
+var chartRealisationClusteringRefs = { dren: null, cisco: null, zap: null };
 
 const EXPLICATION_SEMANTIQUE = [
     "NOTE SUR LES RÉSULTATS (FORMULATIONS UNIQUES VS VOLUMES) :",
@@ -34,10 +34,10 @@ const EXPLICATION_SOUMISSION = [
 const TITRE_PLATEFORME = "Plateforme de Suivi du Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel (PTA) de l'Année 2026 des Services Techniques Déconcentrés (STD)";
 const SOUS_TITRE_PLATEFORME = "Tableau de Bord : Données & Analytics KoboToolbox";
 
-let allData = [], headerMap = {}, questionListMap = {}, valueMap = {}, externalDict = {};    
-let currentImageMode = 'url', isExcelLoaded = false;
+var allData = [], headerMap = {}, questionListMap = {}, valueMap = {}, externalDict = {};    
+var currentImageMode = 'url', isExcelLoaded = false;
 
-let chartsRefs = {
+var chartsRefs = {
     kmeans: { DREN: null, CISCO: null, ZAP: null },
     jenks: { DREN: null, CISCO: null, ZAP: null },
     dbscan: { DREN: null, CISCO: null, ZAP: null }
@@ -45,7 +45,7 @@ let chartsRefs = {
 
 const metaKeywords = ['start', 'end', 'today', 'username', 'phonenumber', 'deviceid', 'simserial', 'subscriberid', '_id', '_uuid', '_submission_time', '_status', '_geolocation', '_submitted_by', '_xform_id_string', '__version__', 'instanceid', 'rootuuid', 'version'];
 
-let baseColsInfo = [
+var baseColsInfo = [
     { key: 'dren', matches: ['dren'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'cisco', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'DREN', xmlName: '' },
     { key: 'cisco', matches: ['cisco'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'zap', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'CISCO', xmlName: '' },
     { key: 'zap', matches: ['zap'], mustMatch: [], ex: ['activite', 'produit', 'budget', 'dren', 'cisco', 'sous_activite', 'sous_produit', 'sous-activite', 'sous-produit'], label: 'ZAP', xmlName: '' },
@@ -499,23 +499,25 @@ async function fetchData() {
     try {
         const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime();
         
-        // Anti-Blocage : 1 tentative directe, puis 3 proxys de secours (y compris codetabs et allorigins)
+        // Liste des 4 solutions de secours (Proxys multiples + Tentative directe)
         const fetchUrls = [
-            koboUrl,
-            'https://api.allorigins.win/raw?url=' + encodeURIComponent(koboUrl),
-            'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(koboUrl),
-            'https://corsproxy.io/?' + encodeURIComponent(koboUrl)
+            koboUrl, // 1. On tente d'abord la connexion directe propre !
+            'https://api.allorigins.win/raw?url=' + encodeURIComponent(koboUrl), // 2. Proxy de secours 1
+            'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(koboUrl), // 3. Proxy de secours 2
+            'https://corsproxy.io/?' + encodeURIComponent(koboUrl) // 4. Proxy de secours 3
         ];
 
         let response = null;
         let fetchSuccess = false;
 
+        // Boucle Anti-Blocage : on teste chaque URL une par une
         for (let url of fetchUrls) {
             try {
+                console.log("Tentative de connexion via :", url);
                 response = await fetch(url, { cache: 'no-store' });
                 if (response.ok) {
                     fetchSuccess = true;
-                    break;
+                    break; // Succès ! On arrête de chercher et on sort de la boucle.
                 }
             } catch (e) {
                 console.warn("Le navigateur a bloqué l'accès via :", url);
@@ -523,7 +525,7 @@ async function fetchData() {
         }
 
         if (!fetchSuccess) {
-            throw new Error("L'antivirus ou l'extension du navigateur (ex: uBlock) bloque la connexion. Veuillez utiliser le bouton 'Importer la base de données' en haut de la page.");
+            throw new Error("La sécurité de Firefox (ou AdBlock) bloque toutes les connexions. Veuillez importer votre fichier Excel manuellement via le bouton en haut.");
         }
         
         allData = (await response.json()).results || [];
@@ -536,9 +538,11 @@ async function fetchData() {
         $('#sync-status').html(`<span class="badge bg-success sync-badge"><i class="fas fa-check-double"></i> Ok : ${allData.length} Lignes</span>`).append(bEx);
 
     } catch (error) {
-        $('#error-box').html('<strong>Erreur :</strong> ' + error.message).show();
+        $('#error-box').html('<strong>Erreur de sécurité réseau :</strong> ' + error.message).show();
         $('#sync-status').html('<span class="badge bg-danger sync-badge">Échec Kobo</span>');
-    } finally { $('#loading-box').hide(); }
+    } finally { 
+        $('#loading-box').hide(); 
+    }
 }
 
 function renderTable(data) {
@@ -1500,34 +1504,30 @@ async function fetchData() {
     try {
         const koboUrl = 'https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json?_t=' + new Date().getTime();
         
-        // Liste des 4 solutions de secours (Proxys multiples + Tentative directe)
         const fetchUrls = [
+            koboUrl, 
             'https://api.allorigins.win/raw?url=' + encodeURIComponent(koboUrl),
             'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(koboUrl),
-            'https://corsproxy.io/?' + encodeURIComponent(koboUrl),
-            koboUrl // Tentative directe sans proxy
+            'https://corsproxy.io/?' + encodeURIComponent(koboUrl)
         ];
 
         let response = null;
         let fetchSuccess = false;
 
-        // Boucle Anti-Blocage : on teste chaque URL une par une
         for (let url of fetchUrls) {
             try {
-                console.log("Tentative de connexion via :", url);
                 response = await fetch(url, { cache: 'no-store' });
                 if (response.ok) {
                     fetchSuccess = true;
-                    break; // Succès ! On arrête de chercher et on sort de la boucle.
+                    break; 
                 }
             } catch (e) {
-                console.warn("Le navigateur a bloqué ce serveur :", url);
+                console.warn("Le navigateur a bloqué l'accès via :", url);
             }
         }
 
-        // Si absolument tous les serveurs ont été bloqués par Firefox
         if (!fetchSuccess) {
-            throw new Error("La sécurité de Firefox (ou AdBlock) bloque toutes les connexions. Veuillez importer votre fichier Excel manuellement via le bouton en haut.");
+            throw new Error("L'antivirus ou l'extension du navigateur (ex: uBlock) bloque la connexion. Veuillez importer votre fichier Excel manuellement via le bouton en haut.");
         }
         
         allData = (await response.json()).results || [];
