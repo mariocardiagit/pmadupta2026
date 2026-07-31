@@ -3,440 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plateforme de Suivi du PMA - PTA 2026 des STD</title>
-    <!-- Bootstrap CSS -->
+    <title>Plateforme de Suivi du PMA - PTA 2026</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome pour les icônes -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- LIAISON AVEC VOTRE FICHIER CSS -->
     <link href="style.css" rel="stylesheet">
 </head>
-<body>
-    <div id="image-preview-tooltip"><img id="preview-img" src="" alt="Aperçu de l'image"></div>
+<body class="bg-light">
+    <div class="container-fluid py-3">
+        <h3 class="text-center text-primary fw-bold"><i class="fas fa-chart-line"></i> Plateforme de Suivi du PMA - Année 2026</h3>
+        <h5 class="text-center text-secondary mb-4">Tableau de Bord : Intelligence Artificielle & KoboToolbox</h5>
 
-    <div class="container-fluid">
-        <h3 class="text-center header-title"><i class="fas fa-chart-line text-primary"></i> Plateforme de Suivi du Paquet Minimum d'Activités (PMA) du Plan de Travail Annuel (PTA) de l'Année 2026 des Services Techniques Déconcentrés (STD)</h3>
-        <h5 class="text-center header-subtitle">Tableau de Bord : Données & Analytics KoboToolbox</h5>
-
-        <div class="error-message" id="error-box" style="display:none;"></div>
-        <div class="spinner-container" id="loading-box">
-            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"><span class="visually-hidden">Chargement...</span></div>
-            <h5 class="mt-3 text-secondary" id="loading-text">Synchronisation et modélisation des données...</h5>
-        </div>
-
-        <div class="text-center mb-4 bg-white p-3 rounded shadow-sm border" style="max-width: 600px; margin: 0 auto;">
-            <label for="excel-file" class="form-label fw-bold text-secondary"><i class="fas fa-file-excel text-success"></i> Importer manuellement la base Kobo (Optionnel)</label>
-            <input type="file" id="excel-file" class="form-control form-control-sm mx-auto border-success" accept=".xlsx, .xls">
-            <small class="text-muted mt-1 d-block">Utilisez ceci uniquement si la connexion à l'API échoue.</small>
-        </div>
-
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div id="sync-status"></div>
-            <div>
-                <button class="btn btn-primary btn-sm me-2" onclick="fetchData()">
-                    <i class="fas fa-sync-alt"></i> Rafraîchir les données
-                </button>
+        <!-- Barre de Statut -->
+        <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border mb-4">
+            <div id="sync-status">
+                <span class="badge bg-warning text-dark fs-6"><i class="fas fa-spinner fa-spin"></i> Connexion à KoboToolbox...</span>
             </div>
+            <button class="btn btn-primary" onclick="fetchData()"><i class="fas fa-sync-alt"></i> Rafraîchir l'API</button>
         </div>
 
-        <ul class="nav nav-pills justify-content-center master-tabs mb-4 w-100" id="masterTabs" role="tablist">
-            <li class="nav-item flex-fill text-center" role="presentation">
-                <button class="nav-link active fw-bold w-100" id="master-soumissions-tab" data-bs-toggle="pill" data-bs-target="#master-soumissions" type="button" role="tab">
-                    <i class="fas fa-file-signature"></i> Analyse des Soumissions Kobotoolbox (DREN, CISCO, ZAP)
-                </button>
-            </li>
-            <li class="nav-item flex-fill text-center" role="presentation">
-                <button class="nav-link fw-bold w-100" id="master-realisations-tab" data-bs-toggle="pill" data-bs-target="#master-realisations" type="button" role="tab">
-                    <i class="fas fa-chart-bar"></i> Analyse des Réalisations des STD (DREN, CISCO, ZAP)
-                </button>
-            </li>
+        <div class="error-message alert alert-danger" id="error-box" style="display:none;"></div>
+
+        <!-- ONGLETS PRINCIPAUX -->
+        <ul class="nav nav-pills justify-content-center mb-4" id="mainTabs" role="tablist">
+            <li class="nav-item mx-2"><button class="nav-link active fw-bold px-4" data-bs-toggle="pill" data-bs-target="#tab-donnees" type="button"><i class="fas fa-table"></i> 1: Base de Données</button></li>
+            <li class="nav-item mx-2"><button class="nav-link fw-bold px-4" data-bs-toggle="pill" data-bs-target="#tab-analyse" type="button"><i class="fas fa-robot"></i> 2: Analyse IA (K-Means, Jenks, DBSCAN)</button></li>
+            <li class="nav-item mx-2"><button class="nav-link fw-bold px-4" data-bs-toggle="pill" data-bs-target="#tab-expert" type="button"><i class="fas fa-stethoscope"></i> 3: Système Expert</button></li>
         </ul>
 
-        <div class="tab-content bg-transparent p-0" id="masterTabsContent" style="box-shadow: none;">
+        <div class="tab-content bg-white p-4 rounded shadow-sm border">
             
-            <div class="tab-pane fade show active" id="master-soumissions" role="tabpanel">
-                <ul class="nav nav-tabs d-flex justify-content-center flex-wrap" id="dashboardTabs" role="tablist">
-                    <li class="nav-item" role="presentation"><button class="nav-link active" id="visualisation-tab" data-bs-toggle="tab" data-bs-target="#visualisation" type="button" role="tab"><i class="fas fa-table"></i> 1 : Visualisation</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link" id="analyse-tab" data-bs-toggle="tab" data-bs-target="#analyse" type="button" role="tab"><i class="fas fa-chart-pie"></i> 2 : Analyse</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link text-primary fw-bold" id="clustering-tab" data-bs-toggle="tab" data-bs-target="#clustering" type="button" role="tab"><i class="fas fa-project-diagram"></i> 3 : K-Means</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link text-success fw-bold" id="jenks-tab" data-bs-toggle="tab" data-bs-target="#jenks" type="button" role="tab"><i class="fas fa-layer-group"></i> 4 : Alg. Jenks</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link text-danger fw-bold" id="dbscan-tab" data-bs-toggle="tab" data-bs-target="#dbscan" type="button" role="tab"><i class="fas fa-satellite-dish"></i> 5 : DBSCAN</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link text-expert fw-bold" id="expert-tab" data-bs-toggle="tab" data-bs-target="#expert" type="button" role="tab"><i class="fas fa-stethoscope"></i> 6 : Système Expert</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link text-info fw-bold" id="details-ia-tab" data-bs-toggle="tab" data-bs-target="#details-ia" type="button" role="tab"><i class="fas fa-book-open"></i> 7 : Détails XAI</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link text-semantic fw-bold" id="semantic-tab" data-bs-toggle="tab" data-bs-target="#semantic" type="button" role="tab"><i class="fas fa-brain"></i> 8 : Sémantique</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link fw-bold" style="color: #16a085;" id="consolidation-tab" data-bs-toggle="tab" data-bs-target="#consolidation" type="button" role="tab"><i class="fas fa-layer-group"></i> 10 : Consolidation Kobo</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link fw-bold text-dark" id="explication-soum-tab" data-bs-toggle="tab" data-bs-target="#explication-soum" type="button" role="tab"><i class="fas fa-chalkboard-teacher"></i> 11 : Explication Soumissions</button></li>
-                </ul>
+            <!-- ONGLET 1 : BASE DE DONNÉES BRUTES -->
+            <div class="tab-pane fade show active" id="tab-donnees">
+                <div class="row mb-3 align-items-end">
+                    <div class="col-md-3"><label class="fw-bold text-secondary">Filtre DREN</label><input type="text" id="f-dren" class="form-control" placeholder="Ex: 11 : ANALAMANGA"></div>
+                    <div class="col-md-3"><label class="fw-bold text-secondary">Filtre CISCO</label><input type="text" id="f-cisco" class="form-control" placeholder="Rechercher..."></div>
+                    <div class="col-md-3"><label class="fw-bold text-secondary">Filtre ZAP</label><input type="text" id="f-zap" class="form-control" placeholder="Rechercher..."></div>
+                    <div class="col-md-3 text-end"><button class="btn btn-outline-danger" onclick="clearTab1Filters()"><i class="fas fa-times"></i> Effacer filtres</button></div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="text-primary m-0">Lignes : <span id="record-count" class="badge bg-primary">0</span></h5>
+                </div>
+                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                    <table class="table table-striped table-bordered table-sm align-middle" id="main-table">
+                        <thead class="table-dark" style="position: sticky; top: 0;">
+                            <tr id="main-thead-tr"></tr>
+                        </thead>
+                        <tbody id="main-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
 
-                <div class="tab-content" id="dashboardTabsContent">
-                    
-                    <!-- ONGLET 1 : VISUALISATION -->
-                    <div class="tab-pane fade show active" id="visualisation" role="tabpanel">
-                        <div class="filter-card shadow-sm">
-                            <h5 class="mb-3 text-secondary"><i class="fas fa-filter"></i> Filtres de recherche intelligents</h5>
-                            <div class="row g-3">
-                                <div class="col-md-3">
-                                    <label class="filter-label" id="lbl-dren">DREN</label>
-                                    <input type="text" id="filter-dren" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="filter-label" id="lbl-cisco">CISCO</label>
-                                    <input type="text" id="filter-cisco" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="filter-label" id="lbl-zap">ZAP</label>
-                                    <input type="text" id="filter-zap" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="filter-label" id="lbl-activite">Activité (Tous niveaux)</label>
-                                    <input type="text" id="filter-activite" class="form-control filter-input" placeholder="Rechercher..." autocomplete="off">
-                                </div>
-                            </div>
-                            <div class="mt-3 text-end">
-                                <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
-                                    <i class="fas fa-times"></i> Réinitialiser les filtres
-                                </button>
-                            </div>
-                        </div>
+            <!-- ONGLET 2 : ANALYSE & IA (Consolidé) -->
+            <div class="tab-pane fade" id="tab-analyse">
+                
+                <!-- FILTRES DE DATES -->
+                <div class="d-flex align-items-center bg-light p-3 rounded border mb-4">
+                    <h5 class="text-secondary m-0 me-4"><i class="fas fa-calendar-alt"></i> Période d'analyse :</h5>
+                    <input type="date" id="ia-date-start" class="form-control w-auto border-primary me-2">
+                    <span class="fw-bold text-muted me-2">au</span>
+                    <input type="date" id="ia-date-end" class="form-control w-auto border-primary">
+                    <small class="text-muted ms-3"><i class="fas fa-info-circle"></i> Modifiez les dates pour recalculer l'IA.</small>
+                </div>
 
-                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3 mt-4">
-                            <h5 class="m-0 text-secondary">Lignes affichées : <span id="record-count" class="badge bg-primary">0</span></h5>
-                            <div class="btn-group shadow-sm">
-                                <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter</button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" onclick="exportTableToCSV('donnees_suivi_pma')"><i class="fas fa-file-csv text-success"></i> CSV</a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="exportTableToExcel('donnees_suivi_pma')"><i class="fas fa-file-excel text-success"></i> Excel</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="table-responsive border rounded" id="table-scroll-container">
-                            <table class="table table-striped table-hover table-bordered align-middle mb-0" id="data-table">
-                                <thead><tr id="table-group-header-row"></tr><tr id="table-sub-header-row"></tr></thead>
-                                <tbody id="table-body"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- ONGLET 2 : ANALYSE & IA (AVEC DATES ET 3 COLONNES) -->
-                    <div class="tab-pane fade" id="analyse" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 mt-3">
-                            <h4 class="text-secondary m-0"><i class="fas fa-chart-pie"></i> Synthèse Analytique & IA</h4>
-                            
-                            <!-- FILTRES DE DATE POUR L'ONGLET 2 -->
-                            <div class="d-flex align-items-center bg-white p-2 rounded border shadow-sm gap-2">
-                                <label class="fw-bold text-primary mb-0 me-2"><i class="fas fa-calendar-alt"></i> Période :</label>
-                                <input type="date" id="tab2-date-start" class="form-control form-control-sm border-primary" title="Date de début (Soumission)">
-                                <span class="fw-bold text-muted px-1">au</span>
-                                <input type="date" id="tab2-date-end" class="form-control form-control-sm border-primary" title="Date de fin (Soumission)">
-                            </div>
-                            
-                            <div class="btn-group shadow-sm">
-                                <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-download"></i> Exporter l'Analyse</button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" onclick="exportAnalysisToExcel('analyse_pma')"><i class="fas fa-file-excel text-success"></i> Excel</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="ai-insights shadow-sm" id="ai-report-container">
-                            <h5><i class="fas fa-robot text-primary"></i> Rapport d'Analyse Intelligente (Basé sur la période sélectionnée)</h5>
-                            <div id="ai-report-content"></div>
-                        </div>
-
-                        <!-- RÉSUMÉS STATISTIQUES -->
-                        <div class="row">
-                            <div class="col-md-4 mb-4">
-                                <div class="analysis-card shadow-sm h-100">
-                                    <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Soumissions DREN</h5>
-                                    <div class="table-responsive" style="max-height: 300px;">
-                                        <table class="table table-sm table-bordered table-hover text-center align-middle" id="dren-summary-table-container">
-                                            <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;"><tr><th>Nom de la DREN</th><th>Soumissions</th><th>Part (%)</th></tr></thead>
-                                            <tbody id="dren-summary-table"></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <div class="analysis-card shadow-sm h-100">
-                                    <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Soumissions CISCO</h5>
-                                    <div class="table-responsive" style="max-height: 300px;">
-                                        <table class="table table-sm table-bordered table-hover text-center align-middle" id="cisco-summary-table-container">
-                                            <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;"><tr><th>Nom de la CISCO</th><th>Soumissions</th><th>Part (%)</th></tr></thead>
-                                            <tbody id="cisco-summary-table"></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <div class="analysis-card shadow-sm h-100">
-                                    <h5 class="text-secondary mb-3"><i class="fas fa-table"></i> Soumissions ZAP</h5>
-                                    <div class="table-responsive" style="max-height: 300px;">
-                                        <table class="table table-sm table-bordered table-hover text-center align-middle" id="zap-summary-table-container">
-                                            <thead class="table-dark" style="position: sticky; top: 0; z-index: 5;"><tr><th>Nom de la ZAP</th><th>Soumissions</th><th>Part (%)</th></tr></thead>
-                                            <tbody id="zap-summary-table"></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr class="my-5 border-secondary opacity-25">
-                        <h3 class="text-center text-primary mb-5"><i class="fas fa-microscope"></i> Analyses Statistiques Approfondies (Automatisées)</h3>
-
-                        <!-- INTÉGRATION K-MEANS ONGLET 2 -->
-                        <h4 class="text-primary mb-3"><i class="fas fa-project-diagram"></i> Classification K-Means (Centres de gravité)</h4>
-                        <div class="row mb-5">
-                            <div class="col-md-4 mb-4">
-                                <div class="analysis-card shadow-sm border border-primary h-100">
-                                    <h5 class="text-center text-primary mb-3">DREN</h5>
-                                    <div style="height: 250px;"><canvas id="tab2-kmeans-dren-chart"></canvas></div>
-                                    <div class="table-responsive mt-3" style="max-height: 250px;">
-                                        <table class="table table-sm text-center align-middle mb-0"><thead class="bg-light"><tr><th>Entité</th><th>Vol.</th><th>Dates</th><th>Niveau</th></tr></thead><tbody id="tab2-kmeans-dren-table"></tbody></table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <div class="analysis-card shadow-sm border border-primary h-100">
-                                    <h5 class="text-center text-primary mb-3">CISCO</h5>
-                                    <div style="height: 250px;"><canvas id="tab2-kmeans-cisco-chart"></canvas></div>
-                                    <div class="table-responsive mt-3" style="max-height: 250px;">
-                                        <table class="table table-sm text-center align-middle mb-0"><thead class="bg-light"><tr><th>Entité</th><th>Vol.</th><th>Dates</th><th>Niveau</th></tr></thead><tbody id="tab2-kmeans-cisco-table"></tbody></table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <div class="analysis-card shadow-sm border border-primary h-100">
-                                    <h5 class="text-center text-primary mb-3">ZAP</h5>
-                                    <div style="height: 250px;"><canvas id="tab2-kmeans-zap-chart"></canvas></div>
-                                    <div class="table-responsive mt-3" style="max-height: 250px;">
-                                        <table class="table table-sm text-center align-middle mb-0"><thead class="bg-light"><tr><th>Entité</th><th>Vol.</th><th>Dates</th><th>Niveau</th></tr></thead><tbody id="tab2-kmeans-zap-table"></tbody></table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- INTÉGRATION JENKS ONGLET 2 -->
-                        <h4 class="text-success mb-3"><i class="fas fa-layer-group"></i> Optimisation de Jenks (Ruptures Naturelles)</h4>
-                        <div class="row mb-5">
-                            <div class="col-md-4 mb-4">
-                                <div class="analysis-card shadow-sm border border-success h-100">
-                                    <h5 class="text-center text-success mb-3">DREN</h5>
-                                    <div style="height: 250px;"><canvas id="tab2-jenks-dren-chart"></canvas></div>
-                                    <div class="table-responsive mt-3" style="max-height: 250px;">
-                                        <table class="table table-sm text-center align-middle mb-0"><thead class="bg-light"><tr><th>Entité</th><th>Vol.</th><th>Dates</th><th>Niveau</th></tr></thead><tbody id="tab2-jenks-dren-table"></tbody></table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <div class="analysis-card shadow-sm border border-success h-100">
-                                    <h5 class="text-center text-success mb-3">CISCO</h5>
-                                    <div style="height: 250px;"><canvas id="tab2-jenks-cisco-chart"></canvas></div>
-                                    <div class="table-responsive mt-3" style="max-height: 250px;">
-                                        <table class="table table-sm text-center align-middle mb-0"><thead class="bg-light"><tr><th>Entité</th><th>Vol.</th><th>Dates</th><th>Niveau</th></tr></thead><tbody id="tab2-jenks-cisco-table"></tbody></table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <div class="analysis-card shadow-sm border border-success h-100">
-                                    <h5 class="text-center text-success mb-3">ZAP</h5>
-                                    <div style="height: 250px;"><canvas id="tab2-jenks-zap-chart"></canvas></div>
-                                    <div class="table-responsive mt-3" style="max-height: 250px;">
-                                        <table class="table table-sm text-center align-middle mb-0"><thead class="bg-light"><tr><th>Entité</th><th>Vol.</th><th>Dates</th><th>Niveau</th></tr></thead><tbody id="tab2-jenks-zap-table"></tbody></table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- INTÉGRATION DBSCAN ONGLET 2 -->
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="text-danger m-0"><i class="fas fa-satellite-dish"></i> DBSCAN (Détection des anomalies isolées)</h4>
-                            <div class="d-flex align-items-center bg-white p-2 rounded border shadow-sm">
-                                <label class="fw-bold text-danger me-2">Tolérance (Epsilon) : <span id="tab2-eps-value">5</span></label>
-                                <input type="range" class="form-range" id="tab2-eps-range" min="1" max="50" step="1" value="5" style="width: 150px;">
-                            </div>
-                        </div>
-                        <div class="row mb-5">
-                            <div class="col-md-4 mb-4">
-                                <div class="analysis-card shadow-sm border border-danger h-100">
-                                    <h5 class="text-center text-danger mb-3">DREN</h5>
-                                    <div style="height: 250px;"><canvas id="tab2-dbscan-dren-chart"></canvas></div>
-                                    <div class="table-responsive mt-3" style="max-height: 250px;">
-                                        <table class="table table-sm text-center align-middle mb-0"><thead class="bg-light"><tr><th>Entité</th><th>Vol.</th><th>Dates</th><th>Statut</th></tr></thead><tbody id="tab2-dbscan-dren-table"></tbody></table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <div class="analysis-card shadow-sm border border-danger h-100">
-                                    <h5 class="text-center text-danger mb-3">CISCO</h5>
-                                    <div style="height: 250px;"><canvas id="tab2-dbscan-cisco-chart"></canvas></div>
-                                    <div class="table-responsive mt-3" style="max-height: 250px;">
-                                        <table class="table table-sm text-center align-middle mb-0"><thead class="bg-light"><tr><th>Entité</th><th>Vol.</th><th>Dates</th><th>Statut</th></tr></thead><tbody id="tab2-dbscan-cisco-table"></tbody></table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <div class="analysis-card shadow-sm border border-danger h-100">
-                                    <h5 class="text-center text-danger mb-3">ZAP</h5>
-                                    <div style="height: 250px;"><canvas id="tab2-dbscan-zap-chart"></canvas></div>
-                                    <div class="table-responsive mt-3" style="max-height: 250px;">
-                                        <table class="table table-sm text-center align-middle mb-0"><thead class="bg-light"><tr><th>Entité</th><th>Vol.</th><th>Dates</th><th>Statut</th></tr></thead><tbody id="tab2-dbscan-zap-table"></tbody></table>
-                                    </div>
-                                </div>
+                <!-- ALGO 1 : K-MEANS -->
+                <h4 class="text-primary mb-3 mt-5 border-bottom pb-2"><i class="fas fa-project-diagram"></i> IA 1 : Classification K-Means (Centres de gravité)</h4>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-primary h-100">
+                            <div class="card-header bg-primary text-white fw-bold text-center">DREN</div>
+                            <div class="card-body p-2">
+                                <div style="height: 250px;"><canvas id="chart-kmeans-dren"></canvas></div>
+                                <div class="table-responsive mt-2" style="max-height: 200px;"><table class="table table-sm text-center mb-0"><tbody id="table-kmeans-dren"></tbody></table></div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- ONGLET 3 : K-MEANS ORIGINAUX -->
-                    <div class="tab-pane fade" id="clustering" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="text-primary m-0"><i class="fas fa-project-diagram"></i> Algorithme 1 : K-Means (Centre de Gravité)</h4>
-                        </div>
-                        <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
-                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#kmeans-dren" type="button">Clustering DREN</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#kmeans-cisco" type="button">Clustering CISCO</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#kmeans-zap" type="button">Clustering ZAP</button></li>
-                        </ul>
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="kmeans-dren">
-                                <div id="rules-kmeans-dren"></div>
-                                <div class="analysis-card shadow-sm" style="height: 350px;"><canvas id="kmeansChartDREN"></canvas></div><div id="kmeansListsDREN"></div>
-                            </div>
-                            <div class="tab-pane fade" id="kmeans-cisco">
-                                <div id="rules-kmeans-cisco"></div>
-                                <div class="analysis-card shadow-sm" style="height: 350px;"><canvas id="kmeansChartCISCO"></canvas></div><div id="kmeansListsCISCO"></div>
-                            </div>
-                            <div class="tab-pane fade" id="kmeans-zap">
-                                <div id="rules-kmeans-zap"></div>
-                                <div class="analysis-card shadow-sm" style="height: 350px;"><canvas id="kmeansChartZAP"></canvas></div><div id="kmeansListsZAP"></div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-primary h-100">
+                            <div class="card-header bg-primary text-white fw-bold text-center">CISCO</div>
+                            <div class="card-body p-2">
+                                <div style="height: 250px;"><canvas id="chart-kmeans-cisco"></canvas></div>
+                                <div class="table-responsive mt-2" style="max-height: 200px;"><table class="table table-sm text-center mb-0"><tbody id="table-kmeans-cisco"></tbody></table></div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- ONGLET 4 : JENKS ORIGINAUX -->
-                    <div class="tab-pane fade" id="jenks" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="text-success m-0"><i class="fas fa-layer-group"></i> Algorithme 2 : Jenks (Natural Breaks)</h4>
-                        </div>
-                        <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
-                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#jenks-dren" type="button">Clustering DREN</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#jenks-cisco" type="button">Clustering CISCO</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#jenks-zap" type="button">Clustering ZAP</button></li>
-                        </ul>
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="jenks-dren">
-                                <div id="rules-jenks-dren"></div>
-                                <div class="analysis-card shadow-sm" style="height: 350px;"><canvas id="jenksChartDREN"></canvas></div><div id="jenksListsDREN"></div>
-                            </div>
-                            <div class="tab-pane fade" id="jenks-cisco">
-                                <div id="rules-jenks-cisco"></div>
-                                <div class="analysis-card shadow-sm" style="height: 350px;"><canvas id="jenksChartCISCO"></canvas></div><div id="jenksListsCISCO"></div>
-                            </div>
-                            <div class="tab-pane fade" id="jenks-zap">
-                                <div id="rules-jenks-zap"></div>
-                                <div class="analysis-card shadow-sm" style="height: 350px;"><canvas id="jenksChartZAP"></canvas></div><div id="jenksListsZAP"></div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-primary h-100">
+                            <div class="card-header bg-primary text-white fw-bold text-center">ZAP</div>
+                            <div class="card-body p-2">
+                                <div style="height: 250px;"><canvas id="chart-kmeans-zap"></canvas></div>
+                                <div class="table-responsive mt-2" style="max-height: 200px;"><table class="table table-sm text-center mb-0"><tbody id="table-kmeans-zap"></tbody></table></div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- ONGLET 5 : DBSCAN ORIGINAUX -->
-                    <div class="tab-pane fade" id="dbscan" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                            <h4 class="text-danger m-0"><i class="fas fa-satellite-dish"></i> Algorithme 3 : DBSCAN (Détection Anomalies)</h4>
-                            <div class="d-flex align-items-center flex-wrap gap-3">
-                                <div class="btn-group shadow-sm">
-                                    <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown"><i class="fas fa-download"></i> Exporter Anomalies</button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="exportDBSCANToExcel('anomalies_DBSCAN')"><i class="fas fa-file-excel text-success"></i> Excel</a></li>
-                                    </ul>
-                                </div>
-                                <div class="d-flex align-items-center bg-white p-2 rounded border ms-2">
-                                    <label class="fw-bold text-danger me-2">Tolérance (Epsilon) : <span id="eps-value">5</span></label>
-                                    <input type="range" class="form-range" id="eps-range" min="1" max="50" step="1" value="5" style="width: 150px;">
-                                </div>
-                            </div>
-                        </div>
-                        <ul class="nav nav-pills mb-4 justify-content-center" role="tablist">
-                            <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#dbscan-dren" type="button">Clustering DREN</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#dbscan-cisco" type="button">Clustering CISCO</button></li>
-                            <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#dbscan-zap" type="button">Clustering ZAP</button></li>
-                        </ul>
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="dbscan-dren"><div id="rules-dbscan-dren"></div><div class="analysis-card shadow-sm" style="height: 350px;"><canvas id="dbscanChartDREN"></canvas></div><div id="dbscanListsDREN"></div></div>
-                            <div class="tab-pane fade" id="dbscan-cisco"><div id="rules-dbscan-cisco"></div><div class="analysis-card shadow-sm" style="height: 350px;"><canvas id="dbscanChartCISCO"></canvas></div><div id="dbscanListsCISCO"></div></div>
-                            <div class="tab-pane fade" id="dbscan-zap"><div id="rules-dbscan-zap"></div><div class="analysis-card shadow-sm" style="height: 350px;"><canvas id="dbscanChartZAP"></canvas></div><div id="dbscanListsZAP"></div></div>
-                        </div>
-                    </div>
-
-                    <!-- ONGLET 6 : SYSTEME EXPERT -->
-                    <div class="tab-pane fade" id="expert" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="text-expert m-0"><i class="fas fa-cogs"></i> Intelligence Artificielle Symbolique : Moteur d'Inférence</h4>
-                        </div>
-                        <div class="analysis-card shadow-sm">
-                            <div class="table-responsive border" id="expert-table-scroll-container" style="max-height: 600px;">
-                                <table class="table table-bordered table-hover align-middle mb-0" id="expert-table">
-                                    <thead class="bg-expert" style="position: sticky; top: 0; z-index: 5;">
-                                        <tr><th class="text-white text-center">Entité Administrative</th><th class="text-white text-center">Niveau</th><th class="text-white text-center">Soumissions</th><th class="text-white text-center">Diagnostic du Système</th><th class="text-white">Action Requise / Recommandation</th></tr>
-                                    </thead>
-                                    <tbody id="expert-table-body"></tbody>
-                                </table>
+                <!-- ALGO 2 : JENKS -->
+                <h4 class="text-success mb-3 mt-5 border-bottom pb-2"><i class="fas fa-layer-group"></i> IA 2 : Optimisation de Jenks (Ruptures Naturelles)</h4>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-success h-100">
+                            <div class="card-header bg-success text-white fw-bold text-center">DREN</div>
+                            <div class="card-body p-2">
+                                <div style="height: 250px;"><canvas id="chart-jenks-dren"></canvas></div>
+                                <div class="table-responsive mt-2" style="max-height: 200px;"><table class="table table-sm text-center mb-0"><tbody id="table-jenks-dren"></tbody></table></div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- ONGLET 7 : DETAILS ALGOS IA -->
-                    <div class="tab-pane fade" id="details-ia" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="text-info m-0"><i class="fas fa-book-open"></i> Explicabilité (XAI) : Transparence et Objectivité Mathématique</h4>
-                        </div>
-                        <div class="ai-insights shadow-sm mb-4 border-info" style="background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);">
-                            <h5 style="color: #0c5460;"><i class="fas fa-shield-alt"></i> Pourquoi faire confiance à cette IA ?</h5>
-                            <p style="color: #0c5460;">Le regroupement des performances des STD ne se fie à aucun seuil humain arbitraire. La machine écoute la structure intrinsèque des données pour garantir une objectivité totale.</p>
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-success h-100">
+                            <div class="card-header bg-success text-white fw-bold text-center">CISCO</div>
+                            <div class="card-body p-2">
+                                <div style="height: 250px;"><canvas id="chart-jenks-cisco"></canvas></div>
+                                <div class="table-responsive mt-2" style="max-height: 200px;"><table class="table table-sm text-center mb-0"><tbody id="table-jenks-cisco"></tbody></table></div>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- ONGLET 8 : CLUSTERING SEMANTIQUE -->
-                    <div class="tab-pane fade" id="semantic" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="text-semantic m-0"><i class="fas fa-brain"></i> Algorithme 4 : Analyse Sémantique</h4>
-                        </div>
-                        <div class="text-center mb-4">
-                            <button id="btn-run-semantic" class="btn btn-lg text-white shadow-sm" style="background-color: #d35400;">
-                                <i class="fas fa-play-circle"></i> Démarrer l'Analyse Sémantique Complète
-                            </button>
-                        </div>
-                        <div id="semantic-progress-container" style="display: none;" class="mb-4">
-                            <h6 id="semantic-status" class="text-semantic text-center mb-2">Chargement du modèle d'IA...</h6>
-                            <div class="progress" style="height: 25px;"><div id="semantic-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="background-color: #d35400; width: 0%;">0%</div></div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-success h-100">
+                            <div class="card-header bg-success text-white fw-bold text-center">ZAP</div>
+                            <div class="card-body p-2">
+                                <div style="height: 250px;"><canvas id="chart-jenks-zap"></canvas></div>
+                                <div class="table-responsive mt-2" style="max-height: 200px;"><table class="table table-sm text-center mb-0"><tbody id="table-jenks-zap"></tbody></table></div>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- ONGLET 10 : CONSOLIDATION KOBO -->
-                    <div class="tab-pane fade" id="consolidation" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="m-0" style="color: #16a085;"><i class="fas fa-layer-group"></i> Onglet 10 : Nombre Soumissions Kobo</h4>
-                        </div>
-                        <div class="text-center mb-4">
-                            <button id="btn-run-soumissions" class="btn btn-sm text-white shadow-sm mt-3" style="background-color: #16a085;">
-                                <i class="fas fa-play-circle"></i> Démarrer l'IA de Consolidation
-                            </button>
-                        </div>
-                        <div id="cons-progress-container" style="display: none;" class="mb-4">
-                            <h6 id="cons-status" class="text-center mb-2" style="color: #16a085;">Chargement du modèle d'IA...</h6>
-                            <div class="progress" style="height: 25px;"><div id="cons-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="background-color: #16a085; width: 0%;">0%</div></div>
+                <!-- ALGO 3 : DBSCAN -->
+                <div class="d-flex justify-content-between align-items-center mb-3 mt-5 border-bottom pb-2">
+                    <h4 class="text-danger m-0"><i class="fas fa-satellite-dish"></i> IA 3 : DBSCAN (Détection des Anomalies)</h4>
+                    <div class="d-flex align-items-center bg-light p-2 rounded border">
+                        <label class="fw-bold text-danger me-2">Tolérance (Epsilon) : <span id="eps-val">5</span></label>
+                        <input type="range" class="form-range" id="eps-range" min="1" max="50" step="1" value="5" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-danger h-100">
+                            <div class="card-header bg-danger text-white fw-bold text-center">DREN</div>
+                            <div class="card-body p-2">
+                                <div style="height: 250px;"><canvas id="chart-dbscan-dren"></canvas></div>
+                                <div class="table-responsive mt-2" style="max-height: 200px;"><table class="table table-sm text-center mb-0"><tbody id="table-dbscan-dren"></tbody></table></div>
+                            </div>
                         </div>
                     </div>
-                </div> 
-            </div> 
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-danger h-100">
+                            <div class="card-header bg-danger text-white fw-bold text-center">CISCO</div>
+                            <div class="card-body p-2">
+                                <div style="height: 250px;"><canvas id="chart-dbscan-cisco"></canvas></div>
+                                <div class="table-responsive mt-2" style="max-height: 200px;"><table class="table table-sm text-center mb-0"><tbody id="table-dbscan-cisco"></tbody></table></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-danger h-100">
+                            <div class="card-header bg-danger text-white fw-bold text-center">ZAP</div>
+                            <div class="card-body p-2">
+                                <div style="height: 250px;"><canvas id="chart-dbscan-zap"></canvas></div>
+                                <div class="table-responsive mt-2" style="max-height: 200px;"><table class="table table-sm text-center mb-0"><tbody id="table-dbscan-zap"></tbody></table></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ONGLET 3 : SYSTEME EXPERT -->
+            <div class="tab-pane fade" id="tab-expert">
+                <h4 class="text-primary mb-3"><i class="fas fa-cogs"></i> Recommandations du Système Expert</h4>
+                <div class="table-responsive border rounded" style="max-height: 500px;">
+                    <table class="table table-bordered table-hover align-middle mb-0">
+                        <thead class="bg-dark text-white" style="position: sticky; top: 0;">
+                            <tr><th>Entité</th><th>Niveau</th><th>Soumissions</th><th>Diagnostic</th><th>Action Requise</th></tr>
+                        </thead>
+                        <tbody id="expert-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
         </div> 
     </div>
 
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="app.js"></script>
-    <script type="module" src="semantic.js"></script>
 </body>
 </html>
