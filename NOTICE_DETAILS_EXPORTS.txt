@@ -1,0 +1,15 @@
+Correction appliquée aux exports Word / PDF / HTML de l’Onglet 2 : Analyse.
+
+Problème corrigé :
+- Les rapports exportés n’affichaient pas les détails visibles sur la page Web, notamment les noms des DREN, CISCO et ZAP dans les sections K-Means, Jenks et DBSCAN.
+
+Correction :
+- Les exports Word, PDF et HTML incluent désormais, sous chaque graphique, les blocs textuels de détails :
+  - règles / interprétation de l’algorithme ;
+  - catégories/clusters ;
+  - listes des entités (DREN, CISCO, ZAP) et leurs volumes ;
+  - détails temporels pour les graphiques de l’analyse temporelle.
+
+Fichiers modifiés :
+- app.js
+- package ZIP de projet mis à jour
