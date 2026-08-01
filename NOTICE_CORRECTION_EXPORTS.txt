@@ -1,0 +1,22 @@
+CORRECTION DES EXPORTS — ONGLET 2 : ANALYSE
+
+Le bouton « Tous les graphiques PNG (ZIP) » ne fonctionnait plus car les commandes HTML appelaient des fonctions d’export absentes du fichier app.js après les dernières évolutions des graphiques.
+
+Corrections apportées :
+- restauration de exportTimelineImages() pour PNG et JPEG ;
+- création fiable d’un ZIP unique pour « Exporter tout » ;
+- export de tous les graphiques temporels DREN, CISCO et ZAP ;
+- export de toutes les entités, même celles situées sur d’autres pages en mode individuel ;
+- ajout des graphiques K-Means, Jenks et DBSCAN disponibles ;
+- rendu hors écran indépendant des onglets masqués ;
+- fond blanc, titre et légende intégrés à chaque image ;
+- suivi de progression et fichier ERREURS_EXPORT.txt si un graphique isolé échoue ;
+- restauration des exports JPEG, Word DOCX, PDF, XLSX, CSV, HTML et JSON ;
+- restauration du partage et de l’export JSON hors-ligne de la base Kobo.
+
+Le ZIP contient également :
+- criteres_export.json ;
+- liste_graphiques.txt ;
+- ERREURS_EXPORT.txt uniquement si nécessaire.
+
+Après mise à jour sur GitHub Pages : effectuer Ctrl + F5.
