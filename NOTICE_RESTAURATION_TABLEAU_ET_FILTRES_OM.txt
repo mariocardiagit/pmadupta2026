@@ -1,0 +1,34 @@
+MISE À JOUR DU TABLEAU DE BORD KOBO — 03/08/2026
+
+1. Nouveaux champs de recherche ajoutés dans le groupe :
+   REALISATIONS des SOUS ACTIVITES
+
+   - Date début réalisation de la Sous Activité dans om missionnaire
+   - Date fin réalisation de la Sous Activité dans om missionnaire
+
+2. Fonctionnement des nouveaux filtres
+   - Lecture des champs Kobo aplatis (chemins avec /).
+   - Lecture récursive des objets imbriqués.
+   - Lecture des répétitions KoboToolbox sous forme de tableaux.
+   - Association des dates de début et de fin appartenant à une même occurrence.
+   - Les deux filtres peuvent être utilisés séparément ou ensemble.
+   - Les critères sont repris dans les exports CSV, XLSX, HTML et JSON.
+
+3. Restauration de l’ancien tableau
+   - La version fournie par l’utilisateur a servi de référence.
+   - L’ancienne disposition générale et les anciens onglets sont conservés.
+   - Les anciens groupes d’en-têtes du tableau sont conservés :
+       Statut & Action / Matrice Complète / Métadonnées.
+   - L’ordre historique des colonnes principales DREN, CISCO, ZAP,
+     activités, produits, sous-activités et sous-produits est conservé.
+   - L’onglet dynamique « Schéma & Nouvelles Questions » n’est pas ajouté.
+
+4. Fichiers à publier
+   - tableau_bord_kobo.html
+   - app.js
+   - semantic.js
+   - style.css
+   - dictionnaire.xlsx
+
+Le fichier dictionnaire.xlsx est une copie de SUIVI_IOV_SPSSE.xlsx, renommée
+ainsi parce que le code du tableau de bord charge ce nom automatiquement.
