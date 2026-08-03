@@ -1,0 +1,41 @@
+CORRECTION — COLONNE DOUBLON ET DATES DANS OM MISSIONNAIRE
+
+Problème observé
+----------------
+La colonne DOUBLON affichait plusieurs fois :
+« VÉRIFICATION IMPOSSIBLE — date de début, date de fin ».
+
+Cause
+-----
+Certaines structures KoboToolbox utilisent des noms XML courts tels que
+« date_debut » et « date_fin » dans la même répétition que le matricule,
+ou des noms XML différents dont le libellé décrit les dates de réalisation.
+L'ancienne détection exigeait que le chemin contienne explicitement des mots
+comme « realisation », « sous_activite » ou « missionnaire ».
+
+Corrections
+-----------
+1. Détection des dates par le nom XML, le chemin complet ET le libellé du XLSForm.
+2. Reconnaissance de date_debut/date_fin lorsqu'elles sont dans le même objet
+   de répétition Kobo que le matricule/CIN.
+3. Prise en charge des répétitions nommées personnes, agent, mission,
+   om_missionnaire ou ordre_mission.
+4. Association par index pour les anciennes structures aplaties.
+5. Suppression des messages identiques répétés dans une même ligne.
+6. Conservation de la règle inclusive de chevauchement :
+   Début 1 <= Fin 2 ET Début 2 <= Fin 1.
+
+Tests réalisés
+--------------
+- B.1 (20/07/2026–24/07/2026) et B.2 (24/07/2026–27/07/2026) : DOUBLON.
+- B.1 et B.3 (10/08/2026–21/08/2026) : absence de doublon.
+- B.2 et B.3 : absence de doublon.
+- Détection par noms courts date_debut/date_fin : validée.
+- Détection par libellés du dictionnaire XLSForm : validée.
+- Syntaxe JavaScript : validée.
+
+Remarque
+--------
+Si les deux dates sont réellement vides dans la soumission Kobo, le statut
+« VÉRIFICATION IMPOSSIBLE » reste normal : aucun contrôle de chevauchement
+ne peut être effectué sans période complète.
