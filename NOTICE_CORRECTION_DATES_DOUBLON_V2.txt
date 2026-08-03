@@ -1,0 +1,20 @@
+CORRECTION V2 — DÉTECTION DES DATES DE MISSION POUR LE CONTRÔLE DES DOUBLONS
+
+Problème observé :
+La colonne DOUBLON affichait « VÉRIFICATION IMPOSSIBLE — date de début, date de fin » alors que les dates pouvaient être stockées dans une autre répétition KoboToolbox ou sous des noms XML générés automatiquement.
+
+Corrections appliquées :
+1. Détection des champs explicites date_debut/date_fin et de leurs variantes.
+2. Détection de deux dates présentes dans le même objet de répétition que le matricule, même lorsque les noms XML sont opaques.
+3. Fusion des matricules stockés dans personnes[] avec les dates stockées séparément dans om_missionnaire[].
+4. Prise en charge des tableaux de valeurs et des chemins Kobo aplatis.
+5. Déduplication des avertissements identiques dans une même ligne.
+6. Lorsque les dates sont réellement absentes de la réponse JSON, affichage explicite :
+   « DATES ABSENTES DU JSON — ancienne soumission ou champs non renseignés ».
+
+Règle conservée :
+Un doublon existe uniquement si la signature DREN + CISCO + ZAP + Activité + Produit + Sous-activité + Matricule/CIN est identique ET si les périodes inclusives se chevauchent :
+Début 1 <= Fin 2 ET Début 2 <= Fin 1.
+
+Important :
+Les anciennes soumissions réalisées avant l'ajout des nouvelles questions de dates ne peuvent pas être reconstituées automatiquement. Elles doivent être ouvertes avec le bouton Éditer dans KoboToolbox et complétées si ces dates sont nécessaires au contrôle.
