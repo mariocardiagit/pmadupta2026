@@ -1,0 +1,35 @@
+MISE À JOUR GÉNÉRALE DU TABLEAU DE BORD POUR LE NOUVEAU FORMULAIRE KOBO
+
+Source de données :
+https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json
+
+Principales améliorations :
+1. Synchronisation automatique du nouveau schéma KoboToolbox.
+2. Lecture du dictionnaire local XLSForm et tentative de lecture du schéma distant du formulaire parent.
+3. Détection automatique des nouvelles questions qui ne figurent pas encore dans le dictionnaire local.
+4. Aplatissement des groupes imbriqués et des répétitions JSON afin de les afficher sous forme de colonnes exploitables.
+5. Nouvel onglet « 12 : Schéma & Nouvelles Questions » avec :
+   - libellé de la question ;
+   - nom XML / chemin ;
+   - type détecté ;
+   - taux de complétude ;
+   - nombre de valeurs distinctes ;
+   - exemple ;
+   - statut connue / nouvelle / métadonnée.
+6. Filtres dynamiques permettant de rechercher dans n’importe quelle nouvelle question.
+7. Mise à jour du rapport intelligent avec une synthèse du nouveau schéma et les champs peu renseignés.
+8. Mise à jour du module Réalisations : sélection dynamique de la question quantitative à analyser.
+9. Import JSON renforcé : results, data, records, rows, base_kobo et tableau direct.
+10. Export JSON hors ligne avec les données brutes et l’inventaire du schéma.
+11. Critères d’export enrichis avec le nombre de questions, de nouvelles questions et de champs numériques.
+12. Synchronisation du sous-module avancé après chaque chargement automatique ou import JSON.
+
+Validation réalisée :
+- Syntaxe JavaScript vérifiée avec node --check.
+- Structure HTML vérifiée.
+- Aucun identifiant HTML dupliqué détecté.
+
+Après publication sur GitHub Pages :
+- remplacer index.html, app.js et style.css ;
+- conserver semantic.js et dictionnaire.xlsx ;
+- effectuer Ctrl + F5.
