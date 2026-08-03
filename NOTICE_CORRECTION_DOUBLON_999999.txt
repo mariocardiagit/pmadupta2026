@@ -1,0 +1,48 @@
+CORRECTION DU DOUBLON — MATRICULE 999999
+========================================
+
+Diagnostic confirmé à partir des deux exports JSON fournis :
+
+1) Export du 03/08/2026 à 19:23:42
+   - Mission 819653102 : 22/06/2026 au 28/06/2026
+   - Mission 824212957 : 30/07/2026 au 02/08/2026
+   - Aucun chevauchement : absence de doublon dans cet ancien état des données.
+
+2) Export du 03/08/2026 à 19:26:41
+   - Mission 819653102 : 22/06/2026 au 30/07/2026
+   - Mission 824212957 : 30/07/2026 au 02/08/2026
+   - Chevauchement inclusif le 30/07/2026 : DOUBLON.
+
+Les deux missions ont la même signature :
+- DREN : 11 : ANALAMANGA
+- CISCO : vide / non applicable
+- ZAP : vide / non applicable
+- Activité : A3124
+- Produit : P012
+- Sous-activité : SA1095
+- Matricule : 999999
+
+CAUSE DU DÉFAUT
+---------------
+La version précédente exigeait à tort que DREN, CISCO et ZAP soient tous renseignés.
+Une mission réalisée au niveau DREN a normalement CISCO et ZAP vides : ces valeurs
+vides sont non applicables, mais elles empêchaient le dossier d'entrer dans le calcul.
+
+CORRECTIONS
+-----------
+- Les champs administratifs vides mais non applicables sont maintenant conservés
+  dans la signature sans bloquer le calcul.
+- Il suffit qu'au moins un niveau administratif soit renseigné, avec Activité,
+  Produit, Sous-activité, Matricule et dates valides.
+- Lecture renforcée des lignes « Personne (Matricule, Nom et Prénom...) » contenant
+  plusieurs matricules dans une même chaîne.
+- Les libellés exportés ne sont plus confondus avec la colonne d'anomalie.
+- Les JSON contenant la propriété « resultats » peuvent aussi être réimportés.
+
+RÉSULTAT ATTENDU
+----------------
+Les lignes 819653102 et 824212957 doivent afficher :
+DOUBLON — Matricule 999999 — Chevauchement : 30/07/2026
+
+Le nom de la personne n'entre pas dans la signature définie par l'utilisateur.
+La différence « MARIO RIVO » / « Daniel » ne supprime donc pas le doublon.
