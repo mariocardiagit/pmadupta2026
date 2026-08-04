@@ -1,0 +1,29 @@
+MISE À JOUR — EXPORTS HAUTE DÉFINITION ET IMPRESSION
+
+Onglet concerné : Analyse des Réalisations des STD (DREN, CISCO, ZAP)
+
+1. Export PNG HD
+- La largeur et la hauteur sont calculées dynamiquement selon :
+  * les dimensions actuelles du graphique ;
+  * le nombre de séries ;
+  * le nombre de périodes ou de missions ;
+  * le type de graphique (notamment le Gantt).
+- Les dimensions finales sont inscrites dans le nom du fichier et dans son en-tête.
+
+2. Export JPEG HD
+- Même calcul dynamique que pour le PNG.
+- Qualité JPEG réglée à 96 %.
+
+3. Export individuel et global
+- Boutons PNG HD et JPEG HD pour DREN, CISCO et ZAP.
+- Boutons PNG HD et JPEG HD pour l’ensemble des trois niveaux.
+- En affichage individuel, les images sont placées dans une archive ZIP.
+
+4. Partage
+- Les images partagées sont désormais préparées en PNG haute définition.
+
+5. Impression
+- Bouton Imprimer pour chaque niveau.
+- Bouton Imprimer pour les trois niveaux.
+- Une fenêtre d’impression dédiée est produite avec une image HD par page.
+- Mise en page proposée : A3 paysage pour conserver la lisibilité des graphiques longs.
