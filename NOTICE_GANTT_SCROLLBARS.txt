@@ -1,0 +1,20 @@
+CORRECTION — DIAGRAMME DE PÉRIODES (GANTT) AVEC DÉFILEMENT
+
+Fichiers utilisés :
+- tableau_bord_kobo.html
+- app.js
+- style.css
+- semantic.js
+- dictionnaire.xlsx
+
+Modifications :
+1. Scrollbar horizontale automatique pour parcourir les longues périodes.
+2. Scrollbar verticale automatique lorsque de nombreuses missions sont affichées.
+3. Largeur du diagramme calculée selon la graduation temporelle choisie : jour, semaine, mois, trimestre, semestre ou année.
+4. Hauteur calculée selon le nombre réel de missions afin d'éviter la compression et la superposition des barres.
+5. Même comportement en affichage groupé et en affichage individuel.
+6. Les scrollbars ne s'affichent que si le contenu dépasse la zone visible.
+7. Le diagramme conserve la règle : début de barre = date de début OM missionnaire ; fin de barre = date de fin OM missionnaire ; étiquette = valeur de réalisation.
+
+Déploiement GitHub Pages :
+Remplacer les cinq fichiers à la racine du dépôt, puis effectuer Ctrl + F5.
