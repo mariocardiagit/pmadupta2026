@@ -1,0 +1,9 @@
+Amélioration des noms DREN, CISCO et ZAP visibles sur les courbes :
+
+- L’espace à droite est calculé automatiquement selon le nom le plus long.
+- Les libellés ne sont plus coupés par le bord droit du Canvas.
+- L’anti-chevauchement utilise un espacement vertical renforcé.
+- Les libellés proches de zéro sont répartis automatiquement vers le haut.
+- Des traits de liaison relient chaque nom à l’extrémité réelle de sa courbe.
+- Les légendes Chart.js restent visibles sous les graphiques.
+- Les noms restent intégrés dans les exports PNG, JPEG et Word.
