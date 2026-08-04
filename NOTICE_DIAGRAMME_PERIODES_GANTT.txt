@@ -1,0 +1,40 @@
+TABLEAU DE BORD KOBO — ANALYSE DES RÉALISATIONS PAR PÉRIODE
+Version finale : 04/08/2026
+
+FICHIERS À PUBLIER À LA RACINE DU DÉPÔT GITHUB
+- tableau_bord_kobo.html
+- app.js
+- style.css
+- semantic.js
+- dictionnaire.xlsx
+
+CORRECTION PRINCIPALE
+Ajout du type de graphique : « Diagramme de périodes (Gantt) » dans l’onglet
+« Analyse des Réalisations des STD (DREN, CISCO, ZAP) ».
+
+RÈGLES DU DIAGRAMME
+- Axe X : temps.
+- Borne gauche : plus petite « Date debut realisation dans om missionnaire ».
+- Borne droite : plus grande « Date fin realisation dans om missionnaire ».
+- Chaque barre commence à la date de début et se termine à la date de fin.
+- La valeur de réalisation est écrite dans la barre ou à son extrémité.
+- L’axe Y affiche les entités et les missions/sous-activités.
+- Les infobulles indiquent l’entité, le début, la fin, la valeur et la sous-activité.
+- La légende permet de masquer/réafficher une entité.
+
+AFFICHAGE GROUPÉ ET INDIVIDUEL
+- Affichage groupé : toutes les missions sélectionnées d’un niveau sont réunies.
+- Affichage individuel : un graphique est généré pour chaque DREN, CISCO ou ZAP.
+
+TYPE DE DONNÉES
+Le diagramme Gantt fonctionne en « Données détaillées » : une ligne par réalisation.
+Le mode « Données cumulées » est automatiquement désactivé pour ce graphique.
+Les autres types de graphiques conservent les modes détaillé et cumulé.
+
+ZOOM TEMPOREL
+Pour le diagramme Gantt, Jour/Semaine/Mois/Trimestre/Semestre/Année contrôle
+la densité de la graduation temporelle. Les barres conservent toujours leurs dates exactes.
+
+DÉPLOIEMENT
+Remplacer les cinq fichiers correspondants sur GitHub, attendre la publication de GitHub Pages,
+puis recharger la page avec Ctrl + F5.
