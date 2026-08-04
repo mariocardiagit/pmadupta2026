@@ -1,0 +1,15 @@
+Corrections ajoutées pour le diagramme de périodes (Gantt) :
+
+1. L’axe temporel X du Gantt est explicitement borné entre :
+   - la date de début minimale des réalisations ;
+   - la date de fin maximale des réalisations.
+
+2. Les dates de début ET les dates de fin des réalisations sont désormais rendues visibles
+   sur l’axe des abscisses X (sans devoir survoler l’infobulle).
+
+3. La largeur de la zone Gantt a été recalculée à partir :
+   - de la période temporelle couverte ;
+   - du nombre de bornes temporelles visibles (débuts + fins).
+
+4. Le message d’aide du Gantt précise maintenant que les dates de début et de fin
+   sont visibles sur l’axe X.

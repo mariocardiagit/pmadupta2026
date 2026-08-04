@@ -1,0 +1,16 @@
+AJOUT DES FILTRES DATES OM MISSIONNAIRE — ONGLETS 1 ET 10
+
+Onglet 1 : Visualisation
+- Ajout du champ « Date debut realisation dans om missionnaire ».
+- Ajout du champ « Date fin realisation dans om missionnaire ».
+- Le filtre de début conserve les lignes dont la date de début OM est égale ou postérieure à la date choisie.
+- Le filtre de fin conserve les lignes dont la date de fin OM est égale ou antérieure à la date choisie.
+- Les deux critères figurent dans les exports des critères de recherche.
+
+Onglet 10 : Nombre Soumissions Kobo
+- Ajout des deux mêmes champs de dates OM.
+- Les dates filtrent la base avant le regroupement sémantique et avant le calcul des occurrences.
+- Il faut cliquer sur « Démarrer l’IA de Consolidation » après modification des dates afin de recalculer les nombres.
+- Ajout du bouton « Effacer dates ».
+- Les tableaux et exports de consolidation contiennent les dates de début et de fin OM.
+- Une erreur explicite est affichée si la date de début est postérieure à la date de fin.
