@@ -1,0 +1,28 @@
+MISE À JOUR : SCROLLBARS ADAPTATIVES ET LÉGENDES DES GRAPHIQUES
+
+1. Ajustement automatique du contenu
+- Les dimensions internes de chaque graphique sont calculées selon le type de graphique,
+  le nombre de catégories, le nombre de séries, la longueur des libellés et l’orientation.
+- Les graphiques simples restent fluides et occupent la largeur disponible.
+- Les graphiques denses disposent automatiquement d’une scène plus large ou plus haute.
+- Les dimensions particulières du diagramme de périodes (Gantt) sont conservées.
+
+2. Scrollbars uniquement lorsqu’elles sont utiles
+- La scrollbar horizontale apparaît seulement si la largeur calculée dépasse la zone visible.
+- La scrollbar verticale apparaît seulement si la hauteur calculée dépasse la hauteur maximale visible.
+- Aucun espace de scrollbar n’est réservé lorsque le graphique tient entièrement dans son conteneur.
+- Le calcul est refait après un changement d’onglet, un redimensionnement de fenêtre ou la création dynamique d’un graphique.
+
+3. Légendes
+- La légende Chart.js est activée pour les graphiques comportant plusieurs séries.
+- Elle est également activée pour les diagrammes circulaires, en anneau, polaires et radar.
+- Les légendes HTML interactives existantes des graphiques temporels et des réalisations restent prioritaires,
+  afin d’éviter les doublons.
+- Les légendes intégrées dans le canvas restent visibles dans les exports PNG et JPEG.
+
+Fichiers essentiels :
+- tableau_bord_kobo.html
+- app.js
+- style.css
+- semantic.js
+- dictionnaire.xlsx
