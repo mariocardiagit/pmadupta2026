@@ -1,0 +1,12 @@
+MISE À JOUR — ANALYSE DES RÉALISATIONS DES STD
+
+1. Le « Diagramme de périodes (Gantt) » est désormais sélectionné par défaut dans la liste « Type de graphique ».
+2. Le bouton « Réinitialiser » rétablit également le Gantt comme graphique par défaut.
+3. Un encadré visuel met en avant les quatre dimensions représentées simultanément :
+   - Date de début → Date de fin
+   - Entité concernée
+   - Valeur de réalisation
+   - Durée de la réalisation
+4. L’encadré rappelle que la borne gauche correspond à la plus petite date de début et la borne droite à la plus grande date de fin.
+5. Les autres types de graphiques restent disponibles dans la liste déroulante.
+6. Les scrollbars horizontale et verticale du Gantt sont conservées.

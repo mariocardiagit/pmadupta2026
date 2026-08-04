@@ -1,0 +1,16 @@
+MISE À JOUR — DESCRIPTION DYNAMIQUE DU TYPE DE GRAPHIQUE
+
+Dans l’onglet « Analyse des Réalisations des STD », une description courte et spécifique
+s’affiche désormais immédiatement sous les contrôles dès qu’un type de graphique est sélectionné.
+
+Pour chaque graphique, l’encadré précise :
+- son rôle principal ;
+- l’analyse qu’il facilite ;
+- ce qui le distingue des autres graphiques.
+
+Exemple pour le Gantt :
+« Gantt : durée et chevauchement des périodes ».
+Il est identifié comme le seul graphique de la liste qui conserve simultanément la date de début
+et la date de fin, et qui rend visibles la durée ainsi que les chevauchements.
+
+Le Diagramme de périodes (Gantt) reste sélectionné par défaut.

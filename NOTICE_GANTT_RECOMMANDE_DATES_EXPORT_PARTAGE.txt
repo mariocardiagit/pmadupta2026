@@ -1,0 +1,12 @@
+CORRECTIONS — GANTT RECOMMANDÉ, DATES SUR LES AXES, EXPORT ET PARTAGE
+==========================================================================
+
+1. Le libellé « DIAGRAMME RECOMMANDÉ » est affiché dans la description dynamique lorsque le type « Diagramme de périodes (Gantt) » est sélectionné.
+2. Les bornes temporelles sont affichées sur chaque graphique :
+   - Date de début minimale (borne gauche)
+   - Date de fin maximale (borne droite)
+   Le Gantt force également l’affichage de ces deux dates exactes parmi les graduations de son axe X.
+3. Des boutons distincts « Exporter » et « Partager » ont été ajoutés pour les graphiques DREN, CISCO et ZAP.
+4. Un bouton global « Partager les 3 graphiques » a été ajouté.
+5. Le partage utilise l’API de partage du navigateur. Quand celle-ci n’est pas disponible, le fichier PNG ou ZIP est téléchargé afin d’être joint manuellement.
+6. Le Diagramme de périodes (Gantt) reste sélectionné par défaut.
