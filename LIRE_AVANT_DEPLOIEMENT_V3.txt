@@ -1,0 +1,20 @@
+MISE A JOUR — ANALYSE DES REALISATIONS V3
+
+La capture fournie montrait encore l'ancienne version du fichier tableau_bord_kobo.html.
+
+Pour un test sans cache :
+1. Televerser TOUS les fichiers de ce dossier a la racine du depot GitHub.
+2. Ouvrir d'abord tableau_bord_kobo_v3.html.
+3. Verifier la presence du badge vert :
+   "Version V3 active — 15 types de graphiques · Zoom temporel · Affichage groupé/individuel · Filtres OM missionnaire".
+4. Une fois le test valide, utiliser tableau_bord_kobo.html comme adresse habituelle.
+
+Fichiers indispensables pour cette version :
+- tableau_bord_kobo.html (ou tableau_bord_kobo_v3.html)
+- app-v3.js
+- style-v3.css
+- semantic.js
+- dictionnaire.xlsx
+
+Les fichiers app.js et style.css sont inclus comme copies de compatibilite.
+Identifiant de version : 20260804-0839-v3
