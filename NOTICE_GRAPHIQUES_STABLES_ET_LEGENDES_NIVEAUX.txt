@@ -1,0 +1,27 @@
+CORRECTION DE L'AFFICHAGE DES GRAPHIQUES
+
+1. Les conteneurs ne forcent plus systématiquement de grandes dimensions.
+   Un graphique simple reste fluide et s'adapte à la largeur de sa carte.
+
+2. Les dimensions sont agrandies uniquement lorsque la densité le justifie :
+   - beaucoup de catégories sur l'axe X ;
+   - nombreux libellés dans un graphique horizontal ;
+   - très grand nombre de points ou de séries ;
+   - diagramme de périodes (Gantt).
+
+3. Les scrollbars sont conditionnelles :
+   - scrollbar horizontale seulement si la largeur calculée dépasse la carte ;
+   - scrollbar verticale seulement si la hauteur calculée dépasse la zone visible ;
+   - aucune scrollbar inutile dans un graphique simple.
+
+4. Les graphiques avancés K-Means, Jenks et DBSCAN ne conservent plus la hauteur
+   HTML fixe de 300 px qui pouvait provoquer des chevauchements et des coupures.
+
+5. Les 36 graphiques Canvas appartiennent à un niveau DREN, CISCO ou ZAP.
+   Le niveau est ajouté dans les libellés des légendes Chart.js :
+   - DREN — ...
+   - CISCO — ...
+   - ZAP — ...
+
+6. Les légendes HTML interactives existantes restent prioritaires afin d'éviter
+   l'affichage de deux légendes identiques dans le même graphique.
