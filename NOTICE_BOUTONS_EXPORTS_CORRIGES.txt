@@ -1,0 +1,24 @@
+CORRECTION DES BOUTONS QUI NE RÉPONDAIENT PLUS
+
+La cause identifiée était précise : plusieurs boutons existaient dans l'interface HTML,
+mais leurs fonctions JavaScript avaient disparu de la version récente.
+
+Boutons réparés dans les graphiques avancés K-Means, Jenks et DBSCAN :
+- Exporter PNG ;
+- Exporter JPEG ;
+- Exporter Word DOCX ;
+- Partager.
+
+Autres fonctions rétablies afin d'éviter le même problème dans l'onglet Analyse :
+- export des graphiques temporels PNG/JPEG ;
+- rapports Word DOCX et PDF ;
+- exports XLSX, CSV, HTML et JSON ;
+- partage des graphiques et rapports ;
+- export manuel de la base Kobo au format JSON.
+
+Comportement de partage :
+- le partage natif est utilisé quand le navigateur l'autorise ;
+- sinon, le fichier est téléchargé automatiquement.
+
+Les exports graphiques sont générés sur fond blanc et dans une dimension supérieure
+à celle du graphique affiché à l'écran.

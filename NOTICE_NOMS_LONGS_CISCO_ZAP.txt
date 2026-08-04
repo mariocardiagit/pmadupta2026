@@ -1,0 +1,9 @@
+Gestion des noms très longs des CISCO et ZAP :
+
+- Les noms sont automatiquement répartis sur plusieurs lignes (jusqu’à 3 lignes).
+- La largeur des étiquettes est plafonnée afin de ne pas écraser la zone du graphique.
+- Une ellipse indique qu’un nom exceptionnellement long a été abrégé dans l’étiquette visuelle.
+- Le nom complet reste disponible dans la légende et dans l’infobulle.
+- La hauteur du graphique augmente automatiquement selon le nombre d’entités et la longueur des noms.
+- L’anti-chevauchement tient compte de la hauteur réelle de chaque étiquette multiligne.
+- Les étiquettes restent visibles dans les exports PNG, JPEG et Word.
