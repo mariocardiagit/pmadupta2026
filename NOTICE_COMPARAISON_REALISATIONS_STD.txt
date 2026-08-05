@@ -1,0 +1,47 @@
+NOUVEL ONGLET 4 : COMPARAISON DES RÉALISATIONS ENTRE LES STD
+
+Le module « Analyse des Réalisations des STD » contient maintenant :
+4 : Comparaison des Réalisations entre les STD (DREN, CISCO, ZAP)
+
+Il comporte quatre sous-onglets :
+- DREN
+- CISCO
+- ZAP
+- STD (regroupement des trois niveaux)
+
+Chaque sous-onglet contient :
+1. La problématique à résoudre.
+2. Une démonstration mathématique explicite.
+3. Un seuil de proximité réglable (10 % par défaut).
+4. Trois modes de calcul :
+   - chaque soumission ;
+   - moyenne par entité et sous-activité ;
+   - somme par entité et sous-activité.
+5. Un filtre par sous-activité et par dates de réalisation.
+6. Un graphique de proximité :
+   - axe X = valeur numérique de la réalisation ;
+   - axe Y = sous-activité ;
+   - point et étiquette = DREN, CISCO ou ZAP.
+7. Un diagramme de périodes :
+   - date de début ;
+   - date de fin ;
+   - valeur ;
+   - entité ;
+   - sous-activité.
+8. Un tableau détaillé des paires d’entités comparées.
+9. Une interprétation automatique :
+   - paire la plus proche ;
+   - sous-activité présentant la plus forte convergence ;
+   - nombre de groupes de proximité ;
+   - chevauchement temporel moyen ;
+   - sous-activité la plus dispersée.
+
+MÉTHODE MATHÉMATIQUE
+Deux valeurs x_i et x_j d’une même sous-activité sont considérées proches lorsque :
+
+Δ%(i,j) = 200 × |x_i - x_j| / (|x_i| + |x_j|) ≤ τ
+
+où τ est le seuil réglable par l’utilisateur.
+
+Le chevauchement temporel est calculé séparément afin de ne pas confondre
+la proximité numérique et la simultanéité des périodes.
