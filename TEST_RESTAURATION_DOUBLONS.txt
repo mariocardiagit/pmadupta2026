@@ -1,0 +1,18 @@
+TESTS DE RÉGRESSION — DÉTECTION DES DOUBLONS
+
+Règle testée :
+Même DREN/CISCO/ZAP + activité + produit + sous-activité + matricule/CIN
+ET chevauchement inclusif : début1 <= fin2 ET début2 <= fin1.
+
+Résultats :
+- Deux périodes se touchant le 30/07/2026 : DOUBLON détecté.
+- Deux périodes séparées : MISSION DISTINCTE.
+- Date de fin manquante : VÉRIFICATION IMPOSSIBLE.
+- Date de fin antérieure à la date de début : ANOMALIE DE DATE.
+- Matricules différents : pas de doublon entre eux.
+
+Test sur la sauvegarde Kobo réelle de 6 soumissions :
+- Matricule 999999 détecté entre les soumissions 819653102 et 824212957.
+- Périodes : 22/06/2026 → 30/07/2026 et 30/07/2026 → 02/08/2026.
+- Chevauchement inclusif identifié : 30/07/2026.
+- Le matricule 831204, présent dans les mêmes deux ordres de mission, est également détecté selon la même règle.
