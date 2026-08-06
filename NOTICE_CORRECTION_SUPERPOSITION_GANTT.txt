@@ -1,0 +1,18 @@
+CORRECTION DE LA SUPERPOSITION DANS « RÉALISATIONS DES DREN / CISCO / ZAP »
+
+Cause identifiée :
+Le plug-in d'étiquettes du module « Comparaison des Réalisations » était enregistré globalement
+et s'exécutait aussi sur le diagramme Gantt principal. Les dates et les valeurs étaient donc
+dessinées deux fois : une fois par le plug-in du Gantt principal et une seconde fois par le
+plug-in de comparaison. Cela créait les mots superposés visibles sur la capture.
+
+Correction appliquée :
+- Les plug-ins de comparaison exigent désormais l'option explicite display:true.
+- Ils continuent de fonctionner dans « Diagramme des périodes de réalisation ».
+- Ils ne s'exécutent plus dans « Réalisations des DREN », « Réalisations des CISCO » ou
+  « Réalisations des ZAP ».
+- Le Gantt principal conserve une seule date de début, une seule date de fin et une seule valeur
+  par réalisation.
+- La détection des doublons par chevauchement restaurée dans la version précédente est conservée.
+
+Après remplacement sur GitHub Pages : attendre le déploiement puis recharger avec Ctrl+F5.
