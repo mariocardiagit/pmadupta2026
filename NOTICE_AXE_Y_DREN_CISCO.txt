@@ -1,7 +1,0 @@
-Extension demandée : Réalisations des CISCO
-
-Ajouts :
-- 4 onglets/boutons dans Réalisations des CISCO : Activité, Produit, Sous Activité, Sous Produit.
-- Axe Y du Gantt CISCO synchronisé : code CISCO : nom CISCO - dimension sélectionnée.
-- Tableau détaillé CISCO synchronisé avec la dimension sélectionnée.
-- Le fonctionnement existant des DREN est conservé.
