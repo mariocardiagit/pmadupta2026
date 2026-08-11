@@ -1,7 +1,0 @@
-Correction ciblée : dans K-Means CISCO, le libellé « 112 : CISCO ARIVONIMAMO » pouvait être masqué.
-
-Modifications apportées :
-- élargissement automatique de la zone des petits groupes (2 à 4 entités) ;
-- affichage des noms des entités aussi sur l’axe X ;
-- augmentation de la marge basse du graphique pour les libellés de l’axe X ;
-- conservation des étiquettes flottantes près des points.
