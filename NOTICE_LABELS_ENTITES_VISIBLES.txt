@@ -1,5 +1,0 @@
-Correction : affichage visuel direct des noms des DREN, CISCO et ZAP sur les graphiques de soumissions par période.
-- Les noms des entités sont désormais affichés directement à droite des courbes.
-- Les légendes classiques Chart.js sont conservées en bas du graphique.
-- Un anti-chevauchement vertical limite le recouvrement des libellés.
-- Le rendu exporté PNG/JPEG/Word récupère aussi ces libellés car ils sont dessinés sur le canvas.
