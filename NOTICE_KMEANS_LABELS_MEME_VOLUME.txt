@@ -1,6 +1,0 @@
-Correction K-Means : les entités ayant le même volume sont désormais réparties dans plusieurs rangées d’étiquettes.
-
-- 105, 112 et 117 CISCO ne se recouvrent plus lorsque leur volume vaut 1.
-- Chaque étiquette reste reliée à son point.
-- Un balayage de secours recherche une zone libre si les positions préférentielles sont occupées.
-- Les noms restent également visibles sur l’axe X et dans le tableau détaillé.
