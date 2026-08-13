@@ -1,0 +1,15 @@
+Affichage explicite des statuts dans l'Analyse des Réalisations des STD.
+
+Règles appliquées aux DREN, CISCO et ZAP :
+- Toute réalisation présentant une anomalie de liaison affiche en clair : « Anomalies de liaison ».
+- Toute réalisation détectée comme doublon par la règle signature stricte + chevauchement inclusif des dates OM affiche en clair : « DOUBLON ».
+- Si une réalisation cumule les deux statuts, les deux mentions sont affichées.
+
+Emplacements :
+- Axe Y et étiquettes du diagramme Gantt.
+- Infobulles du diagramme Gantt.
+- Légendes / noms de séries des graphiques classiques agrégés.
+- Tableaux détaillés DREN, CISCO et ZAP avec deux colonnes explicites.
+- Exports Excel XLSX avec deux colonnes explicites.
+
+La détection des doublons reste celle restaurée par chevauchement des périodes OM missionnaire.
