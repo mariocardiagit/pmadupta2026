@@ -1,0 +1,9 @@
+Version étendue : DREN + CISCO + ZAP disposent désormais des quatre onglets de dimension dans « Réalisations des STD » : Activité, Produit, Sous Activité, Sous Produit.
+
+Pour ZAP, l’axe Y du Gantt affiche selon le choix :
+- code ZAP : nom ZAP - Activité
+- code ZAP : nom ZAP - Produit
+- code ZAP : nom ZAP - Sous Activité
+- code ZAP : nom ZAP - Sous Produit
+
+Le tableau détaillé ZAP est synchronisé avec le choix. Les statuts « Anomalies de liaison » et « DOUBLON » ajoutés dans la version précédente sont conservés.
