@@ -1,0 +1,10 @@
+Réalisations des ZAP — agrégation hiérarchique
+
+Sous Activité : vue élémentaire inchangée.
+Produit : somme des Réalisations de toutes les Sous Activités du même Produit pour la même ZAP.
+Activité : somme des Réalisations de tous les Produits de la même Activité pour la même ZAP.
+Pour Produit et Activité, l’axe X affiche la somme des jours inclusifs, pas une période continue artificielle.
+Le bouton « Afficher les Détails » ouvre une popup montrant les termes exacts de la formule et les dates élémentaires.
+Les statuts Anomalies de liaison et DOUBLON sont propagés à l’agrégat si au moins un composant est concerné.
+
+Exemple : 34 + 73 = 107 ; 24/07→28/07 = 5 jours ; 03/08→12/08 = 10 jours ; total = 15 jours.

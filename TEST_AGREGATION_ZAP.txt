@@ -1,0 +1,3 @@
+34 + 73 = 107
+5 + 10 = 15 jours
+Attendu P024 : Réalisation totale 107 ; total jours 15.
