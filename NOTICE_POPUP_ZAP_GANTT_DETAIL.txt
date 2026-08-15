@@ -1,0 +1,14 @@
+Correction de la fenêtre POPUP « Afficher les Détails » des Réalisations ZAP.
+
+La popup affiche désormais :
+- un graphique Gantt détaillé des réalisations sources ;
+- axe X = dates début/fin OM missionnaire ;
+- axe Y = code ZAP : nom ZAP - Produit - Sous Activité ;
+- dates de début et de fin sur chaque barre ;
+- valeur de réalisation ;
+- statuts Anomalies de liaison et DOUBLON ;
+- réalisation totale et jours cumulés ;
+- formule mathématique d’agrégation ;
+- tableau complet des composantes.
+
+La vue Produit/Activité principale reste agrégée : le Gantt de la popup sert à expliquer en détail les sources du calcul sans fabriquer de fausse période continue.
