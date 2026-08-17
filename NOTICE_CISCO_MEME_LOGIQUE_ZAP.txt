@@ -1,0 +1,9 @@
+Réalisations des CISCO — même logique que Réalisations des ZAP
+
+- Les 4 onglets sont présents : Activité, Produit, Sous Activité, Sous Produit.
+- Sous Activité : réalisations élémentaires, dates début/fin conservées.
+- Produit : somme des réalisations des Sous Activités + somme des jours inclusifs.
+- Activité : somme des réalisations des Produits + somme des jours.
+- Bouton Afficher les Détails pour les vues Produit/Activité.
+- Popup CISCO détaillée avec graphique Gantt, formule, composants, dates, durées, valeurs, Anomalies de liaison et DOUBLON.
+- Les fonctions ZAP déjà présentes sont conservées.
