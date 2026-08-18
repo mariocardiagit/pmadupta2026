@@ -1,0 +1,9 @@
+Réalisations des DREN — même logique hiérarchique que ZAP et CISCO
+
+- 4 onglets : Activité, Produit, Sous Activité, Sous Produit.
+- Produit = somme des réalisations de ses Sous Activités.
+- Activité = somme des réalisations de ses Produits.
+- Pour Produit/Activité : axe X = somme des jours inclusifs de réalisation.
+- Bouton Afficher les Détails avec popup de décomposition complète.
+- Sous Activité / Sous Produit conservent l’affichage détaillé par dates.
+- Statuts Anomalies de liaison et DOUBLON propagés dans les agrégats.
