@@ -1,0 +1,9 @@
+CORRECTION : "Erreur interne de traitement : v is not defined"
+
+Cause : dans getJenksBreaks(), la variable v était déclarée avec let à l’intérieur de la boucle m, puis utilisée après cette boucle. Elle était donc hors portée.
+
+Correction : v est maintenant déclarée dans la portée de la boucle l et mise à jour dans la boucle m.
+
+Les modules Réalisations DREN/CISCO/ZAP, les 4 onglets Activité/Produit/Sous Activité/Sous Produit, les agrégations hiérarchiques, les popups de détails, les statuts Anomalies de liaison / DOUBLON et la détection des doublons par chevauchement sont conservés.
+
+Le cache-buster HTML a aussi été modifié pour forcer le navigateur à charger le nouveau app.js après publication GitHub Pages.
