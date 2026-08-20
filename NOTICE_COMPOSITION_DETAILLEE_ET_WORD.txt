@@ -1,0 +1,9 @@
+MODIFICATIONS — COMPOSITION HIÉRARCHIQUE + WORD
+
+1. Les mentions abstraites « 1 Produit(s) », « 2 Produit(s) » ou « N Sous Activité(s) » sont remplacées par une composition détaillée lisible.
+   Exemple Activité : 2 Produits : 1. P024 ... = 107 (15 jours ; 2 Sous Activités) ; 2. P019 ... = 43 (... jours).
+   Exemple Produit : 2 Sous Activités : 1. SA1386 ... = 34 (5 jours) ; 2. SA1388 ... = 73 (10 jours).
+2. La colonne est renommée « Composition détaillée ».
+3. Les infobulles des graphiques agrégés reprennent également cette composition.
+4. Un bouton Word a été ajouté à Réalisations des DREN, CISCO et ZAP.
+5. Le Word contient le ou les graphiques actuellement affichés ainsi que le tableau détaillé correspondant, avec composition, durée, valeur, Anomalies de liaison et DOUBLON.
