@@ -1,0 +1,16 @@
+Correction selon le document utilisateur du 21/08/2026.
+
+Dans les vues Activité (DREN, CISCO, ZAP), la colonne Composition détaillée affiche désormais :
+- chaque Produit réellement additionné (1., 2., 3., ...),
+- puis sous chaque Produit, les Sous Activités qui le composent avec une numérotation hiérarchique (1.1., 1.2., 2.1., 2.2., ...),
+- la valeur et la durée de chaque Sous Activité,
+- les statuts Anomalies de liaison / DOUBLON lorsqu’ils existent.
+
+Exemple attendu :
+1. P017 ... = 37 · 59 jours · 1 Sous Activité
+   1.1. SA1205 ... = 37 · 59 jours
+2. P016 ... = 80 · 38 jours · 2 Sous Activités
+   2.1. SA1207 ... = 39 · 24 jours
+   2.2. SA1206 ... = 41 · 14 jours
+
+La même composition hiérarchique est utilisée dans le texte des infobulles et dans l’export Word.
