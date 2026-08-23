@@ -1,0 +1,15 @@
+CONTROLE JSON AVANT IMPORTATION
+
+Cette version ajoute :
+- validation syntaxique JSON ;
+- reconnaissance de la structure et comptage des enregistrements ;
+- contrôles de cohérence des lignes / identifiants ;
+- empreinte SHA-256 des enregistrements pour les nouvelles sauvegardes ;
+- SHA-256 individuel des pièces jointes Base64 et empreinte globale ;
+- refus automatique en cas d'empreinte non conforme ;
+- prise en charge d'une signature numérique ECDSA P-256 si une clé publique officielle est configurée ;
+- distinction claire entre intégrité et authenticité.
+
+IMPORTANT : le site étant un site client public, aucune clé privée n'est stockée dans le JavaScript. Les exports du navigateur sont donc vérifiables par SHA-256 mais marqués non signés. Pour une authenticité cryptographique, la signature doit être créée hors du navigateur avec une clé privée sécurisée et la clé publique correspondante peut être configurée dans KOBO_BACKUP_PUBLIC_KEY_JWK.
+
+Les anciens JSON et les JSON externes restent importables s'ils sont structurés correctement, mais sont signalés comme non authentifiés / sans empreinte historique.
