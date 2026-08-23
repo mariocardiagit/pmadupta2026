@@ -1,0 +1,20 @@
+PMA/PTA 2026 — SERVICE SECURISE GRATUIT RECOMMANDE PAR DEFAUT
+===============================================================
+
+Cette version présente Cloudflare Workers Free comme fournisseur recommandé par défaut
+pour le téléchargement authentifié des pièces jointes KoboToolbox protégées.
+
+IMPORTANT : « recommandé par défaut » ne signifie pas « URL universelle déjà active ».
+Chaque déploiement possède sa propre URL workers.dev et doit contenir le token Kobo
+comme SECRET côté serveur. Le token ne doit jamais être placé dans app.js ou HTML.
+
+NOUVEAUTES
+- Badge visuel « CLOUDFLARE WORKERS FREE — RECOMMANDÉ PAR DÉFAUT ».
+- Champ URL du Worker sécurisé.
+- Bouton Enregistrer.
+- Bouton Tester.
+- Bouton Effacer.
+- Test /?health=1 du Worker sans divulguer le token.
+- Test de bout en bout sur une vraie pièce jointe Kobo lorsqu'une pièce jointe est chargée.
+- Message de réussite uniquement si le Worker, le secret Kobo et le téléchargement sont opérationnels.
+- Le verdict strict COMPLETE/PARTIAL reste inchangé : COMPLETE seulement si 100 % des pièces jointes sont incorporées.

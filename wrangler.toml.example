@@ -1,0 +1,11 @@
+name = "pma-kobo-attachment-proxy"
+main = "kobo_attachment_proxy_worker.js"
+compatibility_date = "2026-08-23"
+
+[vars]
+KOBO_ASSET_UID = "ath6cv2NrXEUijffeKJqSf"
+ALLOWED_ORIGIN = "https://mariocardigit.github.io"
+
+# IMPORTANT : ne mettez PAS KOBO_API_TOKEN ici.
+# Après déploiement, ajoutez-le comme secret :
+# npx wrangler secret put KOBO_API_TOKEN

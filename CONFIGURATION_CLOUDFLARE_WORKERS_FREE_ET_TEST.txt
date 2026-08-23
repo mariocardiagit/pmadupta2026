@@ -1,0 +1,20 @@
+CONFIGURATION CLOUDFLARE WORKERS FREE — UNE SEULE FOIS
+======================================================
+
+1. Créer un compte Cloudflare et un Worker.
+2. Déployer kobo_attachment_proxy_worker.js avec wrangler.toml.example.
+3. Renseigner KOBO_ASSET_UID et ALLOWED_ORIGIN dans la configuration du Worker.
+4. Enregistrer le token Kobo uniquement comme secret serveur :
+      npx wrangler secret put KOBO_API_TOKEN
+5. Déployer :
+      npx wrangler deploy
+6. Copier l'URL HTTPS workers.dev obtenue.
+7. Dans le tableau de bord :
+      JSON sauvegarde complète -> Service sécurisé -> coller l'URL -> Enregistrer -> Tester.
+8. Le message « TEST COMPLET RÉUSSI » confirme :
+      - Worker accessible,
+      - secret Kobo configuré,
+      - pièce jointe Kobo réellement téléchargeable via authentification.
+
+Le Worker fourni accepte ?health=1 pour le test de santé et ?url=<URL_KOBO> pour
+le téléchargement d'une pièce jointe autorisée. Il n'expose jamais le token.
