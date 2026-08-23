@@ -1,0 +1,14 @@
+CORRECTION DU CONTRÔLE DE COHÉRENCE DES DATES — START-GEOPOINT
+
+Version : 2026-08-23
+
+Correction principale :
+- Les champs géographiques KoboToolbox ne sont plus interprétés comme des dates.
+- start-geopoint, geopoint, _geolocation, latitude, longitude, altitude, accuracy, GPS et coordonnées sont explicitement exclus du moteur de détection temporelle.
+- Le champ start reste bien reconnu comme un horodatage lorsqu'il s'agit réellement du champ temporel KoboToolbox.
+- Les champs end, today, _submission_time, DATE_ENQ, DATE_DEBUT_REALISATION_dans_OM_Missionnaire et DATE_FIN_REALISATION_dans_OM_Missionnaire restent contrôlés normalement.
+
+Cas vérifié :
+backup_database_KOBOTOOLBOX_20260823_135847.json contient 14 enregistrements. Les 14 anciens avertissements provenaient tous de start-geopoint et constituaient des faux positifs. Après exclusion géographique, ces 14 avertissements ne doivent plus apparaître.
+
+Tous les mécanismes existants sont conservés : SHA-256, authenticité/signature lorsqu'elle est disponible, deux modes d'export JSON, Base64, remplacement complet de la source JSON et recalcul des tableaux/graphiques.
