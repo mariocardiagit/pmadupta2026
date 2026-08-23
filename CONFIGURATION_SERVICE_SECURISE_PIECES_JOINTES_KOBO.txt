@@ -1,0 +1,48 @@
+CONFIGURATION DU SERVICE SECURISE POUR PIECES JOINTES KOBOTOOLBOX
+===============================================================
+
+OBJECTIF
+--------
+Permettre au tableau de bord GitHub Pages de récupérer les pièces jointes Kobo protégées sans exposer le token API Kobo dans app.js.
+
+FICHIERS FOURNIS
+----------------
+- kobo_attachment_proxy_worker.js : exemple de backend Cloudflare Worker.
+- wrangler.toml.example : exemple de configuration.
+
+PRINCIPE
+--------
+Navigateur / GitHub Pages -> Worker sécurisé -> KoboToolbox
+Le navigateur transmet uniquement l'URL de la pièce jointe. Le Worker ajoute le token Kobo côté serveur.
+
+INSTALLATION TYPE AVEC WRANGLER
+--------------------------------
+1. Copier kobo_attachment_proxy_worker.js et adapter wrangler.toml.example.
+2. Définir :
+   KOBO_ASSET_UID = ath6cv2NrXEUijffeKJqSf
+   ALLOWED_ORIGIN = https://mariocardigit.github.io
+3. Enregistrer le token comme SECRET, jamais dans le fichier :
+   npx wrangler secret put KOBO_API_TOKEN
+4. Déployer :
+   npx wrangler deploy
+5. Copier l'URL HTTPS du Worker déployé.
+6. Dans le tableau de bord, sélectionner :
+   JSON sauvegarde complète — données + pièces jointes Base64
+7. Coller l'URL du Worker dans :
+   « Service sécurisé pour les pièces jointes Kobo protégées »
+8. Cliquer sur « Enregistrer », puis lancer l'export.
+
+SECURITE
+--------
+- Ne jamais mettre le token Kobo dans app.js, tableau_bord_kobo.html, GitHub ou localStorage.
+- Le Worker refuse les URL hors kf.kobotoolbox.org.
+- Le Worker limite les URL au chemin de pièces jointes de l'asset configuré.
+- ALLOWED_ORIGIN limite l'utilisation du Worker au site autorisé.
+- Aucun proxy CORS public n'est utilisé par le mécanisme d'export Base64 corrigé.
+
+VERDICT STRICT
+--------------
+- 61 / 61 -> COMPLETE_BASE64
+- 10 / 61 -> PARTIAL_BASE64
+- Toute sauvegarde partielle demande une confirmation avant téléchargement.
+- A la réimportation, le contrôleur indique explicitement qu'un PARTIAL_BASE64 n'est pas une sauvegarde autonome complète.

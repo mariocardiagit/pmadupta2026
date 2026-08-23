@@ -1,0 +1,14 @@
+CORRECTION SAUVEGARDE BASE64 SECURISEE - 2026-08-23
+
+1. Les proxys CORS publics (allorigins / corsproxy) ont été supprimés du mécanisme de sauvegarde des pièces jointes.
+2. Un service sécurisé optionnel peut être configuré dans l'interface lorsque le mode « JSON sauvegarde complète » est choisi.
+3. Le token API KoboToolbox ne doit JAMAIS être stocké dans app.js ni dans GitHub Pages. Il doit rester côté backend.
+4. Exemple de backend fourni : kobo_attachment_proxy_worker.js (Cloudflare Worker).
+5. Le backend limite les requêtes aux pièces jointes de l'asset Kobo configuré afin d'éviter un proxy ouvert / SSRF.
+6. Les erreurs temporaires HTTP 408, 425, 429, 500, 502, 503, 504 sont retentées automatiquement. HTTP 403 n'est pas traité comme temporaire.
+7. Verdict strict :
+   - 100 % des pièces jointes récupérées -> COMPLETE_BASE64
+   - au moins une pièce jointe absente -> PARTIAL_BASE64
+8. Un fichier partiel contient attachment_errors avec les détails des échecs.
+9. À la réimportation, le contrôleur affiche désormais clairement le ratio pièces jointes incorporées / déclarées et signale les sauvegardes partielles.
+10. Les JSON restent importables dans Power BI / Power Query via records ; attachments contient les fichiers Base64 disponibles.
