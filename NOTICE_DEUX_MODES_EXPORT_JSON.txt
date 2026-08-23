@@ -1,0 +1,15 @@
+DEUX MODES D’EXPORT JSON KOBO
+
+1. JSON standard — données Kobo
+- Recommandé pour Power BI, Power Query, Excel, R, Python et l’analyse de données.
+- Fichier plus léger.
+- Exporte tous les enregistrements Kobo chargés ; les pièces jointes restent référencées par leurs métadonnées/URL.
+
+2. JSON sauvegarde complète — données + pièces jointes Base64
+- Recommandé pour une sauvegarde autonome complète.
+- Incorpore les images, PDF, audio et autres pièces jointes accessibles en Base64.
+- Beaucoup plus volumineux et plus lent à produire.
+- Le JSON reste valide et importable dans Power BI ; les données tabulaires se trouvent dans records et les pièces jointes dans attachments.
+- Les pièces jointes impossibles à récupérer sont consignées dans attachment_errors au lieu de faire échouer silencieusement toute la sauvegarde.
+
+Le bouton principal « Exporter manuellement la base Kobo (Fichier JSON) » est conservé.

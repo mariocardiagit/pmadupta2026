@@ -1,0 +1,9 @@
+SOURCE DE DONNEES ET SAUVEGARDE JSON — 23/08/2026
+
+- Deux boutons radio : KOBOTOOLBOX / Fichier JSON.
+- Mode Kobo : téléchargement paginé de tous les enregistrements disponibles via data.json, puis recalcul de tous les tableaux et graphiques.
+- Export manuel Kobo : backup_database_KOBOTOOLBOX_YYYYMMDD.json. Le fichier est un tableau JSON standard contenant les enregistrements bruts, afin de rester facilement importable dans Power BI / Power Query.
+- Mode JSON : le fichier importé remplace la source de données et tous les graphiques/tableaux sont recalculés automatiquement.
+- Les libellés « Sauvegarde hors-ligne de la base KoboToolbox », « Importer manuellement la base Kobo (Fichier JSON) » et « Exporter manuellement la base Kobo (Fichier JSON) » sont conservés.
+
+Limite importante : le backup couvre les enregistrements de données de l'asset accessibles via l'API data.json. Il ne sauvegarde pas les pièces jointes binaires, les paramètres du compte KoboToolbox ni les autres assets du serveur.
