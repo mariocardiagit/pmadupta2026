@@ -1,0 +1,10 @@
+REMPLACEMENT STRICT D'UN FICHIER JSON PAR UN AUTRE
+
+Comportement désormais appliqué :
+1. Dès qu'un nouveau fichier JSON est choisi, toutes les données actuellement chargées sont vidées.
+2. Tous les tableaux et graphiques sont remis à zéro avant lecture du nouveau fichier.
+3. Le nouveau JSON devient l'unique source de données active.
+4. Tous les tableaux et graphiques sont reconstruits uniquement à partir de ses enregistrements.
+5. Si le nouveau fichier JSON est invalide, l'ancienne base n'est pas restaurée : le tableau de bord reste vide afin d'éviter tout mélange de sources.
+
+Les deux modes d'export JSON (standard Power BI et sauvegarde complète Base64) restent conservés.
