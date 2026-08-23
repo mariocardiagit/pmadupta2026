@@ -1,0 +1,9 @@
+CORRECTION DU BASCULEMENT DE SOURCE DE DONNEES
+
+Comportement attendu et appliqué :
+1. Si l'utilisateur sélectionne « Source de données provenant de KOBOTOOLBOX », toutes les données sont téléchargées depuis KoboToolbox et les graphiques/tableaux sont recalculés.
+2. Si l'utilisateur sélectionne « Source de données provenant d'un Fichier JSON », les données actuellement affichées sont immédiatement supprimées de l'écran.
+3. Les graphiques et tableaux restent vides jusqu'à l'import manuel d'un nouveau fichier JSON.
+4. Un ancien fichier JSON mémorisé n'est plus rechargé automatiquement lors du basculement de source.
+5. Après import réussi du JSON, toutes les vues sont recalculées avec uniquement les données de ce fichier.
+6. Le bouton Rafraîchir en mode JSON redemande explicitement un fichier au lieu de restaurer une ancienne source.
