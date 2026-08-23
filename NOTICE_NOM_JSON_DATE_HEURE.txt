@@ -1,0 +1,17 @@
+Correction du nom des sauvegardes JSON KoboToolbox.
+
+Les noms incluent désormais :
+- date : AAAAMMJJ
+- heure : HH
+- minute : MM
+- seconde : SS
+
+Format standard :
+backup_database_KOBOTOOLBOX_AAAAMMJJ_HHMMSS.json
+Exemple : backup_database_KOBOTOOLBOX_20260823_132352.json
+
+Format sauvegarde complète Base64 :
+backup_database_KOBOTOOLBOX_COMPLETE_BASE64_AAAAMMJJ_HHMMSS.json
+Exemple : backup_database_KOBOTOOLBOX_COMPLETE_BASE64_20260823_132352.json
+
+L'heure utilisée est l'heure locale du navigateur au moment exact de l'export.
