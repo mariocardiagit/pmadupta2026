@@ -1,0 +1,9 @@
+Mise à jour demandée dans GEMINI Travail TAF 20260823.docx.
+
+1. Bouton Word ajouté au niveau global de l’onglet 1 : Évolution Temporelle.
+2. Les exports de l’onglet utilisent désormais les graphiques et tableaux actuellement affichés, y compris les agrégations hiérarchiques et compositions détaillées.
+3. Export HTML ajouté en global et en local (DREN/CISCO/ZAP) avec graphiques + tableaux + critères.
+4. Export JSON ajouté en global et en local sous forme de tableau JSON plat, destiné à un import simple dans Power BI / Power Query.
+5. Export Excel XLSX recalculé depuis les tableaux visibles et contenant les graphiques actuels.
+6. Export CSV ajouté en global et en local à partir des tableaux visibles.
+7. Les exports conservent les champs Anomalies de liaison et DOUBLON lorsqu’ils sont présents dans les tableaux.
