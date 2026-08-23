@@ -1,0 +1,14 @@
+CORRECTION — CONTRÔLE DÉTAILLÉ DE COHÉRENCE DES DATES
+23/08/2026
+
+Le contrôle JSON ne se limite plus à afficher « N valeur(s) de date potentiellement atypique(s) ».
+
+Pour chaque date nécessitant une vérification, le panneau affiche maintenant :
+- le numéro de ligne et l'identifiant Kobo (_id / _uuid) lorsqu'il existe ;
+- le chemin/nom du champ concerné et son libellé traduit lorsqu'il est disponible ;
+- la valeur exacte détectée ;
+- la raison précise de l'avertissement.
+
+Les formats KoboToolbox/ISO valides (AAAA-MM-JJ et horodatages ISO avec heure, millisecondes et fuseau) sont explicitement reconnus afin de réduire les faux positifs. Les formats JJ/MM/AAAA, JJ-MM-AAAA et JJ.MM.AAAA sont également contrôlés avec validation du calendrier.
+
+Les anomalies de date restent des avertissements de cohérence et ne bloquent pas automatiquement un fichier dont la syntaxe, la structure et l'intégrité sont valides. Elles sont présentées pour permettre à l'utilisateur de décider s'il s'agit d'une vraie anomalie ou d'une valeur volontaire.
