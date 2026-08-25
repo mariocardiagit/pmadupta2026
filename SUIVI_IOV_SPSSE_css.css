@@ -18,5 +18,5 @@
 .territorial-tab.active{background:linear-gradient(135deg,#0d6efd,#1c8bf3);border-color:#0d6efd;color:#fff;box-shadow:0 8px 18px rgba(13,110,253,.2)}
 .territorial-tab.active small{color:#e8f3ff}
 .territorial-message{margin-top:12px;padding:10px 13px;border-radius:10px;background:#f6f9fc;border:1px solid #dfe8f2;color:#40566d;font-size:.92rem}
-.kobo-auth-note{margin-top:12px;padding:12px 14px;border-radius:12px;background:#fff7e3;border:1px solid #ffd27a;color:#644600;font-size:.9rem}
+.kobo-direct-note{margin-top:12px;padding:12px 14px;border-radius:12px;background:#eef6ff;border:1px solid #b7d1ff;color:#174a7e;font-size:.9rem;line-height:1.5}.kobo-direct-note code{word-break:break-all}
 @media (max-width:760px){.territorial-tabs{grid-template-columns:1fr}.territorial-tab{justify-content:flex-start}}

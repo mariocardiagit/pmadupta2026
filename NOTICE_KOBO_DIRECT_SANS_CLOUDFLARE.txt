@@ -1,0 +1,38 @@
+VERSION CORRIGÉE — CONNEXION DIRECTE KOBOTOOLBOX (SANS CLOUDFLARE WORKER)
+=======================================================================
+
+Architecture retenue
+--------------------
+GitHub Pages -> fetch() direct -> KoboToolbox API v2
+
+Endpoint principal PMA/PTA
+--------------------------
+https://kf.kobotoolbox.org/api/v2/assets/ath6cv2NrXEUijffeKJqSf/data.json
+
+Questionnaires DMS
+-------------------
+CISCO : a3FyptGkdkj5YDhjVNaQ8R
+ZAP   : aBroLM7FPWRquuoQQAexW3
+
+Modifications
+-------------
+1. Suppression de la dépendance Cloudflare Worker / Wrangler / proxy.
+2. Suppression du panneau de configuration du Worker dans tableau_bord_kobo.html.
+3. Chargement des données directement avec fetch(.../data.json).
+4. Pagination Kobo v2 conservée : la propriété next est suivie jusqu'à la dernière page.
+5. Aucun token Kobo n'est stocké dans les fichiers GitHub Pages.
+6. L'import JSON reste disponible comme source alternative.
+7. L'export JSON standard est conservé.
+8. L'export Base64 tente les pièces jointes directement ; une pièce jointe protégée 401/403 est signalée dans attachment_errors et produit une sauvegarde PARTIAL_BASE64.
+
+Condition indispensable
+-----------------------
+Pour que le fetch() direct fonctionne, l'asset Kobo doit autoriser la lecture anonyme des soumissions.
+Si Kobo renvoie HTTP 401/403, le navigateur ne peut pas contourner cette restriction sans authentification serveur.
+
+Fichiers Cloudflare devenus inutiles
+------------------------------------
+kobo_attachment_proxy_worker.js
+wrangler.toml.example
+CONFIGURATION_KOBO_HTTP403_CLOUDFLARE_WORKER.txt
+NOTICE_VERSION_DREN_CISCO_ZAP_HTTP403.txt

@@ -123,34 +123,26 @@ function extractRecordArray(obj){
   throw new Error("Le JSON ne contient pas de tableau d’enregistrements reconnu (results, records, data ou tableau racine).");
 }
 
-function getSharedSecureKoboProxyUrl(){
-  try{return String(localStorage.getItem("pma_kobo_secure_attachment_proxy_url")||"").trim();}catch(_){return "";}
-}
-function proxiedKoboUrl(target){
-  const base=getSharedSecureKoboProxyUrl(); if(!base)return "";
-  try{const u=new URL(base);u.searchParams.set("url",target);return u.href;}catch(_){return "";}
-}
-async function fetchKoboJsonAuthenticated(target){
-  let status=null; let last=null;
+async function fetchKoboJsonDirect(target){
+  let response;
   try{
-    const r=await fetch(target,{headers:{Accept:"application/json"},credentials:"omit",cache:"no-store"});
-    status=r.status; if(r.ok)return await r.json(); last=new Error(`HTTP ${r.status}`);
-  }catch(e){last=e;}
-  const proxy=proxiedKoboUrl(target);
-  if(proxy){
-    const r=await fetch(proxy,{headers:{Accept:"application/json"},credentials:"omit",cache:"no-store"});
-    if(!r.ok){let detail="";try{detail=(await r.text()).slice(0,300);}catch(_){}throw new Error(`Service sécurisé HTTP ${r.status}${detail?" — "+detail:""}`);}
-    return await r.json();
+    response=await fetch(target,{method:"GET",mode:"cors",headers:{Accept:"application/json"},credentials:"omit",cache:"no-store"});
+  }catch(e){
+    throw new Error(`Connexion directe KoboToolbox impossible : ${e?.message||e}`);
   }
-  if(status===401||status===403)throw new Error(`KoboToolbox HTTP ${status} : authentification API requise. Configurez d’abord le Cloudflare Worker sécurisé depuis le tableau de bord PMA/PTA, puis relancez la synchronisation. L’import JSON reste disponible immédiatement.`);
-  throw new Error(`Connexion KoboToolbox impossible${last?" : "+(last.message||last):""}. Configurez le service sécurisé si l’asset est privé.`);
+  if(!response.ok){
+    if(response.status===401||response.status===403)throw new Error(`KoboToolbox HTTP ${response.status} : la lecture anonyme des soumissions n’est pas autorisée pour cet asset. Cette version utilise uniquement fetch() direct ; rendez les soumissions consultables anonymement ou utilisez l’import JSON.`);
+    throw new Error(`KoboToolbox HTTP ${response.status} ${response.statusText||""}`.trim());
+  }
+  return await response.json();
 }
+
 async function fetchAllKobo(role){
   const uid=CONFIG[role].assetUid;
-  let url=`https://kf.kobotoolbox.org/api/v2/assets/${encodeURIComponent(uid)}/data/?limit=1000`;
+  let url=`https://kf.kobotoolbox.org/api/v2/assets/${encodeURIComponent(uid)}/data.json?limit=1000&_t=${Date.now()}`;
   const all=[]; let pages=0;
   while(url && pages<100){
-    const body=await fetchKoboJsonAuthenticated(url);
+    const body=await fetchKoboJsonDirect(url);
     const rows=Array.isArray(body)?body:(body.results||[]); all.push(...rows); pages++;
     url=(body && typeof body.next==="string" && body.next)?body.next:null;
   }
