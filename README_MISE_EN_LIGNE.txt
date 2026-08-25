@@ -1,3 +1,13 @@
+PMA/PTA KOBO — VERSION V3 RÉFÉRENCE FONCTIONNELLE — 25/08/2026
+
+La fonction fetchData() active reprend la stratégie confirmée fonctionnelle :
+1. KoboToolbox direct
+2. AllOrigins
+3. CodeTabs
+4. corsproxy.io
+
+IMPORTANT : remplacez ensemble tableau_bord_kobo.html et app.js, puis forcez le rechargement du navigateur (Ctrl+F5).
+
 MISE EN LIGNE GITHUB PAGES — VERSION DIRECTE + PROXYS CORS DE SECOURS
 ===================================================================
 
@@ -25,3 +35,12 @@ N'utilisez cette stratégie que pour des données que vous acceptez de faire tra
 Aucun token Kobo n'est stocké ni envoyé par ces fichiers.
 
 Après publication, forcez l'actualisation du navigateur avec Ctrl+F5.
+
+
+CORRECTION V2 — 25/08/2026 14:25
+---------------------------------
+La première version Fallback contenait encore, plus bas dans app.js, un remplacement final de fetchData() qui appelait fetchCompleteKoboDatabase(), elle-même restée en connexion directe uniquement. Cela annulait le fallback au démarrage et expliquait le message « Connexion directe KoboToolbox impossible ».
+
+La V2 corrige ce point : le téléchargement complet réellement utilisé au démarrage passe maintenant lui aussi par Direct KoboToolbox -> AllOrigins -> CodeTabs -> corsproxy.io, page par page. Le statut affiche la méthode réellement utilisée.
+
+IMPORTANT : remplacer tableau_bord_kobo.html ET app.js ensemble dans GitHub, attendre la publication GitHub Pages, puis faire Ctrl+F5. Le paramètre de cache doit afficher la version 20260825-1425-kobo-direct-proxy-fallback-v2.
