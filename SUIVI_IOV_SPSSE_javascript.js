@@ -127,8 +127,7 @@ async function fetchKoboJsonWithFallback(target){
   const providers=[
     {name:"Direct KoboToolbox",url:target},
     {name:"AllOrigins",url:"https://api.allorigins.win/raw?url="+encodeURIComponent(target)},
-    {name:"CodeTabs",url:"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(target)},
-    {name:"corsproxy.io",url:"https://corsproxy.io/?"+encodeURIComponent(target)}
+    {name:"CORS.lol",url:"https://api.cors.lol/?url="+encodeURIComponent(target)}
   ];
   const errors=[];
   for(const provider of providers){
