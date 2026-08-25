@@ -85,18 +85,6 @@ const fmtPct = (x)=>Number.isFinite(Number(x)) ? (Number(x)*100).toLocaleString(
 const catalog = ()=>DMS_DATA.catalogs[state.role] || [];
 const snapshotAgg = ()=>DMS_DATA.aggregateSnapshot[state.role] || {};
 const execSnapshot = ()=>DMS_DATA.executiveSnapshot[state.role] || {};
-const scopeLabel = (scope=state.scope)=>scope === "DREN" ? "DREN" : scope === "CISCO" ? "CISCO" : "ZAP";
-function geoPathForScope(scope=state.scope){ return CONFIG[state.role]?.geoPaths?.[scope] || ""; }
-function scopeDescription(scope=state.scope){
-  if(scope === "DREN") return "Analyse régionale : les KPI, graphiques et tableaux mettent en avant la comparaison entre DREN, avec possibilité de descendre vers les CISCO et les ZAP lorsque la source le permet.";
-  if(scope === "CISCO") return "Analyse par circonscription : les KPI, graphiques et tableaux mettent en avant les CISCO et leur rattachement aux DREN.";
-  return "Analyse de proximité : les KPI, graphiques et tableaux mettent en avant les ZAP. Cet onglet utilise automatiquement le questionnaire Chefs ZAP.";
-}
-function updateTerritorialUi(){
-  document.querySelectorAll('.territorial-tab').forEach(b=>{const active=b.dataset.scope===state.scope;b.classList.toggle('active',active);b.setAttribute('aria-selected',active?'true':'false');});
-  if($("territorialStatus")) $("territorialStatus").textContent=scopeLabel();
-  if($("territorialMessage")) $("territorialMessage").innerHTML=`<strong>Onglet ${esc(scopeLabel())} actif.</strong> ${esc(scopeDescription())}`;
-}
 
 function toast(message,kind="info"){
   const t=$("toast"); t.textContent=message; t.style.background=kind==="error"?"#9f2f37":kind==="ok"?"#0e6e4c":"#16324f"; t.classList.add("show");
@@ -135,14 +123,35 @@ function extractRecordArray(obj){
   throw new Error("Le JSON ne contient pas de tableau d’enregistrements reconnu (results, records, data ou tableau racine).");
 }
 
+function getSharedSecureKoboProxyUrl(){
+  try{return String(localStorage.getItem("pma_kobo_secure_attachment_proxy_url")||"").trim();}catch(_){return "";}
+}
+function proxiedKoboUrl(target){
+  const base=getSharedSecureKoboProxyUrl(); if(!base)return "";
+  try{const u=new URL(base);u.searchParams.set("url",target);return u.href;}catch(_){return "";}
+}
+async function fetchKoboJsonAuthenticated(target){
+  let status=null; let last=null;
+  try{
+    const r=await fetch(target,{headers:{Accept:"application/json"},credentials:"omit",cache:"no-store"});
+    status=r.status; if(r.ok)return await r.json(); last=new Error(`HTTP ${r.status}`);
+  }catch(e){last=e;}
+  const proxy=proxiedKoboUrl(target);
+  if(proxy){
+    const r=await fetch(proxy,{headers:{Accept:"application/json"},credentials:"omit",cache:"no-store"});
+    if(!r.ok){let detail="";try{detail=(await r.text()).slice(0,300);}catch(_){}throw new Error(`Service sécurisé HTTP ${r.status}${detail?" — "+detail:""}`);}
+    return await r.json();
+  }
+  if(status===401||status===403)throw new Error(`KoboToolbox HTTP ${status} : authentification API requise. Configurez d’abord le Cloudflare Worker sécurisé depuis le tableau de bord PMA/PTA, puis relancez la synchronisation. L’import JSON reste disponible immédiatement.`);
+  throw new Error(`Connexion KoboToolbox impossible${last?" : "+(last.message||last):""}. Configurez le service sécurisé si l’asset est privé.`);
+}
 async function fetchAllKobo(role){
   const uid=CONFIG[role].assetUid;
-  let url=`https://kf.kobotoolbox.org/api/v2/assets/${encodeURIComponent(uid)}/data.json?limit=1000`;
+  let url=`https://kf.kobotoolbox.org/api/v2/assets/${encodeURIComponent(uid)}/data/?limit=1000`;
   const all=[]; let pages=0;
   while(url && pages<100){
-    const res=await fetch(url,{headers:{Accept:"application/json"},credentials:"omit"});
-    if(!res.ok) throw new Error(`KoboToolbox HTTP ${res.status}. Si l’asset n’est pas public, utilisez l’import JSON.`);
-    const body=await res.json(); const rows=Array.isArray(body)?body:(body.results||[]); all.push(...rows); pages++;
+    const body=await fetchKoboJsonAuthenticated(url);
+    const rows=Array.isArray(body)?body:(body.results||[]); all.push(...rows); pages++;
     url=(body && typeof body.next==="string" && body.next)?body.next:null;
   }
   return all;
@@ -231,51 +240,48 @@ function makeRadar(id,labels,data,label,max=5){destroyChart(id);const el=$(id);i
 function miniTable(target,headers,rows){const el=$(target);if(!el)return;el.innerHTML=`<table class="mini-table"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;}
 function dataTable(target,headers,rows){const el=$(target);if(!el)return;el.innerHTML=`<table class="data-table"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(r=>`<tr>${r.map(c=>`<td>${c?.html?c.html:esc(c)}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}" class="muted">Aucune donnée.</td></tr>`}</tbody></table>`;}
 
-function geoRows(level,limit=200){
-  const path=CONFIG[state.role]?.geoPaths?.[level];
-  return path ? geoDistribution(path).slice(0,limit) : [];
-}
 function renderKpis(){
-  const cfg=CONFIG[state.role], dr=geoRows("DREN"), ci=geoRows("CISCO"), za=geoRows("ZAP"), active=geoRows(state.scope);
-  const last=timelineDistribution().slice(-1)[0]?.[0]||"—", top=active[0]||null;
+  const cfg=CONFIG[state.role]; const gD=geoDistribution(cfg.geoPaths.DREN).length; const gC=geoDistribution(cfg.geoPaths.CISCO).length; const last=timelineDistribution().slice(-1)[0]?.[0]||"—";
   const cards=[
-    [state.role==="CISCO"?"Soumissions questionnaire CISCO":"Soumissions questionnaire Chefs ZAP",fmtNum(totalRecords()),state.source==="snapshot"?"snapshot DATA MUST SPEAK":"source détaillée active",""],
-    [`${scopeLabel()} couvertes`,fmtNum(active.length),`unités ${scopeLabel()} avec au moins une réponse`,"green"],
-    [`${scopeLabel()} la plus représentée`,top?top[0]:"—",top?`${fmtNum(top[1])} réponse(s)`:"aucune donnée","green"],
-    ["DREN couvertes",fmtNum(dr.length),"couverture régionale","green"],
-    ["CISCO couvertes",fmtNum(ci.length),"couverture des circonscriptions","green"],
-    [state.role==="ZAP"?"ZAP couvertes":"Complétude moyenne",state.role==="ZAP"?fmtNum(za.length):fmtPct(completionRate()),state.role==="ZAP"?"couverture de proximité":"questions renseignées","amber"]
+    [state.role==="CISCO"?"Soumissions CISCO":"Soumissions Chefs ZAP",fmtNum(totalRecords()),state.source==="snapshot"?"snapshot DATA MUST SPEAK":"source détaillée active",""],
+    ["DREN couvertes",fmtNum(gD),"zones avec au moins une réponse","green"],
+    ["CISCO couvertes",fmtNum(gC),"unités avec au moins une réponse","green"],
+    [state.role==="ZAP"?"ZAP couvertes":"Complétude moyenne",state.role==="ZAP"?fmtNum(geoDistribution(cfg.geoPaths.ZAP).length):fmtPct(completionRate()),state.role==="ZAP"?"ZAP identifiées":"questions renseignées","amber"]
   ];
-  for(const [label,path,kind] of cfg.kpis.slice(0,2)){
-    const v=kind==="yes"?rateYes(path):kind==="scorePositive"?scorePositive(path):ratePositive(path); cards.push([label,fmtPct(v),"part favorable / renseignée",Number.isFinite(v)&&v>=.7?"green":"amber"]);
+  for(const [label,path,kind] of cfg.kpis.slice(0,4)){
+    let v=kind==="yes"?rateYes(path):kind==="scorePositive"?scorePositive(path):ratePositive(path); cards.push([label,fmtPct(v),"part favorable / renseignée",Number.isFinite(v)&&v>=.7?"green":"amber"]);
   }
   cards.push(["Dernière date d'enquête",last,"date la plus récente observée","green"]);
   $("kpiGrid").innerHTML=cards.slice(0,8).map(([l,v,n,c])=>`<article class="kpi-card ${c||''}"><div class="kpi-label">${esc(l)}</div><div class="kpi-value">${esc(v)}</div><div class="kpi-note">${esc(n)}</div></article>`).join('');
 }
-function renderGeoCard(chartId,tableId,titleId,subtitleId,level,subtitle){
-  const rows=geoRows(level,20);
-  $(titleId).textContent=`Réponses par ${level}`; $(subtitleId).textContent=subtitle;
-  makeChart(chartId,"bar",rows.map(x=>x[0]),rows.map(x=>x[1]),"Réponses",{horizontal:rows.length>8});
-  miniTable(tableId,[level,"Réponses"],rows.map(x=>[x[0],fmtNum(x[1])]));
-}
 function renderDashboard(){
-  const roleLabel=state.role==="CISCO"?"Questionnaire CISCO":"Questionnaire Chefs ZAP";
-  $("dashboardTitle").textContent=`Tableau de bord ${scopeLabel()} — ${roleLabel}`;
-  $("dashboardSubtitle").textContent=scopeDescription(); renderKpis();
-  if(state.scope==="DREN"){
-    renderGeoCard("chartDren","tableDren","primaryGeoTitle","primaryGeoSubtitle","DREN","Comparaison régionale — onglet actif");
-    renderGeoCard("chartCisco","tableCisco","secondaryGeoTitle","secondaryGeoSubtitle","CISCO","Drill-down vers les circonscriptions");
-    if(state.role==="ZAP") renderGeoCard("chartThird","tableThird","thirdGeoTitle","thirdGeoSubtitle","ZAP","Drill-down vers les ZAP");
-    else {const th=distributionForPath("consentment_bref/formation_mars");$("thirdGeoTitle").textContent="Participation à la formation TDB";$("thirdGeoSubtitle").textContent="Indicateur complémentaire CISCO";makeChart("chartThird","doughnut",th.map(x=>x[0]),th.map(x=>x[1]),"Réponses",{legend:true});miniTable("tableThird",["Réponse","Effectif"],th.map(x=>[x[0],fmtNum(x[1])]));}
-  } else if(state.scope==="CISCO"){
-    renderGeoCard("chartDren","tableDren","primaryGeoTitle","primaryGeoSubtitle","CISCO","Comparaison des CISCO — onglet actif");
-    renderGeoCard("chartCisco","tableCisco","secondaryGeoTitle","secondaryGeoSubtitle","DREN","Rattachement régional");
-    if(state.role==="ZAP") renderGeoCard("chartThird","tableThird","thirdGeoTitle","thirdGeoSubtitle","ZAP","ZAP rattachées aux CISCO");
-    else {const th=distributionForPath("consentment_bref/formation_mars");$("thirdGeoTitle").textContent="Participation à la formation TDB";$("thirdGeoSubtitle").textContent="Indicateur complémentaire CISCO";makeChart("chartThird","doughnut",th.map(x=>x[0]),th.map(x=>x[1]),"Réponses",{legend:true});miniTable("tableThird",["Réponse","Effectif"],th.map(x=>[x[0],fmtNum(x[1])]));}
+  const cfg=CONFIG[state.role]; const scope=state.scope||"DREN";
+  $("dashboardTitle").textContent=`Tableau de bord exécutif — ${scope} • Questionnaire ${state.role}`;
+  $("dashboardSubtitle").textContent=`Analyse territoriale ${scope} • ${cfg.subtitle}`;
+  renderKpis();
+
+  const available={DREN:cfg.geoPaths.DREN,CISCO:cfg.geoPaths.CISCO,ZAP:cfg.geoPaths.ZAP};
+  const primaryPath=available[scope]||cfg.geoPaths.DREN;
+  const secondaryScope=scope==="DREN"?"CISCO":(scope==="CISCO"?"DREN":"CISCO");
+  const secondaryPath=available[secondaryScope]||cfg.geoPaths.DREN;
+  const primary=geoDistribution(primaryPath).slice(0,30);
+  const secondary=geoDistribution(secondaryPath).slice(0,30);
+  $("primaryGeoTitle").textContent=`Réponses par ${scope}`;
+  $("primaryGeoSubtitle").textContent=`Onglet ${scope} — couverture territoriale`;
+  makeChart("chartDren","bar",primary.map(x=>x[0]),primary.map(x=>x[1]),"Réponses",{horizontal:primary.length>8});
+  miniTable("tableDren",[scope,"Réponses"],primary.map(x=>[x[0],fmtNum(x[1])]));
+  $("secondaryGeoTitle").textContent=`Réponses par ${secondaryScope}`;
+  $("secondaryGeoSubtitle").textContent=`Ventilation complémentaire depuis l’onglet ${scope}`;
+  makeChart("chartCisco","bar",secondary.map(x=>x[0]),secondary.map(x=>x[1]),"Réponses",{horizontal:true});
+  miniTable("tableCisco",[secondaryScope,"Réponses"],secondary.map(x=>[x[0],fmtNum(x[1])]));
+
+  let th=[];
+  if(scope==="ZAP" && cfg.geoPaths.ZAP){
+    th=geoDistribution(cfg.geoPaths.ZAP).slice(0,30); $("thirdGeoTitle").textContent="Top des ZAP";$("thirdGeoSubtitle").textContent="Détail de proximité";
+    makeChart("chartThird","bar",th.map(x=>x[0]),th.map(x=>x[1]),"Réponses",{horizontal:true});miniTable("tableThird",["ZAP","Réponses"],th.map(x=>[x[0],fmtNum(x[1])]));
   } else {
-    renderGeoCard("chartDren","tableDren","primaryGeoTitle","primaryGeoSubtitle","ZAP","Comparaison des ZAP — onglet actif");
-    renderGeoCard("chartCisco","tableCisco","secondaryGeoTitle","secondaryGeoSubtitle","CISCO","CISCO de rattachement");
-    renderGeoCard("chartThird","tableThird","thirdGeoTitle","thirdGeoSubtitle","DREN","DREN de rattachement");
+    th=distributionForPath("consentment_bref/formation_mars");$("thirdGeoTitle").textContent="Participation à la formation TDB";$("thirdGeoSubtitle").textContent=`Indicateur complémentaire — ${scope}`;
+    makeChart("chartThird","doughnut",th.map(x=>x[0]),th.map(x=>x[1]),"Réponses",{legend:true});miniTable("tableThird",["Réponse","Effectif"],th.map(x=>[x[0],fmtNum(x[1])]));
   }
   const tl=timelineDistribution(); makeChart("chartTimeline","line",tl.map(x=>x[0]),tl.map(x=>x[1]),"Soumissions",{}); miniTable("tableTimeline",["Date","Soumissions"],tl.slice(-30).map(x=>[x[0],fmtNum(x[1])]));
   const cap=capacityRows(); makeRadar("chartCapacity",cap.map(x=>x[0]),cap.map(x=>x[1]??0),"Score moyen",state.role==="CISCO"?4:5); miniTable("tableCapacity",["Compétence","Moyenne","Max"],cap.map(x=>[x[0],x[1]==null?"—":fmtNum(x[1],2),x[2]]));
@@ -344,32 +350,25 @@ function renderCatalog(){const term=normalText($("catalogSearch").value).toLower
 function exportBlob(filename,content,type){const blob=new Blob([content],{type});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
 function timestamp(){const d=new Date(),p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;}
 function csv(rows){return '\ufeff'+rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(';')).join('\r\n');}
-function dashboardSummary(){return {role:state.role,scope:state.scope,source:state.source,generated_at:new Date().toISOString(),records:totalRecords(),dren:geoDistribution(CONFIG[state.role].geoPaths.DREN),cisco:geoDistribution(CONFIG[state.role].geoPaths.CISCO),zap:state.role==="ZAP"?geoDistribution(CONFIG[state.role].geoPaths.ZAP):[],timeline:timelineDistribution(),capacity:capacityRows(),themes:themeIndexRows()};}
-function exportDashboard(kind){const s=dashboardSummary(),base=`SUIVI_IOV_SPSSE_${state.scope}_${state.role}_${timestamp()}`;if(kind==="dashboard-json")exportBlob(base+'.json',JSON.stringify(s,null,2),'application/json;charset=utf-8');else{const rows=[["Indicateur","Valeur"],["Niveau territorial",state.scope],["Rôle",state.role],["Source",state.source],["Soumissions",totalRecords()],[],["DREN","Réponses"],...s.dren,[],["CISCO","Réponses"],...s.cisco];if(s.zap.length)rows.push([], ["ZAP","Réponses"], ...s.zap);rows.push([], ["Date","Soumissions"], ...s.timeline, [], ["Compétence","Moyenne","Maximum"], ...s.capacity.map(x=>[x[0],x[1]??"",x[2]]), [], ["Thème","Indice (%)","Questions utilisées"], ...s.themes.map(x=>[x[0],x[1]??"",x[2]]));exportBlob(base+'.csv',csv(rows),'text/csv;charset=utf-8');}}
-function exportQuestion(kind){const q=qByPath($("questionSelect").value),a=aggregateQuestion(q);if(!q)return;const mode=$("groupModeSelect").value;let grouped=[];if(mode!=="all"&&state.records){const gp=CONFIG[state.role].geoPaths[mode];grouped=groupedQuestionRows(q,gp);}const obj={role:state.role,scope:state.scope,source:state.source,question:q,mode,aggregate:a,grouped};if(kind==="json")exportBlob(`Analyse_Question_${state.scope}_${state.role}_${timestamp()}.json`,JSON.stringify(obj,null,2),'application/json;charset=utf-8');else{let rows=[["Question",q.label],["Type",q.analysisType],["Mode",mode]];if(grouped.length){rows.push([], [mode,"Réponses","Total groupe","Taux de réponse","Indicateur"], ...grouped.map(x=>[x.group,x.n,x.total,fmtPct(x.rate),x.detail]));}else{rows.push([], ["Modalité","Effectif","Part"], ...distEntries(a).map(([v,n])=>[v,n,fmtPct(n/Math.max(1,a.n))]));}exportBlob(`Analyse_Question_${state.scope}_${state.role}_${timestamp()}.csv`,csv(rows),'text/csv;charset=utf-8');}}
-function downloadQuestionChart(){const c=state.charts.chartQuestion;if(!c)return toast("Aucun graphique disponible.","error");const a=document.createElement('a');a.href=c.toBase64Image('image/png',1);a.download=`Graphique_Question_${state.scope}_${state.role}_${timestamp()}.png`;a.click();}
-function exportFiltered(kind){if(!state.records)return toast("Chargez d’abord une source détaillée.","error");const rows=state.filteredRecords||[];const cfg=CONFIG[state.role];if(kind==="json")exportBlob(`Recherche_${state.scope}_${state.role}_${timestamp()}.json`,JSON.stringify(rows,null,2),'application/json;charset=utf-8');else{const data=[["ID","Date","DREN","CISCO","ZAP"],...rows.map(r=>[r.id,recordVal(r,"LOCALISATION/DATE_ENQ"),recordVal(r,cfg.geoPaths.DREN),recordVal(r,cfg.geoPaths.CISCO),state.role==="ZAP"?recordVal(r,cfg.geoPaths.ZAP):""])];exportBlob(`Recherche_${state.scope}_${state.role}_${timestamp()}.csv`,csv(data),'text/csv;charset=utf-8');}}
+function dashboardSummary(){return {role:state.role,source:state.source,generated_at:new Date().toISOString(),records:totalRecords(),dren:geoDistribution(CONFIG[state.role].geoPaths.DREN),cisco:geoDistribution(CONFIG[state.role].geoPaths.CISCO),zap:state.role==="ZAP"?geoDistribution(CONFIG[state.role].geoPaths.ZAP):[],timeline:timelineDistribution(),capacity:capacityRows(),themes:themeIndexRows()};}
+function exportDashboard(kind){const s=dashboardSummary(),base=`SUIVI_IOV_SPSSE_${state.role}_${timestamp()}`;if(kind==="dashboard-json")exportBlob(base+'.json',JSON.stringify(s,null,2),'application/json;charset=utf-8');else{const rows=[["Indicateur","Valeur"],["Rôle",state.role],["Source",state.source],["Soumissions",totalRecords()],[],["DREN","Réponses"],...s.dren,[],["CISCO","Réponses"],...s.cisco];if(s.zap.length)rows.push([], ["ZAP","Réponses"], ...s.zap);rows.push([], ["Date","Soumissions"], ...s.timeline, [], ["Compétence","Moyenne","Maximum"], ...s.capacity.map(x=>[x[0],x[1]??"",x[2]]), [], ["Thème","Indice (%)","Questions utilisées"], ...s.themes.map(x=>[x[0],x[1]??"",x[2]]));exportBlob(base+'.csv',csv(rows),'text/csv;charset=utf-8');}}
+function exportQuestion(kind){const q=qByPath($("questionSelect").value),a=aggregateQuestion(q);if(!q)return;const mode=$("groupModeSelect").value;let grouped=[];if(mode!=="all"&&state.records){const gp=CONFIG[state.role].geoPaths[mode];grouped=groupedQuestionRows(q,gp);}const obj={role:state.role,source:state.source,question:q,mode,aggregate:a,grouped};if(kind==="json")exportBlob(`Analyse_Question_${state.role}_${timestamp()}.json`,JSON.stringify(obj,null,2),'application/json;charset=utf-8');else{let rows=[["Question",q.label],["Type",q.analysisType],["Mode",mode]];if(grouped.length){rows.push([], [mode,"Réponses","Total groupe","Taux de réponse","Indicateur"], ...grouped.map(x=>[x.group,x.n,x.total,fmtPct(x.rate),x.detail]));}else{rows.push([], ["Modalité","Effectif","Part"], ...distEntries(a).map(([v,n])=>[v,n,fmtPct(n/Math.max(1,a.n))]));}exportBlob(`Analyse_Question_${state.role}_${timestamp()}.csv`,csv(rows),'text/csv;charset=utf-8');}}
+function downloadQuestionChart(){const c=state.charts.chartQuestion;if(!c)return toast("Aucun graphique disponible.","error");const a=document.createElement('a');a.href=c.toBase64Image('image/png',1);a.download=`Graphique_Question_${state.role}_${timestamp()}.png`;a.click();}
+function exportFiltered(kind){if(!state.records)return toast("Chargez d’abord une source détaillée.","error");const rows=state.filteredRecords||[];const cfg=CONFIG[state.role];if(kind==="json")exportBlob(`Recherche_${state.role}_${timestamp()}.json`,JSON.stringify(rows,null,2),'application/json;charset=utf-8');else{const data=[["ID","Date","DREN","CISCO","ZAP"],...rows.map(r=>[r.id,recordVal(r,"LOCALISATION/DATE_ENQ"),recordVal(r,cfg.geoPaths.DREN),recordVal(r,cfg.geoPaths.CISCO),state.role==="ZAP"?recordVal(r,cfg.geoPaths.ZAP):""])];exportBlob(`Recherche_${state.role}_${timestamp()}.csv`,csv(data),'text/csv;charset=utf-8');}}
 
-function setRole(role){
-  if(!CONFIG[role]||role===state.role)return;
-  state.role=role; state.records=null; state.filteredRecords=[]; state.source="snapshot";
-  if(role==="CISCO" && state.scope==="ZAP") state.scope="CISCO";
-  document.querySelectorAll('.role-card').forEach(b=>b.classList.toggle('active',b.dataset.role===role));
-  updateTerritorialUi(); populateQuestionControls(false); populateCatalogFilters(); useSnapshot();
-}
-function setScope(scope){
+function setRole(role){if(!CONFIG[role]||role===state.role)return;state.role=role;state.records=null;state.filteredRecords=[];state.source="snapshot";document.querySelectorAll('.role-card').forEach(b=>b.classList.toggle('active',b.dataset.role===role));populateQuestionControls(false);populateCatalogFilters();setTerritorialScope("DREN");useSnapshot();}
+function setTerritorialScope(scope){
   if(!["DREN","CISCO","ZAP"].includes(scope))return;
-  state.scope=scope;
   if(scope==="ZAP" && state.role!=="ZAP"){
-    state.role="ZAP"; state.records=null; state.filteredRecords=[]; state.source="snapshot";
+    state.role="ZAP";state.records=null;state.filteredRecords=[];state.source="snapshot";
     document.querySelectorAll('.role-card').forEach(b=>b.classList.toggle('active',b.dataset.role==="ZAP"));
-    populateQuestionControls(false); populateCatalogFilters(); updateTerritorialUi(); useSnapshot();
-    toast("L’onglet ZAP utilise automatiquement le questionnaire Chefs ZAP.","ok");
-    return;
+    populateQuestionControls(false);populateCatalogFilters();
   }
-  updateTerritorialUi(); updateGroupOptions();
-  const option=$("groupModeSelect")?.querySelector(`option[value="${scope}"]`);
-  if(state.records && option && !option.disabled) $("groupModeSelect").value=scope;
+  state.scope=scope;
+  document.querySelectorAll('.territorial-tab').forEach(b=>{const active=b.dataset.scope===scope;b.classList.toggle('active',active);b.setAttribute('aria-selected',active?'true':'false');});
+  if($("territorialStatus"))$("territorialStatus").textContent=scope;
+  if($("territorialMessage"))$("territorialMessage").innerHTML=`<strong>Onglet ${scope} actif.</strong> Les KPI, graphiques et tableaux sont recalculés autour du niveau ${scope}.`;
+  if($("groupModeSelect") && state.records && CONFIG[state.role].geoPaths[scope])$("groupModeSelect").value=scope;
   renderAll();
 }
 function switchTab(name){document.querySelectorAll('.workspace-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));document.querySelectorAll('.workspace-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${name}`));if(name==="catalog")renderCatalog();if(name==="question")renderQuestion();if(name==="search")renderSearchFilters();}
@@ -378,13 +377,13 @@ function renderAll(){renderDashboard();populateQuestionControls(true);updateGrou
 function init(){
   $("ciscoSnapshotCount").textContent=fmtNum(DMS_DATA.meta.snapshotCounts.CISCO);$("zapSnapshotCount").textContent=fmtNum(DMS_DATA.meta.snapshotCounts.ZAP);
   document.querySelectorAll('.role-card').forEach(b=>b.addEventListener('click',()=>setRole(b.dataset.role)));
-  document.querySelectorAll('.territorial-tab').forEach(b=>b.addEventListener('click',()=>setScope(b.dataset.scope)));
   document.querySelectorAll('.workspace-tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+  document.querySelectorAll('.territorial-tab').forEach(b=>b.addEventListener('click',()=>setTerritorialScope(b.dataset.scope)));
   $("useSnapshotBtn").addEventListener('click',useSnapshot);$("syncKoboBtn").addEventListener('click',syncKobo);$("jsonImport").addEventListener('change',e=>e.target.files[0]&&importJson(e.target.files[0]));$("refreshViewBtn").addEventListener('click',renderAll);
   $("themeSelect").addEventListener('change',()=>{populateQuestionControls(false);renderQuestion();});$("questionSelect").addEventListener('change',renderQuestion);$("groupModeSelect").addEventListener('change',renderQuestion);$("questionChartType").addEventListener('change',renderQuestion);
   $("applyFilters").addEventListener('click',applySearchFilters);$("resetFilters").addEventListener('click',resetSearch);$("catalogSearch").addEventListener('input',renderCatalog);$("catalogType").addEventListener('change',renderCatalog);$("catalogTheme").addEventListener('change',renderCatalog);
   $("exportQuestionCsv").addEventListener('click',()=>exportQuestion('csv'));$("exportQuestionJson").addEventListener('click',()=>exportQuestion('json'));$("downloadQuestionChart").addEventListener('click',downloadQuestionChart);$("exportFilteredCsv").addEventListener('click',()=>exportFiltered('csv'));$("exportFilteredJson").addEventListener('click',()=>exportFiltered('json'));
   document.querySelectorAll('[data-export]').forEach(b=>b.addEventListener('click',()=>exportDashboard(b.dataset.export)));
-  populateQuestionControls(false);populateCatalogFilters();updateTerritorialUi();useSnapshot();
+  populateQuestionControls(false);populateCatalogFilters();useSnapshot();
 }
 window.addEventListener('DOMContentLoaded',init);

@@ -7,7 +7,7 @@
   <title>Analyse des questionnaires KoboToolbox — DMS SEEPE</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="SUIVI_IOV_SPSSE_css.css?v=20260825-1120-dren-cisco-zap">
+  <link rel="stylesheet" href="SUIVI_IOV_SPSSE_css.css?v=20260825-1315-kobo403-auth-dren-cisco-zap">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -71,6 +71,7 @@
       <div id="sourceMessage" class="source-message">
         L’aperçu intégré ne contient que des statistiques agrégées issues du classeur. Les noms, prénoms, téléphones et réponses texte libres individuelles ne sont pas incorporés dans cette page.
       </div>
+      <div class="kobo-auth-note"><i class="fa-solid fa-shield-halved"></i> <strong>API KoboToolbox protégée :</strong> si Kobo répond HTTP 401/403, ce module réutilise automatiquement le même <strong>Cloudflare Worker sécurisé</strong> configuré dans <a href="tableau_bord_kobo.html">Tableau de bord PMA / PTA</a>. Le token Kobo reste uniquement côté serveur ; ne l’inscrivez jamais dans ce fichier HTML ou JavaScript.</div>
     </section>
 
     <section class="territorial-panel card" aria-labelledby="territorialTitle">
@@ -191,6 +192,6 @@
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="SUIVI_IOV_SPSSE_javascript.js?v=20260825-1120-dren-cisco-zap" defer></script>
+  <script src="SUIVI_IOV_SPSSE_javascript.js?v=20260825-1315-kobo403-auth-dren-cisco-zap" defer></script>
 </body>
 </html>

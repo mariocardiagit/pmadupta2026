@@ -1,0 +1,18 @@
+VERSION CORRIGEE — DREN / CISCO / ZAP + AUTHENTIFICATION KOBO HTTP 403
+=====================================================================
+
+1. SUIVI_IOV_SPSSE_html.html contient maintenant trois onglets territoriaux principaux :
+   DREN / CISCO / ZAP.
+2. Les KPI, graphiques et tableaux sont recalculés selon l'onglet actif.
+3. Le mode ZAP bascule automatiquement vers le questionnaire ZAP si nécessaire.
+4. Le tableau de bord PMA/PTA ne dépend plus de proxys CORS publics pour les données Kobo.
+5. Si un asset Kobo est public, la lecture directe reste possible.
+6. Si Kobo répond HTTP 401/403, le code utilise automatiquement le Cloudflare Worker sécurisé
+   configuré dans la page.
+7. Le Worker authentifie désormais LES DONNEES ET LES PIECES JOINTES, pas seulement les pièces jointes.
+8. Le Worker peut autoriser les trois assets du projet via KOBO_ALLOWED_ASSET_UIDS.
+9. Le bouton « Tester » vérifie d'abord l'accès authentifié aux données Kobo, puis une pièce jointe
+   si une pièce jointe est disponible.
+10. L'URL du Worker est partagée entre tableau_bord_kobo.html et SUIVI_IOV_SPSSE_html.html via
+    le localStorage du même domaine GitHub Pages.
+11. L'import JSON reste disponible lorsque le service sécurisé n'est pas encore configuré.

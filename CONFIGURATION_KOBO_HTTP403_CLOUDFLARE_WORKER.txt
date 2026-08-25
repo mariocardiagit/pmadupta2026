@@ -1,0 +1,49 @@
+CORRECTION HTTP 403 KOBOTOOLBOX — SERVICE SECURISE CLOUDFLARE WORKERS
+======================================================================
+
+Pourquoi HTTP 403 ?
+-------------------
+L'API KoboToolbox v2 peut exiger une authentification par token. Le token ne doit jamais
+être écrit dans tableau_bord_kobo.html, app.js, SUIVI_IOV_SPSSE_javascript.js ou GitHub Pages.
+
+Architecture utilisée
+---------------------
+GitHub Pages -> Cloudflare Worker -> KoboToolbox
+                               ^
+                               | Authorization: Token <secret>
+
+Le navigateur ne connaît jamais le token.
+
+Assets autorisés par défaut dans wrangler.toml.example
+-------------------------------------------------------
+- ath6cv2NrXEUijffeKJqSf : tableau de bord PMA / PTA principal
+- a3FyptGkdkj5YDhjVNaQ8R : questionnaire CISCO DATA MUST SPEAK
+- aBroLM7FPWRquuoQQAexW3 : questionnaire ZAP DATA MUST SPEAK
+
+Mise en place (une seule fois)
+------------------------------
+1. Créer / ouvrir un compte Cloudflare.
+2. Déployer kobo_attachment_proxy_worker.js avec Wrangler ou l'éditeur Workers.
+3. Utiliser les variables de wrangler.toml.example.
+4. Enregistrer le token Kobo UNIQUEMENT comme secret Cloudflare :
+      npx wrangler secret put KOBO_API_TOKEN
+5. Déployer :
+      npx wrangler deploy
+6. Copier l'URL HTTPS du Worker, par exemple :
+      https://pma-kobo-secure-api-proxy.<compte>.workers.dev/
+7. Dans tableau_bord_kobo.html, zone
+      « Service sécurisé API KoboToolbox — données + pièces jointes »
+   coller l'URL, cliquer « Enregistrer », puis « Tester ».
+8. Le test doit confirmer l'accès authentifié aux données Kobo.
+9. Cliquer ensuite « Rafraîchir les données ».
+
+Le même Worker est automatiquement réutilisé par SUIVI_IOV_SPSSE_html.html car l'URL est
+conservée dans le localStorage du même site GitHub Pages.
+
+Sécurité
+--------
+- Aucun proxy CORS public n'est utilisé.
+- Le Worker n'accepte que kf.kobotoolbox.org.
+- Le Worker n'accepte que les endpoints /api/v2/assets/<UID>/data... des assets autorisés.
+- Le token Kobo ne sort jamais de Cloudflare.
+- ALLOWED_ORIGIN limite les appels à https://mariocardigit.github.io.
