@@ -123,30 +123,40 @@ function extractRecordArray(obj){
   throw new Error("Le JSON ne contient pas de tableau d’enregistrements reconnu (results, records, data ou tableau racine).");
 }
 
-async function fetchKoboJsonDirect(target){
-  let response;
-  try{
-    response=await fetch(target,{method:"GET",mode:"cors",headers:{Accept:"application/json"},credentials:"omit",cache:"no-store"});
-  }catch(e){
-    throw new Error(`Connexion directe KoboToolbox impossible : ${e?.message||e}`);
+async function fetchKoboJsonWithFallback(target){
+  const providers=[
+    {name:"Direct KoboToolbox",url:target},
+    {name:"AllOrigins",url:"https://api.allorigins.win/raw?url="+encodeURIComponent(target)},
+    {name:"CodeTabs",url:"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(target)},
+    {name:"corsproxy.io",url:"https://corsproxy.io/?"+encodeURIComponent(target)}
+  ];
+  const errors=[];
+  for(const provider of providers){
+    try{
+      const response=await fetch(provider.url,{method:"GET",headers:{Accept:"application/json"},credentials:"omit",cache:"no-store"});
+      if(!response.ok){errors.push(`${provider.name}: HTTP ${response.status}`);continue;}
+      try{return {body:await response.json(),provider:provider.name};}
+      catch(_){errors.push(`${provider.name}: réponse non JSON`);}
+    }catch(e){errors.push(`${provider.name}: ${e?.message||e}`);}
   }
-  if(!response.ok){
-    if(response.status===401||response.status===403)throw new Error(`KoboToolbox HTTP ${response.status} : la lecture anonyme des soumissions n’est pas autorisée pour cet asset. Cette version utilise uniquement fetch() direct ; rendez les soumissions consultables anonymement ou utilisez l’import JSON.`);
-    throw new Error(`KoboToolbox HTTP ${response.status} ${response.statusText||""}`.trim());
-  }
-  return await response.json();
+  throw new Error(`Toutes les méthodes de connexion KoboToolbox ont échoué. ${errors.join(" | ")}`);
 }
 
 async function fetchAllKobo(role){
   const uid=CONFIG[role].assetUid;
   let url=`https://kf.kobotoolbox.org/api/v2/assets/${encodeURIComponent(uid)}/data.json?limit=1000&_t=${Date.now()}`;
-  const all=[]; let pages=0;
+  const all=[]; const providers=[]; let pages=0;
   while(url && pages<100){
-    const body=await fetchKoboJsonDirect(url);
+    const result=await fetchKoboJsonWithFallback(url);
+    if(!providers.includes(result.provider))providers.push(result.provider);
+    const body=result.body;
     const rows=Array.isArray(body)?body:(body.results||[]); all.push(...rows); pages++;
-    url=(body && typeof body.next==="string" && body.next)?body.next:null;
+    if(Array.isArray(body))url=null;
+    else if(body && typeof body.next==="string" && body.next){try{url=new URL(body.next,"https://kf.kobotoolbox.org").href;}catch(_){url=null;}}
+    else url=null;
   }
-  return all;
+  if(url && pages>=100)throw new Error("Pagination Kobo interrompue après 100 pages par sécurité.");
+  return {rows:all,providers,pages};
 }
 
 function useSnapshot(){
@@ -158,9 +168,9 @@ function useSnapshot(){
 async function syncKobo(){
   try{
     setLoading(true); setStatus("Synchronisation KoboToolbox en cours…","snapshot");
-    const raw=await fetchAllKobo(state.role); state.records=raw.map(normalizeRecord); state.source="kobo"; state.filteredRecords=[...state.records];
+    const result=await fetchAllKobo(state.role); const raw=result.rows; state.records=raw.map(normalizeRecord); state.source="kobo"; state.filteredRecords=[...state.records];
     setStatus(`KoboToolbox actif — ${state.records.length} soumission(s)`,"live");
-    $("sourceMessage").textContent=`Données détaillées synchronisées depuis l’asset ${CONFIG[state.role].assetUid}. Les filtres et regroupements géographiques sont actifs.`;
+    $("sourceMessage").textContent=`Données détaillées synchronisées depuis l’asset ${CONFIG[state.role].assetUid} via ${result.providers.join(" + ") || "Direct KoboToolbox"} (${result.pages} page(s)). Les filtres et regroupements géographiques sont actifs.`;
     updateSourceCapabilities(); renderAll(); toast(`${state.records.length} soumission(s) Kobo chargée(s).`,"ok");
   }catch(e){setStatus("Échec de la synchronisation KoboToolbox","error"); $("sourceMessage").textContent=e.message; toast(e.message,"error");}
   finally{setLoading(false);}

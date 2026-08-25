@@ -7,7 +7,7 @@
   <title>Analyse des questionnaires KoboToolbox — DMS SEEPE</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="SUIVI_IOV_SPSSE_css.css?v=20260825-1353-kobo-direct-fetch">
+  <link rel="stylesheet" href="SUIVI_IOV_SPSSE_css.css?v=20260825-1418-kobo-direct-proxy-fallback">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -71,7 +71,7 @@
       <div id="sourceMessage" class="source-message">
         L’aperçu intégré ne contient que des statistiques agrégées issues du classeur. Les noms, prénoms, téléphones et réponses texte libres individuelles ne sont pas incorporés dans cette page.
       </div>
-      <div class="kobo-direct-note"><i class="fa-solid fa-link"></i> <strong>Connexion directe KoboToolbox :</strong> ce module utilise directement l’API v2 avec <code>fetch(.../data.json)</code>, sans Cloudflare Worker ni proxy. Si Kobo répond HTTP 401/403, le questionnaire doit autoriser la consultation anonyme des soumissions ; sinon utilisez l’import JSON.</div>
+      <div class="kobo-direct-note"><i class="fa-solid fa-route"></i> <strong>Connexion KoboToolbox avec secours automatique :</strong> le module tente d’abord <code>fetch(.../data.json)</code> directement. En cas de blocage réseau/CORS, il essaie ensuite AllOrigins, CodeTabs puis corsproxy.io. <strong>Attention :</strong> lorsqu’un proxy public est utilisé, les données transitent par ce service tiers ; aucun token Kobo n’est envoyé.</div>
     </section>
 
     <section class="territorial-panel card" aria-labelledby="territorialTitle">
@@ -192,6 +192,6 @@
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="SUIVI_IOV_SPSSE_javascript.js?v=20260825-1353-kobo-direct-fetch" defer></script>
+  <script src="SUIVI_IOV_SPSSE_javascript.js?v=20260825-1418-kobo-direct-proxy-fallback" defer></script>
 </body>
 </html>

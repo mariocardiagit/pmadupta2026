@@ -1,9 +1,10 @@
-VERSION CORRIGÉE — CONNEXION DIRECTE KOBOTOOLBOX (SANS CLOUDFLARE WORKER)
-=======================================================================
+VERSION CORRIGÉE — KOBO DIRECT PRIORITAIRE + PROXYS CORS DE SECOURS
+==================================================================
 
 Architecture retenue
 --------------------
-GitHub Pages -> fetch() direct -> KoboToolbox API v2
+GitHub Pages -> tentative fetch() directe -> KoboToolbox API v2
+             -> si blocage CORS/réseau : AllOrigins -> CodeTabs -> corsproxy.io
 
 Endpoint principal PMA/PTA
 --------------------------
@@ -16,23 +17,18 @@ ZAP   : aBroLM7FPWRquuoQQAexW3
 
 Modifications
 -------------
-1. Suppression de la dépendance Cloudflare Worker / Wrangler / proxy.
-2. Suppression du panneau de configuration du Worker dans tableau_bord_kobo.html.
-3. Chargement des données directement avec fetch(.../data.json).
+1. Restauration de la stratégie de connexion de l'ancienne version fonctionnelle.
+2. Tentative directe toujours prioritaire.
+3. Trois proxys CORS publics sont essayés uniquement si nécessaire : AllOrigins, CodeTabs, corsproxy.io.
 4. Pagination Kobo v2 conservée : la propriété next est suivie jusqu'à la dernière page.
-5. Aucun token Kobo n'est stocké dans les fichiers GitHub Pages.
-6. L'import JSON reste disponible comme source alternative.
-7. L'export JSON standard est conservé.
-8. L'export Base64 tente les pièces jointes directement ; une pièce jointe protégée 401/403 est signalée dans attachment_errors et produit une sauvegarde PARTIAL_BASE64.
+5. Aucun token Kobo n'est stocké dans GitHub Pages.
+6. L'import JSON reste disponible.
+7. Le module DMS CISCO/ZAP utilise la même stratégie de secours.
+8. Le statut affiche la méthode réellement utilisée et le nombre de pages chargées.
 
-Condition indispensable
------------------------
-Pour que le fetch() direct fonctionne, l'asset Kobo doit autoriser la lecture anonyme des soumissions.
-Si Kobo renvoie HTTP 401/403, le navigateur ne peut pas contourner cette restriction sans authentification serveur.
+ATTENTION — CONFIDENTIALITÉ
+---------------------------
+Les proxys publics sont des services tiers. Si l'un d'eux est utilisé, la réponse Kobo transite par ce service.
+Cette solution contourne un blocage CORS du navigateur, mais elle ne doit pas être considérée comme une architecture de confidentialité forte pour des données sensibles.
 
-Fichiers Cloudflare devenus inutiles
-------------------------------------
-kobo_attachment_proxy_worker.js
-wrangler.toml.example
-CONFIGURATION_KOBO_HTTP403_CLOUDFLARE_WORKER.txt
-NOTICE_VERSION_DREN_CISCO_ZAP_HTTP403.txt
+Cloudflare Worker n'est pas requis dans cette version.
