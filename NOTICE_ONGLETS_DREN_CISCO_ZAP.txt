@@ -1,0 +1,18 @@
+CORRECTION — TROIS ONGLETS TERRITORIAUX DREN / CISCO / ZAP
+
+Cette version corrige le module SUIVI_IOV_SPSSE afin qu’il comporte trois onglets principaux de niveau territorial :
+
+1. DREN — analyse régionale
+2. CISCO — analyse par circonscription
+3. ZAP — analyse de proximité
+
+Fonctionnement :
+- Le questionnaire source reste sélectionnable entre CISCO et Chefs ZAP.
+- L’onglet DREN recentre les KPI, graphiques et tableaux sur les DREN.
+- L’onglet CISCO recentre les KPI, graphiques et tableaux sur les CISCO.
+- L’onglet ZAP utilise automatiquement le questionnaire Chefs ZAP, car le questionnaire CISCO ne possède pas de niveau ZAP propre dans sa structure d’analyse.
+- Avec une source détaillée KoboToolbox ou JSON, le mode d’analyse par question est automatiquement positionné sur le niveau territorial choisi lorsque ce regroupement est disponible.
+- Les exports incluent désormais le niveau territorial actif dans leur contenu et leur nom de fichier.
+- Le menu croisé entre tableau_bord_kobo.html et SUIVI_IOV_SPSSE_html.html est conservé.
+
+Le niveau DREN est un niveau d’analyse territoriale construit à partir des champs DREN présents dans les questionnaires CISCO/ZAP ; il ne prétend pas constituer un troisième questionnaire Kobo distinct lorsque le classeur source n’en fournit pas.

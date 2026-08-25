@@ -1,0 +1,42 @@
+MODULE SUIVI_IOV_SPSSE — ANALYSE DES QUESTIONNAIRES KOBOTOOLBOX
+Build : 2026-08-25 10:51 (Madagascar)
+
+SOURCE D'INSPIRATION ANALYSÉE
+- DATA MUST SPEAK SEEPE.xlsx
+- 18 feuilles détectées
+- 38 graphiques Excel détectés
+- Espaces structurants : Accueil_DMS, DMS_CISCO, DMS_ZAP, Tableau_de_Bord_CISCO, Tableau_de_Bord_ZAP,
+  Questions_Utiles_CISCO, Questions_Utiles_ZAP, Formulaire_Recherche_CISCO, Formulaire_Recherche_ZAP,
+  REF_SCHEMA_KOBO_STABLE, Details_Graphiques_CISCO, Details_Graphiques_ZAP.
+
+FICHIERS AJOUTÉS
+1) SUIVI_IOV_SPSSE_html.html
+2) SUIVI_IOV_SPSSE_javascript.js
+3) SUIVI_IOV_SPSSE_css.css
+
+MENU CROISÉ
+- tableau_bord_kobo.html contient un bouton vers SUIVI_IOV_SPSSE_html.html.
+- SUIVI_IOV_SPSSE_html.html contient un bouton retour vers tableau_bord_kobo.html.
+
+QUESTIONNAIRES KOBO IDENTIFIÉS DANS LE CLASSEUR
+- CISCO : asset a3FyptGkdkj5YDhjVNaQ8R ; version vgkr6mFwFrddizCG3SBC2h ; 186 questions cartographiées.
+- ZAP   : asset aBroLM7FPWRquuoQQAexW3 ; version vboCtSMqyypbTUKuLchHnc ; 229 questions cartographiées.
+
+FONCTIONS DU MODULE
+- Bascule CISCO / Chefs ZAP.
+- Snapshot agrégé DATA MUST SPEAK disponible immédiatement.
+- Synchronisation directe KoboToolbox lorsque l'asset est accessible depuis le navigateur.
+- Import JSON Kobo en solution de secours.
+- Tableau de bord exécutif : KPI, DREN, CISCO, ZAP, formation, évolution temporelle, capacité, synthèse thématique.
+- Analyse dynamique des questions avec graphique + tableau exact.
+- Mode global ou regroupé par DREN/CISCO/ZAP lorsque les données détaillées sont chargées.
+- Recherche multicritères : DREN, CISCO, ZAP, date et identifiant de soumission.
+- Catalogue des questions XLSForm/Kobo avec type d'analyse, colonne DMS et NAME Kobo.
+- Exports JSON/CSV et PNG pour l'analyse sélectionnée.
+
+CONFIDENTIALITÉ DU SNAPSHOT INTÉGRÉ
+Le code public ne contient pas les valeurs nominatives (NOM, PRENOMS, TELEPHONE) ni les réponses texte libres individuelles.
+Le snapshot embarqué contient uniquement des agrégats nécessaires aux tableaux de bord et aux distributions non confidentielles.
+
+REMARQUE KOBO
+Si l'API data.json d'un asset nécessite une authentification ou bloque CORS, utilisez l'import JSON. Aucun token Kobo n'est inscrit dans le JavaScript public.
