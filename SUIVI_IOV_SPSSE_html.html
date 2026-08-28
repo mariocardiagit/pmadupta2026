@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analyse des questionnaires KoboToolbox — DMS SEEPE</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="SUIVI_IOV_SPSSE_css.css?v=20260828-1700-kobo-corsbridge-v6-9">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-icon"><i class="fa-solid fa-chart-column"></i></span>
+        <div>
+          <div class="brand-title">DATA MUST SPEAK — Analyse des questionnaires KoboToolbox</div>
+          <div class="brand-subtitle">Suivi IOV SPSSE • DREN • CISCO • ZAP • Pilotage décisionnel SEEPE</div>
+        </div>
+      </div>
+      <nav class="switch-menu" aria-label="Navigation principale">
+        <a class="switch-link" href="tableau_bord_kobo.html"><i class="fa-solid fa-arrow-left"></i> Tableau de bord PMA / PTA</a>
+        <a class="switch-link active" href="SUIVI_IOV_SPSSE_html.html"><i class="fa-solid fa-clipboard-question"></i> Analyse questionnaires DMS</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero-panel">
+      <div>
+        <span class="eyebrow">Inspiré du classeur « DATA MUST SPEAK SEEPE »</span>
+        <h1>Centre de pilotage DMS — DREN • CISCO • ZAP</h1>
+        <p>Une interface web pour reproduire la logique du Google Sheet : suivi des soumissions, indicateurs exécutifs et analyses distinctes aux trois niveaux territoriaux DREN, CISCO et ZAP, avec analyse par question, recherche multicritères et restitution détaillée.</p>
+      </div>
+      <div class="hero-badges">
+        <span><i class="fa-solid fa-shield-halved"></i> Données confidentielles masquées</span>
+        <span><i class="fa-solid fa-cloud-arrow-down"></i> KoboToolbox + JSON</span>
+        <span><i class="fa-solid fa-chart-pie"></i> Graphiques dynamiques</span>
+      </div>
+    </section>
+
+    <section class="source-panel card">
+      <div class="section-heading compact">
+        <div>
+          <span class="section-kicker">SOURCE DE DONNÉES</span>
+          <h2>Choisissez le questionnaire et la source à analyser</h2>
+        </div>
+        <div id="sourceStatus" class="status-pill snapshot"><i class="fa-solid fa-table-cells"></i> Snapshot agrégé du classeur</div>
+      </div>
+
+      <div class="role-switch" role="radiogroup" aria-label="Questionnaire">
+        <button class="role-card active" type="button" data-role="CISCO">
+          <span class="role-icon"><i class="fa-solid fa-building-circle-check"></i></span>
+          <span><strong>Questionnaire CISCO</strong><small><span id="ciscoSnapshotCount">—</span> soumissions dans le snapshot • 186 questions cartographiées</small></span>
+        </button>
+        <button class="role-card" type="button" data-role="ZAP">
+          <span class="role-icon zap"><i class="fa-solid fa-school-circle-check"></i></span>
+          <span><strong>Questionnaire Chefs ZAP</strong><small><span id="zapSnapshotCount">—</span> soumissions dans le snapshot • 229 questions cartographiées</small></span>
+        </button>
+      </div>
+
+      <div class="source-actions">
+        <button id="useSnapshotBtn" class="btn secondary" type="button"><i class="fa-solid fa-table-cells-large"></i> Utiliser l’aperçu DATA MUST SPEAK</button>
+        <button id="syncKoboBtn" class="btn primary" type="button"><i class="fa-solid fa-cloud-arrow-down"></i> Synchroniser depuis KoboToolbox</button>
+        <label class="btn outline file-button" for="jsonImport"><i class="fa-solid fa-file-import"></i> Importer un JSON Kobo</label>
+        <input id="jsonImport" type="file" accept=".json,application/json" hidden>
+        <button id="refreshViewBtn" class="btn ghost" type="button"><i class="fa-solid fa-rotate"></i> Actualiser l’analyse</button>
+      </div>
+      <div id="sourceMessage" class="source-message">
+        L’aperçu intégré ne contient que des statistiques agrégées issues du classeur. Les noms, prénoms, téléphones et réponses texte libres individuelles ne sont pas incorporés dans cette page.
+      </div>
+      <div class="kobo-direct-note"><i class="fa-solid fa-route"></i> <strong>Connexion KoboToolbox avec secours automatique :</strong> le module tente d’abord <code>fetch(.../data.json)</code> directement. En cas de blocage réseau/CORS, il essaie ensuite AllOrigins, CodeTabs puis corsproxy.io. <strong>Attention :</strong> lorsqu’un proxy public est utilisé, les données transitent par ce service tiers ; aucun token Kobo n’est envoyé.</div>
+    </section>
+
+    <section class="territorial-panel card" aria-labelledby="territorialTitle">
+      <div class="section-heading compact territorial-heading">
+        <div>
+          <span class="section-kicker">NIVEAU D’ANALYSE TERRITORIALE</span>
+          <h2 id="territorialTitle">Choisissez l’onglet DREN, CISCO ou ZAP</h2>
+          <p>Chaque onglet réorganise immédiatement les KPI, graphiques, tableaux et regroupements autour du niveau territorial sélectionné.</p>
+        </div>
+        <div id="territorialStatus" class="territorial-status">DREN</div>
+      </div>
+      <nav class="territorial-tabs" role="tablist" aria-label="Niveaux DREN CISCO ZAP">
+        <button class="territorial-tab active" type="button" role="tab" aria-selected="true" data-scope="DREN"><i class="fa-solid fa-map"></i><span><strong>DREN</strong><small>Analyse régionale</small></span></button>
+        <button class="territorial-tab" type="button" role="tab" aria-selected="false" data-scope="CISCO"><i class="fa-solid fa-building"></i><span><strong>CISCO</strong><small>Analyse par circonscription</small></span></button>
+        <button class="territorial-tab" type="button" role="tab" aria-selected="false" data-scope="ZAP"><i class="fa-solid fa-school"></i><span><strong>ZAP</strong><small>Analyse de proximité</small></span></button>
+      </nav>
+      <div id="territorialMessage" class="territorial-message"><strong>Onglet DREN actif.</strong> Les indicateurs et comparaisons sont centrés sur le niveau régional.</div>
+    </section>
+
+    <nav class="workspace-tabs" aria-label="Espaces d'analyse">
+      <button class="workspace-tab active" data-tab="dashboard"><i class="fa-solid fa-gauge-high"></i> Tableau de bord exécutif</button>
+      <button class="workspace-tab" data-tab="question"><i class="fa-solid fa-chart-simple"></i> Analyse par question</button>
+      <button class="workspace-tab" data-tab="search"><i class="fa-solid fa-magnifying-glass"></i> Recherche multicritères</button>
+      <button class="workspace-tab" data-tab="catalog"><i class="fa-solid fa-list-check"></i> Catalogue des questions</button>
+      <button class="workspace-tab" data-tab="method"><i class="fa-solid fa-circle-info"></i> Méthodologie</button>
+    </nav>
+
+    <section id="tab-dashboard" class="workspace-panel active">
+      <div class="section-heading">
+        <div>
+          <span class="section-kicker">PILOTAGE EN TEMPS RÉEL</span>
+          <h2 id="dashboardTitle">Tableau de bord exécutif — DMS CISCO</h2>
+          <p id="dashboardSubtitle">Couverture géographique • accès aux données • capacités • besoins d’appui</p>
+        </div>
+        <div class="toolbar">
+          <button class="btn small outline" data-export="dashboard-json"><i class="fa-solid fa-file-code"></i> JSON synthèse</button>
+          <button class="btn small outline" data-export="dashboard-csv"><i class="fa-solid fa-file-csv"></i> CSV synthèse</button>
+          <button class="btn small ghost" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimer</button>
+        </div>
+      </div>
+
+      <div id="kpiGrid" class="kpi-grid"></div>
+
+      <div class="chart-grid">
+        <article class="chart-card"><div class="chart-card-head"><h3 id="primaryGeoTitle">Réponses par DREN</h3><span id="primaryGeoSubtitle">Couverture territoriale</span></div><div class="chart-box"><canvas id="chartDren"></canvas></div><div id="tableDren" class="mini-table-wrap"></div></article>
+        <article class="chart-card"><div class="chart-card-head"><h3 id="secondaryGeoTitle">Réponses par CISCO</h3><span id="secondaryGeoSubtitle">Top des unités couvertes</span></div><div class="chart-box"><canvas id="chartCisco"></canvas></div><div id="tableCisco" class="mini-table-wrap"></div></article>
+        <article class="chart-card"><div class="chart-card-head"><h3 id="thirdGeoTitle">Participation à la formation TDB</h3><span id="thirdGeoSubtitle">Adoption / formation</span></div><div class="chart-box"><canvas id="chartThird"></canvas></div><div id="tableThird" class="mini-table-wrap"></div></article>
+        <article class="chart-card"><div class="chart-card-head"><h3>Évolution des enquêtes</h3><span>Nombre de soumissions par date</span></div><div class="chart-box"><canvas id="chartTimeline"></canvas></div><div id="tableTimeline" class="mini-table-wrap"></div></article>
+        <article class="chart-card wide"><div class="chart-card-head"><h3>Profil de capacité</h3><span>Score moyen par compétence</span></div><div class="chart-box radar"><canvas id="chartCapacity"></canvas></div><div id="tableCapacity" class="mini-table-wrap"></div></article>
+        <article class="chart-card wide"><div class="chart-card-head"><h3>Synthèse thématique normalisée</h3><span>Accès & outils • formation • attitudes • pratiques • compétences • supervision • responsabilités • freins & leviers</span></div><div class="chart-box"><canvas id="chartThemes"></canvas></div><div id="tableThemes" class="mini-table-wrap"></div></article>
+      </div>
+    </section>
+
+    <section id="tab-question" class="workspace-panel">
+      <div class="section-heading">
+        <div><span class="section-kicker">QUESTION / INDICATEUR</span><h2>Analyse dynamique d’une question KoboToolbox</h2><p>Equivalent web du sélecteur « Question / indicateur » et du mode de restitution du classeur DATA MUST SPEAK.</p></div>
+        <div class="toolbar">
+          <button id="exportQuestionCsv" class="btn small outline"><i class="fa-solid fa-file-csv"></i> CSV</button>
+          <button id="exportQuestionJson" class="btn small outline"><i class="fa-solid fa-file-code"></i> JSON</button>
+          <button id="downloadQuestionChart" class="btn small outline"><i class="fa-solid fa-image"></i> PNG</button>
+        </div>
+      </div>
+
+      <div class="filters-grid question-filters">
+        <label>Thème / module<select id="themeSelect"></select></label>
+        <label>Question / indicateur<select id="questionSelect"></select></label>
+        <label>Mode d’affichage<select id="groupModeSelect"><option value="all">Réponse de tous confondus</option><option value="DREN">Réponse groupée par DREN</option><option value="CISCO">Réponse groupée par CISCO</option><option value="ZAP">Réponse groupée par ZAP</option></select></label>
+        <label>Type de graphique<select id="questionChartType"><option value="bar">Barres</option><option value="pie">Camembert</option><option value="doughnut">Anneau</option><option value="line">Courbe</option></select></label>
+      </div>
+
+      <article class="analysis-card">
+        <div class="question-context">
+          <span id="questionTypeBadge" class="type-badge">—</span>
+          <h3 id="questionLabel">Sélectionnez une question</h3>
+          <p id="questionMeta">—</p>
+        </div>
+        <div id="questionKpis" class="question-kpis"></div>
+        <div class="question-output-grid">
+          <div class="chart-box large"><canvas id="chartQuestion"></canvas></div>
+          <div id="questionInsight" class="insight-box"></div>
+        </div>
+        <div class="detail-title"><h4>Données exactes utilisées par le graphique</h4><span id="questionTableCaption"></span></div>
+        <div id="questionTable" class="data-table-wrap"></div>
+      </article>
+    </section>
+
+    <section id="tab-search" class="workspace-panel">
+      <div class="section-heading"><div><span class="section-kicker">RECHERCHE OPÉRATIONNELLE</span><h2>Formulaire de recherche multicritères</h2><p>Les filtres sur les enregistrements individuels sont disponibles après synchronisation Kobo ou import JSON. Le snapshot intégré reste volontairement agrégé.</p></div><div class="toolbar"><button id="exportFilteredCsv" class="btn small outline"><i class="fa-solid fa-file-csv"></i> Exporter CSV filtré</button><button id="exportFilteredJson" class="btn small outline"><i class="fa-solid fa-file-code"></i> Exporter JSON filtré</button></div></div>
+      <div class="filters-grid search-filters">
+        <label>DREN<select id="filterDren"><option value="">Toutes</option></select></label>
+        <label>CISCO<select id="filterCisco"><option value="">Toutes</option></select></label>
+        <label id="filterZapLabel">ZAP<select id="filterZap"><option value="">Toutes</option></select></label>
+        <label>Date début<input id="filterDateFrom" type="date"></label>
+        <label>Date fin<input id="filterDateTo" type="date"></label>
+        <label>Identifiant de soumission<input id="filterId" type="search" placeholder="Ex. 834526060"></label>
+        <div class="filter-buttons"><button id="applyFilters" class="btn primary"><i class="fa-solid fa-filter"></i> Appliquer</button><button id="resetFilters" class="btn ghost"><i class="fa-solid fa-eraser"></i> Réinitialiser</button></div>
+      </div>
+      <div id="searchAvailability" class="availability-note"></div>
+      <div class="result-summary"><strong id="filteredCount">0</strong> ligne(s) affichée(s) <span id="filteredSource"></span></div>
+      <div id="searchTable" class="data-table-wrap tall"></div>
+    </section>
+
+    <section id="tab-catalog" class="workspace-panel">
+      <div class="section-heading"><div><span class="section-kicker">SCHÉMA XLSFORM / KOBO</span><h2>Catalogue canonique des questions utiles</h2><p>Le mapping reprend les feuilles « Questions_Utiles_CISCO » et « Questions_Utiles_ZAP » du classeur de référence.</p></div><div class="catalog-count"><strong id="catalogCount">—</strong><span>questions cartographiées</span></div></div>
+      <div class="filters-grid catalog-filters"><label>Rechercher une question<input id="catalogSearch" type="search" placeholder="Mot-clé, code, libellé..."></label><label>Type d’analyse<select id="catalogType"><option value="">Tous les types</option></select></label><label>Thème<select id="catalogTheme"><option value="">Tous les thèmes</option></select></label></div>
+      <div id="catalogTable" class="data-table-wrap tall"></div>
+    </section>
+
+    <section id="tab-method" class="workspace-panel">
+      <div class="method-grid">
+        <article class="method-card"><i class="fa-solid fa-table-cells"></i><h3>1. Inspiration DATA MUST SPEAK</h3><p>Le module reprend la logique du classeur et ajoute trois onglets territoriaux DREN / CISCO / ZAP : centre d’accueil, tableaux de bord, questions utiles, recherche et détails graphiques.</p></article>
+        <article class="method-card"><i class="fa-solid fa-cloud"></i><h3>2. Données KoboToolbox</h3><p>Les assets CISCO et ZAP identifiés dans le classeur peuvent être synchronisés directement via l’API KoboToolbox. Un import JSON reste disponible en secours.</p></article>
+        <article class="method-card"><i class="fa-solid fa-chart-line"></i><h3>3. Restitution dynamique</h3><p>Chaque question peut être analysée globalement ou, lorsque les données détaillées sont chargées, regroupée par DREN, CISCO ou ZAP, avec graphique et tableau des valeurs exactes.</p></article>
+        <article class="method-card"><i class="fa-solid fa-user-shield"></i><h3>4. Confidentialité</h3><p>Le snapshot livré avec le site est agrégé. Les valeurs NOM, PRÉNOMS, TÉLÉPHONE et les textes libres individuels ne sont pas intégrés dans le code public.</p></article>
+      </div>
+      <article class="method-note"><h3>Correspondance avec le classeur</h3><div class="mapping-grid"><span><strong>Accueil_DMS</strong> → en-tête, source, navigation</span><span><strong>Tableau_de_Bord_CISCO / ZAP</strong> → KPI et graphiques exécutifs</span><span><strong>Questions_Utiles_CISCO / ZAP</strong> → catalogue et sélecteur de questions</span><span><strong>Formulaire_Recherche_CISCO / ZAP</strong> → recherche multicritères</span><span><strong>Details_Graphiques_CISCO / ZAP</strong> → tableau exact sous chaque graphique</span><span><strong>REF_SCHEMA_KOBO_STABLE</strong> → assets, versions et typologie des questions</span></div></article>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="SUIVI_IOV_SPSSE_javascript.js?v=20260828-1700-kobo-corsbridge-v6-9" defer></script>
+</body>
+</html>
